@@ -2,6 +2,16 @@
 
 <a id="p-9-reasoning-and-test-time-compute-1"></a><!-- para:9-reasoning-and-test-time-compute-1 --> The pass@k metric (Section 3) exposes a gap that defines this section: a model's single-sample quality (pass@1) is often far below what it can achieve when allowed to *generate many candidates and select* (pass@100). That gap is latent capability recoverable at inference time — and code's executable reward makes recovering it unusually easy, because the model can *check* candidates by running them. This section moves from cheap inference-time tricks to full RL-trained reasoning models, the current frontier.
 
+**Intuition.** Test-time compute buys accuracy with inference instead of training: spend more forward passes per problem — sample many candidates, reason in longer chains, run-and-repair — and the success rate climbs. The pass@1-to-pass@k gap of Section 3 is exactly the headroom this exploits, and code makes the *selection* step nearly free because candidates can be filtered by running the tests (an executable verifier), rather than guessed at. The tradeoff is explicit and quantified in Section 14: solve rate rises, but cost and latency rise with the number of samples and the length of reasoning.
+
+```mermaid
+flowchart LR
+  P["problem"] --> S["sample k candidates<br/>(and/or longer chains)"]
+  S --> E["run against tests<br/>(executable verifier)"]
+  E --> B["select a passing candidate"]
+  B --> A["answer"]
+```
+
 <!-- sec:9.1 -->
 ### <a id="sec-9.1"></a>9.1 Chain-of-Thought and Sampling-and-Selection
 

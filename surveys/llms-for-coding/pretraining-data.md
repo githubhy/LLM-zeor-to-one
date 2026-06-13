@@ -2,6 +2,18 @@
 
 <a id="p-6-pretraining-data-1"></a><!-- para:6-pretraining-data-1 --> If one fact organizes this survey, it is that *data is the moat* for code models. Architectures are largely shared with general LLMs; the recipe (Section 5) is stable; what most separates a strong code model from a weak one is the corpus. This section walks the data pipeline — sourcing, licensing, deduplication, quality filtering, decontamination — using the openly documented corpora (The Stack and its successors) as the worked example, because frontier closed datasets are not published.
 
+**Intuition.** The pipeline is a cascade of filters on a firehose of public code, each removing tokens that would otherwise hurt or cheat the next-token objective of Section 3 — much like conditioning a signal before it enters an estimator. Deduplicate so copies do not dominate the average; license-filter for legality; quality-filter to raise signal-to-noise; decontaminate so the benchmarks do not leak into training. The scaling laws of Section 3 promise that loss falls predictably with *more* tokens — but only clean, non-redundant, in-distribution tokens count, which is why curation rather than raw volume is the moat.
+
+```mermaid
+flowchart LR
+  G["public code<br/>(GitHub / Software Heritage)"] --> L["license filter<br/>(permissive only)"]
+  L --> D["dedup<br/>(exact + MinHash/LSH)"]
+  D --> Q["quality filter"]
+  Q --> X["benchmark<br/>decontamination"]
+  X --> T["tokenize<br/>(byte-level BPE)"]
+  T --> O["pretrain:<br/>next-token + FIM"]
+```
+
 <!-- sec:6.1 -->
 ### <a id="sec-6.1"></a>6.1 Building a Code Corpus: The Stack
 
