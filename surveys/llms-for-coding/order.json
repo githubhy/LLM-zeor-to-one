@@ -1,0 +1,22 @@
+[
+  "index.md",
+  "executive-summary.md",
+  "scope-and-the-code-modality.md",
+  "historical-evolution.md",
+  "conceptual-and-mathematical-fundamentals.md",
+  "the-code-model-pipeline.md",
+  "pretraining-data.md",
+  "pretraining-objectives-and-scaling.md",
+  "instruction-tuning-and-alignment.md",
+  "reasoning-and-test-time-compute.md",
+  "inference-decoding-and-serving.md",
+  "retrieval-and-repository-context.md",
+  "agentic-coding-systems.md",
+  "evaluation-and-benchmarks.md",
+  "compute-cost-and-latency-tradeoffs.md",
+  "state-of-the-art-and-practice.md",
+  "safety-security-and-licensing.md",
+  "design-guidance.md",
+  "open-problems-and-roadmap.md",
+  "references.md"
+]

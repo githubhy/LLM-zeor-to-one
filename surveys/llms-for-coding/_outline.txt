@@ -1,0 +1,39 @@
+# Large Language Models for Code: From Codex to Agentic Software Engineering
+
+## Executive Summary
+
+## Scope and the Code Modality
+
+## Historical Evolution
+
+## Conceptual and Mathematical Fundamentals
+
+## The Code Model Pipeline
+
+## Pretraining Data
+
+## Pretraining Objectives and Scaling
+
+## Instruction Tuning and Alignment
+
+## Reasoning and Test-Time Compute
+
+## Inference Decoding and Serving
+
+## Retrieval and Repository Context
+
+## Agentic Coding Systems
+
+## Evaluation and Benchmarks
+
+## Compute Cost and Latency Tradeoffs
+
+## State of the Art and Practice
+
+## Safety Security and Licensing
+
+## Design Guidance
+
+## Open Problems and Roadmap
+
+## References
