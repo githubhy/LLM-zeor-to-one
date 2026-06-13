@@ -22,4 +22,9 @@
 - **Result**: SIGN-OFF. `/check-survey` green after fix (lint-math 0, equations sequential, links up-to-date, paragraphs/sections clean, validate-refs 0/0, bare-refs exit 0, references 53/0). Survey ≈15.7k words, 19 files, 45 local + 8 weak refs. All 13 tasks complete.
 - **Findings**: The audit caught one subagent-introduced base-figure misattribution (48.2↔37.8 across adjacent Table-1 rows) that survived authoring; two other drifts (o1 vs o1-ioi rating; o3 2724 vs 2706; RLEF abstract→full-text) were caught earlier during authoring-time verification. Net: the fan-out audit is the gate that catches exactly the cross-row numeric drift parametric/secondary evidence introduces.
 
+## Conversation 5
+- **Request**: commit and push; then merge to main and clean up.
+- **Actions**: Branched `survey/llms-for-coding` off main (per default-branch rule), committed 36 files as `bbb1f29` (survey + `_scratch` evidence + reports/bugs/prompts; `download/*` PDFs gitignored), pushed to origin. Then fast-forwarded `main` to `bbb1f29`, pushed `main` (8ebd7de..bbb1f29), and deleted the feature branch local + remote.
+- **Result**: Delivered on `main` (origin `githubhy/LLM-zeor-to-one`). Working tree clean; only `main` remains. All 13 survey tasks complete.
+
 <!-- LOG-END -->
