@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Cache-warmer runtime markers + validation dirty-flag (session-local, transient)
+.claude/cache-warmer.*.active
+.claude/validate-refs.dirty
+
+# Acquired full-text sources are large/copyright-bound — keep the dir, not contents
+download/*
+!download/.gitkeep
+
+# OS / editor
+.DS_Store
+*.swp

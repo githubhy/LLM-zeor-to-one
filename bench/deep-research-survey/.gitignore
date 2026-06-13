@@ -1,0 +1,5 @@
+# Benchmark run artifacts (regenerate via run-integration-test.sh)
+results/
+*.result.json
+*.log
+judge_prompt*.txt

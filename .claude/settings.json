@@ -1,0 +1,39 @@
+{
+  "env": {
+    "ENABLE_PROMPT_CACHING_1H": "1"
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/post-edit-lint.sh\"",
+            "timeout": 30,
+            "statusMessage": "Linting & renumbering..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/validate-refs-on-dirty.sh\"",
+            "timeout": 60,
+            "statusMessage": "Validating cross-references..."
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/status-line.sh\""
+  },
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true
+  }
+}

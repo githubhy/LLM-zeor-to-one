@@ -1,0 +1,30 @@
+{
+  "_comment": "Frozen benchmark topics for the deep-research-survey A/B. Gold references are the repo's OWN completed surveys (the ReportBench 'reverse-engineer the prompt from a gold survey' method). Run each topic through the baseline and improved SKILL.md, N>=3 repeats per arm, same model. Keep this set frozen across runs so deltas are attributable to the skill, not the topics.",
+  "models": {
+    "generator": "pin one model across both arms; the only variable is the SKILL.md",
+    "judge": "MUST differ from generator (avoid self-preference bias; see proposal P1-3)"
+  },
+  "repeats_per_arm": 3,
+  "topics": [
+    {
+      "id": "rag",
+      "prompt": "Use the deep-research-survey skill to produce a rigorous survey on Retrieval-Augmented Generation architectures and tradeoffs (dense vs sparse retrieval, chunking, reranking, fusion-in-decoder vs in-context, eval). First principles to SOTA.",
+      "gold_reference": "surveys/rag-systems-survey.md",
+      "mode": "survey",
+      "note": "The 2026-03 survey whose agent-death incident produced agent-research-strategy.md — natural P0-1 orchestration A/B."
+    },
+    {
+      "id": "peft",
+      "prompt": "Use the deep-research-survey skill to produce a rigorous survey on parameter-efficient fine-tuning methods (LoRA, adapters, prefix-tuning, QLoRA, merging, tradeoffs).",
+      "gold_reference": "surveys/peft-methods-survey.md",
+      "mode": "survey"
+    },
+    {
+      "id": "rlhf",
+      "prompt": "Use the deep-research-survey skill to produce a survey/design-review on RLHF and preference optimization (reward modeling, PPO, DPO, RLAIF, reward hacking, eval).",
+      "gold_reference": "surveys/rlhf-preference-optimization-design-review.md",
+      "mode": "survey",
+      "note": "Large multi-section topic; stresses cross-section consistency (P1-2)."
+    }
+  ]
+}
