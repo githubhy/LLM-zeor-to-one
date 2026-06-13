@@ -163,3 +163,36 @@ $$
 with $a \approx b \approx 0.5$ (Chinchilla reports $a=b=0.50$ from two methods and $a=0.46$, $b=0.54$ from a third) [56]. **The conclusion that reshaped practice:** model size and training tokens should grow in roughly *equal* proportion, so the compute-optimal "tokens per parameter" is a constant — about $20$ for the Chinchilla setup. Their 70B-parameter model trained on 1.4 trillion tokens (four times the data, at the same compute, as the 280B Gopher) outperformed Gopher, GPT-3 (175B), and larger models [56] — direct evidence that earlier large models were badly *under-trained*: too many parameters fed too little data.
 
 **Intuition (signal processing).** Equation <!-- ref:3-6 -->[(6)](#eq-6) is a capacity-versus-data tradeoff with an irreducible floor — structurally the bias-variance / rate-distortion shape a signal-processing reader knows: $E$ is the floor you cannot beat, $A/N^\alpha$ is model-capacity bias, $B/D^\beta$ is finite-sample error, and the budget line $C=6ND$ is the resource you allocate between them. These laws explain two choices in later sections: why production code models deliberately *over-train* small models far past the compute-optimal point to make inference cheap (StarCoder 2, Section 7), and why the *composition* of the data — not just its size — moves the curve (the data-quality and code:text:math-mixture results of Sections 6 and 7).
+
+### 3.7 Tokenization for Code
+
+Code language models are ordinary autoregressive Transformers (Section 3.1) trained on code — CodeGen and InCoder maximize the likelihood of a code corpus [3], [4], and Codex is a GPT-family model fine-tuned on code [1] — with everything code-specific layered on top. The first such specialization is the tokenizer, which code stresses in ways prose does not: significant indentation, runs of whitespace, and long compound identifiers. Two design responses recur. CodeGen extends the GPT-2 byte-pair vocabulary with special tokens for repeated runs of tabs and spaces, compressing Python's indentation [3]. InCoder instead trains a byte-level BPE tokenizer that allows merges to cross whitespace (excluding newlines), so an idiom like `import numpy as np` can become a single token; this reduces the tokens needed to encode its corpus by 45% relative to GPT-2's tokenizer [4]. Modern code models use byte-level BPE with vocabularies tuned for the code mixture — 49,152 for StarCoder, 32,000 for DeepSeek-Coder, 151,646 for Qwen2.5-Coder [9], [10], [11] — a point developed in Section 7. The byte-level fallback also guarantees that arbitrary identifiers and Unicode never produce out-of-vocabulary tokens.
+
+### 3.8 Fill-in-the-Middle: Teaching a Causal Model to Infill
+
+A purely left-to-right model can only condition on context to its left, which prevents it from filling a hole that has committed code on both sides — the common case when editing. A masked (BERT-style) model sees both sides but is trained to predict only a small fraction of tokens and cannot generate freely. Fill-in-the-middle (FIM) reconciles the two with a strikingly simple idea: rewrite a fraction of training documents so the model still trains autoregressively, yet learns to infill. Split a document into three pieces and move the middle to the end [5]:
+
+<a id="eq-8"></a><!-- eq:3-8 -->
+$$
+(\text{prefix},\ \text{middle},\ \text{suffix}) \;\longrightarrow\; \langle\text{PRE}\rangle\,\text{prefix}\,\langle\text{SUF}\rangle\,\text{suffix}\,\langle\text{MID}\rangle\,\text{middle} \tag{8}
+$$
+
+The reordered form in Equation <!-- ref:3-8 -->[(8)](#eq-8) is the **prefix-suffix-middle (PSM)** layout, concatenated with sentinel tokens. At inference the model is prompted with everything up to and including $\langle\text{MID}\rangle$ and samples the middle until it emits an end token. A **suffix-prefix-middle (SPM)** ordering also exists and is preferred for key-value cache reuse, because appending tokens to the prefix does not invalidate the cached suffix [5]. The transform is applied at the character level so completions remain sensible when a prefix ends mid-token, and the best results come from training jointly on PSM and SPM [5]. The defining empirical result is "FIM-for-free": training with a 50% FIM rate leaves the left-to-right loss unchanged, so infilling is acquired at no measurable cost to ordinary generation [5]. Production code models adopt FIM almost universally (Section 7).
+
+### 3.9 Measuring Correctness: The pass@k Estimator
+
+Because code is executable (Section 2), it is judged by *running it*, not by string overlap with a reference. The standard metric is **pass@k**: generate $k$ samples for a problem and count it solved if any sample passes the problem's unit tests. Estimating this naively — draw exactly $k$ samples and report the solved fraction — is high-variance. Codex instead draws $n \geq k$ samples per problem (the paper uses $n = 200$, $k \leq 100$), counts the number $c \leq n$ that pass, and computes the unbiased estimator [1]
+
+<a id="eq-9"></a><!-- eq:3-9 -->
+$$
+\text{pass@}k := \mathbb{E}_{\text{problems}}\!\left[\,1 - \frac{\binom{n-c}{k}}{\binom{n}{k}}\,\right] \tag{9}
+$$
+
+The bracketed term in Equation <!-- ref:3-9 -->[(9)](#eq-9) is one minus the probability that a size-$k$ subset of the $n$ samples contains *no* correct sample. It is tempting to instead estimate pass@k as $1-(1-\hat{p})^k$ from an empirical pass@1 of $\hat{p}$, but Codex shows this is biased [1]. Evaluating Equation <!-- ref:3-9 -->[(9)](#eq-9) directly overflows for large $n$, so it is computed in the numerically stable product form
+
+<a id="eq-10"></a><!-- eq:3-9b -->
+$$
+\text{pass@}k = 1 - \prod_{i=n-c+1}^{n}\left(1 - \frac{k}{i}\right) \tag{10}
+$$
+
+Two consequences matter for the whole survey. First, pass@k separates a model's *generation* quality (pass@1) from the leverage of *sampling many candidates and selecting* (the gap up to pass@100), which is precisely what reranking and test-time methods exploit (Section 9). Second, the metric is only as honest as the test suite behind it — a theme that drives the test-adequacy critique of Section 13. Functional correctness is "the most convincing" criterion because it is the one human developers use [1], but it inherits the coverage of whatever tests define it.
