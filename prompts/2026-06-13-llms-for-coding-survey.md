@@ -27,4 +27,9 @@
 - **Actions**: Branched `survey/llms-for-coding` off main (per default-branch rule), committed 36 files as `bbb1f29` (survey + `_scratch` evidence + reports/bugs/prompts; `download/*` PDFs gitignored), pushed to origin. Then fast-forwarded `main` to `bbb1f29`, pushed `main` (8ebd7de..bbb1f29), and deleted the feature branch local + remote.
 - **Result**: Delivered on `main` (origin `githubhy/LLM-zeor-to-one`). Working tree clean; only `main` remains. All 13 survey tasks complete.
 
+## Conversation 6
+- **Request**: also upload the download/ PDFs, lightweight.
+- **Actions**: Flagged that `.gitignore` had excluded `download/*` as "large/copyright-bound"; user confirmed upload via **Git LFS** (chosen over a GitHub Release asset). Ran `git lfs install` + `git lfs track "download/*.pdf"` (→ `.gitattributes`), updated `.gitignore` to allow `download/*.pdf` (other contents still ignored), staged 45 PDFs + the two config files. Verified PDFs stage as LFS pointers (18.8 MB semdedup → 133-byte pointer). Committed `c00388f`, pushed `main`; LFS uploaded 45 objects / 113 MB. `git lfs fsck OK`.
+- **Result**: Acquired full-text sources now in the repo under `download/` via LFS — git history stays light (pointers), blobs in GitHub LFS (~113 MB of 1 GB free tier). references.md↔download/ invariant now holds for clones too (after `git lfs pull`). Working tree clean.
+
 <!-- LOG-END -->
