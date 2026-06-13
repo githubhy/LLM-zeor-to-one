@@ -1,0 +1,15 @@
+{
+  "name": "llm-zero-to-one-viewer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local markdown viewer for surveys/ (serve.js + client bundle). Ported from data-channel-receiver/viewer.",
+  "type": "commonjs",
+  "main": "viewer.js",
+  "scripts": {
+    "start": "node serve.js"
+  },
+  "dependencies": {
+    "chokidar": "^4.0.0",
+    "ws": "^8.20.0"
+  }
+}

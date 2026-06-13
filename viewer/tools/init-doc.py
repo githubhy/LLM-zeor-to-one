@@ -271,7 +271,8 @@ sys.exit(subprocess.call([sys.executable, str(MASTER)] + args))
     print(f"\nNext steps:")
     print(f"  1. Fill in <!-- TODO: content --> placeholders")
     print(f"  2. Run: python renumber-equations.py <file>.md")
-    print(f"  3. View: node viewer/serve.js {output_dir}")
+    print(f"  3. View (one-time: cd viewer && npm install):")
+    print(f"        node viewer/serve.js {output_dir} -p 4500")
     return True
 
 

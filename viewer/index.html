@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Markdown Viewer</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" href="icons/icon-192.png">
+  <meta name="theme-color" content="#2563EB">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Surveys">
+
+  <script>
+    // Theme FOUC guard: set data-theme + browser-chrome tint before first
+    // paint. Inline by necessity (it must run before any module loads), so
+    // the storage key, the theme whitelist, and the tint values are
+    // deliberate duplicates of lib/settings-store.js (SETTINGS_KEY, SCHEMA)
+    // and viewer.js THEME_COLORS — the cross-file contract is pinned by
+    // tests/unit/fouc-guard.test.js.
+    (function () {
+      // The parse is isolated so corrupt storage cannot skip the layout
+      // stamp: data-layout must be set before first paint in EVERY case, or
+      // the page boots painted classic while the JS treats it as reader
+      // until loadSettings() lands (QR finding).
+      var s = {};
+      try { s = JSON.parse(localStorage.getItem('viewer.settings.v1') || '{}') || {}; } catch (e) {}
+      if (s.theme === 'sepia' || s.theme === 'dark') {
+        document.documentElement.dataset.theme = s.theme;
+        var tint = s.theme === 'dark' ? '#1a1d23' : '#8a5a2b';
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', tint);
+      }
+      document.documentElement.dataset.layout = (s.layout === 'classic') ? 'classic' : 'reader';
+    })();
+  </script>
+
+  <!-- KaTeX -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
+
+  <!-- markdown-it -->
+  <script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js"></script>
+
+  <!-- markdown-it-texmath (math delimiters) -->
+  <script src="https://cdn.jsdelivr.net/npm/markdown-it-texmath@1.0.0/texmath.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/markdown-it-texmath@1.0.0/css/texmath.min.css">
+
+  <!-- markdown-it-mark (==highlight==) -->
+  <script src="https://cdn.jsdelivr.net/npm/markdown-it-mark@4.0.0/dist/markdown-it-mark.min.js"></script>
+
+  <!-- markdown-it-footnote ([^id] note refs and defs) -->
+  <script src="https://cdn.jsdelivr.net/npm/markdown-it-footnote@4.0.0/dist/markdown-it-footnote.min.js"></script>
+
+  <!-- Mermaid diagram renderer (flowchart/sequence/etc.). Script loads
+       synchronously; viewer.js's renderMermaidDiagrams() no-ops if
+       window.mermaid isn't present so test fixtures without this CDN still
+       behave. -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+  <script>
+    if (window.mermaid) {
+      window.mermaid.initialize({
+        startOnLoad: false,
+        securityLevel: 'loose',
+        theme: (document.documentElement.dataset.theme === 'dark') ? 'dark' : 'default',
+        flowchart: { useMaxWidth: true, htmlLabels: true },
+        sequence: { useMaxWidth: true },
+      });
+    }
+  </script>
+
+  <link rel="stylesheet" href="style.css">
+  <script>window.__PWA_SW_URL = 'sw.js';</script>
+</head>
+<body>
+  <div id="app">
+    <header id="reader-topbar" aria-label="Reader toolbar">
+      <span id="reader-crumb"></span>
+      <span class="rt-spacer"></span>
+      <button id="rt-palette" title="Command palette (Ctrl+K)" aria-label="Command palette" aria-keyshortcuts="Control+K Meta+K"><span aria-hidden="true">&#8984;K</span></button>
+      <button id="rt-aa" title="Appearance &amp; settings" aria-label="Appearance and settings" aria-controls="sidebar" aria-expanded="false">Aa</button>
+      <button id="rt-theme" title="Cycle theme" aria-label="Cycle theme">&#9681;</button>
+    </header>
+    <nav id="reader-pill" aria-label="Reader navigation">
+      <button data-pill="files" title="Files" aria-label="Files" aria-controls="sidebar" aria-expanded="false"><span aria-hidden="true">&#9636;</span> files</button>
+      <button data-pill="outline" title="Outline" aria-label="Outline" aria-controls="sidebar" aria-expanded="false"><span aria-hidden="true">&#9776;</span> outline</button>
+      <button data-pill="highlights" title="Highlights" aria-label="Highlights" aria-controls="sidebar" aria-expanded="false"><span aria-hidden="true">&#9998;</span> marks</button>
+      <span id="pill-pct">0%</span>
+    </nav>
+    <nav id="mobile-toolbar" aria-label="Reader toolbar">
+      <button data-mt="files" title="Files" aria-label="Files" aria-controls="sidebar" aria-expanded="false"><span aria-hidden="true">&#9636;</span>files</button>
+      <button data-mt="outline" title="Outline" aria-label="Outline" aria-controls="sidebar" aria-expanded="false"><span aria-hidden="true">&#9776;</span>outline</button>
+      <button data-mt="search" title="Search" aria-label="Search" aria-controls="sidebar" aria-expanded="false"><span aria-hidden="true">&#8981;</span>search</button>
+      <button data-mt="highlights" title="Highlights" aria-label="Highlights" aria-controls="sidebar" aria-expanded="false"><span aria-hidden="true">&#9998;</span>marks</button>
+      <button data-mt="aa" title="Appearance &amp; settings" aria-label="Appearance and settings" aria-controls="sidebar" aria-expanded="false"><span aria-hidden="true">Aa</span>settings</button>
+    </nav>
+    <aside id="sidebar">
+      <div id="sheet-handle" aria-hidden="true"></div>
+      <div id="sidebar-header">
+        <div id="sidebar-tabs" role="tablist">
+          <button class="sidebar-tab active" data-tab="files" title="Files" aria-label="Files">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 6h7l2 2h9v11a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1z"/>
+            </svg>
+          </button>
+          <button class="sidebar-tab" data-tab="outline" title="Outline (Ctrl+Shift+O)" aria-label="Outline">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="8" y1="6" x2="20" y2="6"/>
+              <line x1="8" y1="12" x2="20" y2="12"/>
+              <line x1="8" y1="18" x2="20" y2="18"/>
+              <circle cx="4" cy="6" r="1.2"/>
+              <circle cx="4" cy="12" r="1.2"/>
+              <circle cx="4" cy="18" r="1.2"/>
+            </svg>
+          </button>
+          <button class="sidebar-tab" data-tab="highlights" title="Highlights (Ctrl+Shift+H)" aria-label="Highlights">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 19l3-1 10-10-2-2L5 16l-1 3z"/>
+              <path d="M14 6l4 4"/>
+              <line x1="3" y1="22" x2="21" y2="22"/>
+            </svg>
+          </button>
+        </div>
+        <button id="settings-btn" title="Settings" aria-label="Settings">&#9881;</button>
+      </div>
+      <div id="settings-panel" class="settings-hidden">
+        <label><input type="checkbox" id="setting-scroll-fx" checked> Scroll effects</label>
+        <label><input type="checkbox" id="setting-update-fx" checked> Update effects</label>
+        <div class="settings-group">
+          <div class="settings-label">Citation link mode</div>
+          <label><input type="radio" name="citation-mode" value="github"> GitHub blob (HEAD sha)</label>
+          <label><input type="radio" name="citation-mode" value="local"> Localhost viewer</label>
+          <label><input type="radio" name="citation-mode" value="relative"> Relative repo path</label>
+        </div>
+        <div class="settings-group">
+          <div class="settings-label">Note marker</div>
+          <label><input type="radio" name="note-marker" value="icon"> Icon (✎)</label>
+          <label><input type="radio" name="note-marker" value="ring"> Color ring</label>
+        </div>
+        <label><input type="checkbox" id="setting-reading-progress" checked> Reading progress bar</label>
+        <div class="settings-group">
+          <div class="settings-label">Reading progress</div>
+          <label><input type="radio" name="reading-progress-mode" value="whole-doc"> Whole document</label>
+          <label><input type="radio" name="reading-progress-mode" value="section"> Current section</label>
+        </div>
+        <div class="settings-group" id="settings-group-layout">
+          <div class="settings-label">Layout (desktop)</div>
+          <label><input type="radio" name="layout-mode" value="reader"> Reader</label>
+          <label><input type="radio" name="layout-mode" value="classic"> Classic</label>
+        </div>
+        <div class="settings-group">
+          <div class="settings-label">Theme</div>
+          <label><input type="radio" name="theme" value="light"> Light</label>
+          <label><input type="radio" name="theme" value="sepia"> Sepia</label>
+          <label><input type="radio" name="theme" value="dark"> Dark</label>
+        </div>
+        <div class="settings-group">
+          <div class="settings-label">Typography</div>
+          <label>Size <input type="range" id="setting-font-scale" min="0.85" max="1.3" step="0.05"></label>
+          <label>Line height <input type="range" id="setting-line-height" min="1.4" max="2.0" step="0.05"></label>
+          <label>Width <input type="range" id="setting-content-max" min="640" max="1100" step="20"></label>
+          <label><input type="radio" name="content-font" value="sans"> Sans</label>
+          <label><input type="radio" name="content-font" value="serif"> Serif</label>
+        </div>
+      </div>
+      <div id="search-box">
+        <div id="search-input-wrap">
+          <input type="text" id="search-input" placeholder="Search..." autocomplete="off">
+          <button type="button" id="search-clear" title="Clear search" aria-label="Clear search" hidden>&times;</button>
+        </div>
+        <div id="search-results"></div>
+      </div>
+      <nav id="file-list"></nav>
+      <nav id="outline-list" class="tab-hidden"></nav>
+      <nav id="highlights-list" class="tab-hidden"></nav>
+      <div id="sidebar-resize"></div>
+    </aside>
+    <button id="sidebar-toggle" title="Toggle sidebar (Ctrl+B)" aria-label="Toggle sidebar" aria-controls="sidebar" aria-expanded="true">&#9776;</button>
+    <div id="drawer-backdrop" hidden></div>
+    <main id="content"></main>
+    <div id="reading-progress" aria-hidden="true"><div id="reading-progress-fill"></div></div>
+    <div id="reader-rail" aria-hidden="true"><div id="reader-rail-fill"></div></div>
+    <div id="cmd-palette" hidden role="dialog" aria-modal="true" aria-label="Command palette">
+      <div id="cmd-palette-box">
+        <input id="cmd-input" type="text" role="combobox" aria-expanded="true" aria-controls="cmd-results" aria-autocomplete="list" aria-description="Type to search files. Prefix with # for headings or &gt; for commands. Press Escape to close." placeholder="Go to file, # heading, &gt; command..." autocomplete="off" spellcheck="false">
+        <ul id="cmd-results" role="listbox" aria-label="Palette results"></ul>
+      </div>
+    </div>
+    <div id="peek-popover" hidden role="dialog" aria-label="Reference preview">
+      <div id="peek-body" aria-live="polite"></div>
+      <div id="peek-footer">
+        <button id="peek-close" type="button" aria-label="Close preview">&times;</button>
+        <button id="peek-goto" type="button" aria-label="Go to target">Go to &#8599;</button>
+      </div>
+    </div>
+  </div>
+  <script src="lib/highlight-shared.js"></script>
+  <script src="lib/scroll-sync.js"></script>
+  <script src="lib/source-index.js"></script>
+  <script src="lib/citation.js"></script>
+  <script src="lib/note-mutation.js"></script>
+  <script src="lib/write-queue.js"></script>
+  <script src="lib/backend.js"></script>
+  <script src="lib/settings-store.js"></script>
+  <script src="lib/version-check.js"></script>
+  <script src="lib/palette-rank.js"></script>
+  <script src="lib/peek-target.js"></script>
+  <script src="viewer.js"></script>
+</body>
+</html>

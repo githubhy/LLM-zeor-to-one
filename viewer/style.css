@@ -1,0 +1,1516 @@
+/* ── Reset & base ──────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --sidebar-w: 230px;
+  --content-max: 860px;
+  --accent: #2563eb;
+  --bg: #fafafa;
+  --sidebar-bg: #f0f0f0;
+  --border: #ddd;
+  --text: #1a1a1a;
+  --text-muted: #666;
+  --panel-bg: #ffffff;
+  --hl-yellow: #fff3a8;
+  --hl-green:  #b9f6ca;
+  --hl-red:    #ffcdd2;
+  --hl-blue:   #bbdefb;
+  --hl-orange: #ffe0b2;
+  --hl-purple: #ede7f6;
+  --hl-teal:   #b2dfdb;
+  --hl-pink:   #fce4ec;
+  /* Safe-area insets exposed to JS so toolbar/popover positioning can clamp
+     within the notch / home-indicator margins. `env()` resolves to 0px on
+     browsers without safe areas, so the fallback is harmless on desktop. */
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-right:  env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left:   env(safe-area-inset-left, 0px);
+}
+
+/* ── Themes (redesign 01) — variable swaps only; light stays in :root ── */
+html[data-theme="sepia"] {
+  --bg: #f4ecd8;
+  --panel-bg: #faf4e4;
+  --sidebar-bg: #ece1c8;
+  --border: #d8c9a8;
+  --text: #3a3022;
+  --text-muted: #7a6c54;
+  --accent: #8a5a2b;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #121418;
+  --panel-bg: #1a1d23;
+  --sidebar-bg: #161920;
+  --border: #333a45;
+  --text: #d7dae0;
+  --text-muted: #8b919c;
+  --accent: #7aa2f7;
+  --hl-yellow: #5c512a;
+  --hl-green:  #234d33;
+  --hl-red:    #5a2e33;
+  --hl-blue:   #1f3a5c;
+  --hl-orange: #54402a;
+  --hl-purple: #3a3354;
+  --hl-teal:   #1f4944;
+  --hl-pink:   #4d2a3a;
+}
+
+/* Figures: dim, never invert (spec section 7). */
+html[data-theme="dark"] #content img { filter: brightness(0.85); }
+
+html { font-size: 16px; scroll-behavior: smooth; overflow-anchor: none; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.7;
+}
+
+/* ── Layout ────────────────────────────────────────────────────── */
+#app { display: flex; min-height: 100vh; }
+
+#sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 10;
+  transition: transform 0.2s ease;
+}
+#sidebar.collapsed { transform: translateX(calc(-1 * var(--sidebar-w))); }
+
+/* Sidebar resize handle */
+#sidebar-resize {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 5px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 11;
+}
+#sidebar-resize:hover,
+html.sidebar-resizing #sidebar-resize {
+  background: var(--accent);
+  opacity: 0.4;
+}
+html.sidebar-resizing { cursor: col-resize !important; user-select: none !important; }
+
+#sidebar-header {
+  display: flex;
+  align-items: center;
+  padding: 12px 14px 8px;
+}
+/* Tab bar */
+#sidebar-tabs {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+.sidebar-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 6px 0;
+  height: 30px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.sidebar-tab svg { display: block; }
+.sidebar-tab:hover {
+  color: var(--text);
+  background: rgba(127, 127, 127, 0.10);
+}
+.sidebar-tab.active {
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.sidebar-tab.active:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* Settings gear button */
+#settings-btn {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+#settings-btn:hover { color: var(--text); }
+
+/* Settings panel */
+#settings-panel {
+  padding: 6px 14px 8px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+#settings-panel.settings-hidden { display: none; }
+#settings-panel label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+#settings-panel .settings-group {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+#settings-panel .settings-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+/* The open panel can exceed its container's fixed height (the desktop rail
+   on short windows — bug 2026-06-12-02; the 75dvh mobile sheet —
+   todos/2026-06-12-settings-panel-scroll-mobile.md); the column has no
+   scrollable ancestor, so without this the bottom groups are unreachable.
+   min-height:0 overrides the flex-item min-height:auto floor so the panel
+   can actually shrink; overflow-y then provides the scroll. */
+#settings-panel { min-height: 0; overflow-y: auto; }
+
+/* Tab visibility */
+.tab-hidden { display: none !important; }
+
+/* Toggle button — fixed outside sidebar so it stays visible when collapsed */
+#sidebar-toggle {
+  position: fixed;
+  top: 10px;
+  left: calc(var(--sidebar-w) + 6px);
+  z-index: 20;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: left 0.2s ease;
+}
+#sidebar-toggle:hover { background: var(--border); }
+#sidebar.collapsed ~ #sidebar-toggle { left: 10px; }
+
+#content {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  /* Flex-item min-width defaults to min-content, so a single wide child (a
+     long URL, a many-column table, a wide equation, a long code line) would
+     stop #content shrinking and push the whole page wider than the viewport
+     (horizontal scroll on phones/tablets). min-width:0 lets the column track
+     the viewport; overflow-wrap breaks long unbreakable tokens; the wide
+     block children (table/pre/.display-math-wrap) then scroll inside it. */
+  min-width: 0;
+  overflow-wrap: break-word;
+  padding: 32px 40px 80px;
+  max-width: calc(var(--content-max) + 80px);
+  font-size: calc(1rem * var(--font-scale, 1));
+  line-height: var(--content-lh, 1.7);
+  font-family: var(--content-font, inherit);
+  transition: margin-left 0.2s ease;
+  /* Body text must stay selectable on touch so the highlight gesture works. */
+  -webkit-user-select: text;
+  user-select: text;
+}
+#sidebar.collapsed ~ #content { margin-left: 0; }
+
+/* ── Search ────────────────────────────────────────────────────── */
+#search-box { padding: 4px 14px 10px; }
+#search-input-wrap { position: relative; }
+#search-input {
+  width: 100%;
+  padding: 6px 26px 6px 10px;          /* extra right padding for the clear button */
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  font-size: 0.85rem;
+  outline: none;
+  box-sizing: border-box;
+  background: var(--panel-bg);
+  color: var(--text);
+}
+#search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 15%, transparent); }
+#search-clear {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+  padding: 0;
+  border-radius: 3px;
+}
+#search-clear:hover { background: var(--border); color: var(--text); }
+#search-results {
+  max-height: 300px;
+  overflow-y: auto;
+  font-size: 0.8rem;
+}
+.search-hit {
+  padding: 5px 6px;
+  cursor: pointer;
+  border-radius: 3px;
+  border-bottom: 1px solid var(--border);
+}
+.search-hit:hover { background: var(--border); }
+.search-hit-file { font-weight: 600; color: var(--accent); font-size: 0.75rem; }
+.search-hit-text { color: var(--text-muted); }
+.search-hit-text em { font-style: normal; background: var(--hl-yellow); }
+
+/* Citation refs — links to bibliography entries — get a subtle accent
+   pill so they're visually distinct from markdown-it-footnote superscript
+   refs (which look identical without this). The pattern matches both
+   same-file ([N](#ref-N)) and cross-file ([N](references.md#ref-N)) cites.
+   Only applies inside the rendered content; toolbar/sidebar links are
+   unaffected because their hrefs don't contain "#ref-". */
+#content a[href*="#ref-"] {
+  background: rgba(37, 99, 235, 0.08);
+  padding: 0.05em 0.3em;
+  border-radius: 3px;
+  text-decoration: none;
+  color: var(--accent);
+}
+#content a[href*="#ref-"]:hover {
+  background: rgba(37, 99, 235, 0.16);
+  text-decoration: underline;
+}
+.search-sep {
+  padding: 8px 12px 4px;
+  font-size: 0.7rem;
+  text-transform: lowercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* ── File tree ─────────────────────────────────────────────────── */
+#file-list { flex: 1; overflow-y: auto; padding: 4px 0; }
+
+/* Outline tab */
+#outline-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+.outline-entry {
+  display: block;
+  padding: 4px 14px;
+  font-size: 0.8rem;
+  color: var(--text);
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.outline-entry:hover { background: var(--border); }
+.outline-entry.active {
+  font-weight: 600;
+  border-left-color: var(--accent);
+  color: var(--accent);
+}
+.outline-entry[data-level="3"] { padding-left: 26px; }
+.outline-entry[data-level="4"] { padding-left: 38px; }
+.outline-entry[data-level="5"] { padding-left: 50px; }
+.outline-entry[data-level="6"] { padding-left: 62px; }
+
+/* Per-pane scope toggle: Folder vs File segmented control. */
+.pane-scope {
+  display: flex;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--sidebar-bg, var(--bg, #fff));
+  border-bottom: 1px solid var(--border);
+  padding: 6px 14px;
+  gap: 4px;
+}
+.pane-scope-btn {
+  flex: 1;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  padding: 3px 6px;
+  color: var(--text);
+  font-family: inherit;
+  line-height: 1.3;
+}
+.pane-scope-btn:hover { background: var(--border); }
+.pane-scope-btn[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+/* Folder-wide outline: file-separator row and current-file tint */
+.outline-file-sep {
+  padding: 10px 14px 4px;
+  margin-top: 4px;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  border-top: 1px solid var(--border);
+  user-select: none;
+  pointer-events: none;
+}
+.outline-file-sep:first-child { border-top: none; margin-top: 0; }
+.outline-file-sep[data-current] {
+  color: var(--accent);
+  font-weight: 600;
+}
+.outline-entry[data-current] {
+  background: linear-gradient(to right, var(--border) 0, transparent 180px);
+}
+.outline-empty {
+  padding: 6px 14px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Highlights tab */
+#highlights-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+#hl-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px 8px 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.hl-chip {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1.5px solid transparent;
+  font-size: 11px;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 0.15s;
+  color: var(--text);
+  font-family: inherit;
+  line-height: 1.2;
+}
+
+.hl-chip.on { opacity: 1; border-color: var(--text-muted); }
+.hl-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.hl-entry {
+  appearance: none;
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1.4;
+  border-bottom: 1px solid var(--border);
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  background: transparent;
+  text-align: left;
+  font-family: inherit;
+}
+
+.hl-entry:hover { background: var(--border); }
+.hl-entry:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+.hl-entry-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.hl-entry-body { flex: 1; min-width: 0; }
+
+.hl-entry-file {
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hl-entry-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hl-empty {
+  padding: 16px 10px;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* Directory groups */
+.dir-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dir-header:hover { background: var(--border); }
+.dir-arrow {
+  font-size: 0.6rem;
+  transition: transform 0.15s ease;
+  display: inline-block;
+}
+.dir-group.open > .dir-header .dir-arrow { transform: rotate(90deg); }
+.dir-children {
+  display: none;
+  padding-left: 8px;
+}
+.dir-group.open > .dir-children { display: block; }
+
+/* File entries */
+.file-entry {
+  display: block;
+  padding: 5px 14px;
+  font-size: 0.83rem;
+  color: var(--text);
+  text-decoration: none;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: background 0.1s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dir-children .file-entry { padding-left: 20px; }
+.file-entry:hover { background: var(--border); }
+.file-entry.active {
+  font-weight: 600;
+  border-left-color: var(--accent);
+  background: rgba(37, 99, 235, 0.08);
+}
+.file-entry.changed {
+  animation: flash-change 1.5s ease;
+}
+@keyframes flash-change {
+  0%, 100% { background: transparent; }
+  20% { background: var(--hl-yellow); }
+}
+
+/* ── Typography ────────────────────────────────────────────────── */
+#content h2 { font-size: 1.6em; margin: 2rem 0 0.8rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--border); }
+#content h3 { font-size: 1.25em; margin: 1.6rem 0 0.6rem; }
+#content h4 { font-size: 1.05em; margin: 1.3rem 0 0.5rem; }
+#content p  { margin: 0.6rem 0; }
+#content ul, #content ol { margin: 0.5rem 0 0.5rem 1.6rem; }
+#content li { margin: 0.2rem 0; }
+#content blockquote {
+  border-left: 4px solid var(--accent);
+  padding: 0.4rem 1rem;
+  margin: 0.8rem 0;
+  color: var(--text-muted);
+  background: rgba(37, 99, 235, 0.03);
+}
+#content a { color: var(--accent); text-decoration: none; }
+#content a:hover { text-decoration: underline; }
+#content hr { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+#content strong { font-weight: 600; }
+#content code {
+  background: color-mix(in srgb, var(--text) 8%, var(--bg));
+  padding: 0.15em 0.35em;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+/* Fenced code blocks keep their lines intact but scroll horizontally inside
+   their own box rather than overflowing the viewport on narrow screens. */
+#content pre {
+  max-width: 100%;
+  overflow-x: auto;
+}
+#content pre code { background: none; padding: 0; }
+
+/* ── Tables ────────────────────────────────────────────────────── */
+#content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+  font-size: 0.9em;
+  overflow-x: auto;
+  display: block;
+}
+#content thead th {
+  background: color-mix(in srgb, var(--text) 8%, var(--bg));
+  font-weight: 600;
+  text-align: left;
+}
+#content th, #content td {
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+}
+#content tbody tr:nth-child(even) { background: color-mix(in srgb, var(--text) 4%, var(--bg)); }
+#content tbody tr:hover { background: color-mix(in srgb, var(--accent) 10%, var(--bg)); }
+
+/* ── Images ────────────────────────────────────────────────────── */
+#content img {
+  max-width: 100%;
+  display: block;
+  margin: 1rem auto;
+  border-radius: 4px;
+}
+
+/* ── Equations ─────────────────────────────────────────────────── */
+.math-block {
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+.katex-display { margin: 1rem 0 !important; }
+.katex-display > .katex { text-align: center; }
+
+/* Anchor scroll offset */
+[id^="eq-"] { scroll-margin-top: 80px; }
+
+/* Highlight animation for scrolled-to anchors */
+@keyframes anchor-flash {
+  0%   { background: var(--hl-yellow); }
+  100% { background: transparent; }
+}
+.anchor-highlight {
+  animation: anchor-flash 2s ease;
+  border-radius: 3px;
+}
+
+/* ── Display math wrapper ──────────────────────────────────────── */
+.display-math-wrap {
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+/* Layout containment for off-screen equations (bug 2026-06-10-01): WebKit/
+   Blink skip render-tree + layout work for far-off-screen math. Scoped to
+   lazy-math documents (> LAZY_DISPLAY_MATH_THRESHOLD display blocks) only:
+   containment's remembered sizes do not survive a reload, so pixel-exact
+   refresh scroll-restore would drift on eagerly-rendered documents
+   (highlights.spec.js "refresh restores the exact scroll position"). On
+   lazy documents restore is already estimate-based, and the alternative
+   there was an iOS content-process crash. */
+.lazy-math-doc .display-math-wrap {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 3rem;
+}
+
+/* ── Highlight toolbar ────────────────────────────────────────── */
+#hl-toolbar {
+  position: fixed;
+  display: none;
+  z-index: 200;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  padding: 5px 6px;
+  gap: 4px;
+  align-items: center;
+  white-space: nowrap;
+  flex-wrap: wrap;
+  max-width: 320px;
+  /* The toolbar itself must not be a selection target, and taps on it should
+     not be interpreted as double-tap-zoom / scroll gestures on touch. */
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+#hl-toolbar.visible { display: flex; }
+
+#hl-toolbar .hl-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.1s;
+}
+#hl-toolbar .hl-swatch:hover {
+  border-color: var(--text-muted);
+  transform: scale(1.15);
+}
+/* :hover never fires on touch — give taps an explicit pressed affordance. */
+#hl-toolbar .hl-swatch:active {
+  border-color: #555;
+  transform: scale(0.92);
+}
+#hl-toolbar .hl-swatch[data-action="yellow"] { background: var(--hl-yellow); }
+#hl-toolbar .hl-swatch[data-action="green"]  { background: var(--hl-green); }
+#hl-toolbar .hl-swatch[data-action="red"]    { background: var(--hl-red); }
+#hl-toolbar .hl-swatch[data-action="blue"]   { background: var(--hl-blue); }
+#hl-toolbar .hl-swatch[data-action="orange"] { background: var(--hl-orange); }
+#hl-toolbar .hl-swatch[data-action="purple"] { background: var(--hl-purple); }
+#hl-toolbar .hl-swatch[data-action="teal"]   { background: var(--hl-teal); }
+#hl-toolbar .hl-swatch[data-action="pink"]   { background: var(--hl-pink); }
+
+.hl-swatch.active {
+  box-shadow: 0 0 0 2px #555;
+}
+
+#hl-toolbar .hl-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+  margin: 0 2px;
+}
+
+#hl-toolbar .hl-btn {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  padding: 2px 6px;
+  color: var(--text);
+  font-family: inherit;
+  line-height: 1.3;
+}
+#hl-toolbar .hl-btn:hover {
+  background: color-mix(in srgb, var(--text) 8%, var(--panel-bg));
+  border-color: var(--border);
+}
+#hl-toolbar .hl-btn:active {
+  background: color-mix(in srgb, var(--text) 15%, var(--panel-bg));
+  border-color: var(--text-muted);
+}
+#hl-toolbar .hl-btn[data-action="bold"]   { font-weight: 700; }
+#hl-toolbar .hl-btn[data-action="italic"] { font-style: italic; }
+#hl-toolbar .hl-btn[data-action="code"]   { font-family: monospace; font-size: 0.8rem; }
+#hl-toolbar .hl-btn-clear                 { color: #c62828; }
+#hl-toolbar .hl-btn-clear:hover           { background: color-mix(in srgb, #c62828 15%, var(--panel-bg)); border-color: #c62828; }
+
+/* Citation buttons live next to the clear button; same sizing as .hl-btn */
+#hl-toolbar .toolbar-cite-btn {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  padding: 2px 6px;
+  color: var(--text);
+  font-family: inherit;
+  line-height: 1.3;
+}
+#hl-toolbar .toolbar-cite-btn:hover {
+  background: color-mix(in srgb, var(--text) 8%, var(--panel-bg));
+  border-color: var(--border);
+}
+#hl-toolbar .toolbar-cite-btn:active {
+  background: color-mix(in srgb, var(--text) 15%, var(--panel-bg));
+  border-color: var(--text-muted);
+}
+
+/* Clear-only mode (single click on a mark): hide everything except ✕ */
+#hl-toolbar.clear-only > *:not(.hl-btn-clear) { display: none; }
+#hl-toolbar.clear-only .toolbar-cite-btn { display: none; }
+
+/* Recolor mode: show swatches + clear, hide style buttons, separator, and cite buttons.
+   savedRange is null in this mode so cite buttons would silently no-op — hide them. */
+#hl-toolbar.recolor-only .hl-btn:not(.hl-btn-clear),
+#hl-toolbar.recolor-only .hl-sep-styles,
+#hl-toolbar.recolor-only .toolbar-cite-btn { display: none; }
+
+/* ── Inline highlights ==text== ────────────────────────────────── */
+mark { background-color: var(--hl-yellow); padding: 0.1em 0.2em; border-radius: 2px; }
+.sidecar-hl { border-radius: 4px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08); }
+.hl-yellow { background-color: var(--hl-yellow); }
+.hl-green  { background-color: var(--hl-green); }
+.hl-red    { background-color: var(--hl-red); }
+.hl-blue   { background-color: var(--hl-blue); }
+.hl-orange { background-color: var(--hl-orange); }
+.hl-purple { background-color: var(--hl-purple); }
+.hl-teal   { background-color: var(--hl-teal); }
+.hl-pink   { background-color: var(--hl-pink); }
+
+/* ── Live-reload change highlights ────────────────────────────── */
+@keyframes block-change-flash {
+  0%   { background: rgba(37, 99, 235, 0.12); border-left-color: var(--accent); }
+  100% { background: transparent; border-left-color: transparent; }
+}
+.block-changed {
+  border-left: 3px solid var(--accent);
+  padding-left: 8px;
+  border-radius: 2px;
+  animation: block-change-flash 3s ease forwards;
+}
+
+/* Toast notification */
+#reload-toast {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  background: var(--accent);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 100;
+  pointer-events: none;
+}
+#reload-toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Undo toast ────────────────────────────────────────────────── */
+#undo-toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #333;
+  color: #fff;
+  padding: 9px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  z-index: 300;
+  pointer-events: none;
+}
+#undo-toast.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+#undo-toast button {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.45);
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-family: inherit;
+  padding: 2px 8px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+#undo-toast button:hover { background: rgba(255,255,255,0.15); }
+
+/* ── Heading scroll-margin for TOC clicks ─────────────────────── */
+#content h1, #content h2, #content h3,
+#content h4, #content h5, #content h6 {
+  scroll-margin-top: 24px;
+}
+
+/* ── Effect-suppression classes (on <html>) ───────────────────── */
+html.no-scroll-fx { scroll-behavior: auto !important; }
+html.no-scroll-fx .anchor-highlight { animation: none !important; }
+
+html.no-update-fx .block-changed { animation: none !important; border-left-color: transparent; }
+html.no-update-fx .file-entry.changed { animation: none !important; }
+
+/* ── Drawer backdrop (narrow width only; shown via #app.drawer-open) ── */
+#drawer-backdrop { display: none; }
+
+/* ── Mobile chrome defaults (redesign 03) ─────────────────────────────
+   Inert everywhere; the ≤768px block below turns them on. These MUST sit
+   BEFORE that media block in source order — the overrides have the same
+   (0,1,0) specificity, so a later-in-file default would win the cascade
+   even at phone widths (unlike the desktop reader chrome, whose scoped
+   block follows its defaults). */
+#mobile-toolbar { display: none; }
+#sheet-handle { display: none; }
+
+/* ── Responsive ────────────────────────────────────────────────── */
+/*
+ * At ≤768px the sidebar becomes an off-canvas slide-over drawer driven by
+ * `#app.drawer-open` (see viewer.js mqlNarrow branch). The drawer transform is
+ * authoritative here: it overrides the desktop `.collapsed` translateX so the
+ * two state machines never conflict. `#content` no longer reserves space for
+ * the sidebar — the drawer overlays the content over a tap-to-dismiss backdrop.
+ */
+@media (max-width: 768px) {
+  /* Bottom sheet (redesign 03): the sidebar rises from the bottom edge over
+     the backdrop, resting at 75dvh (.sheet-full expands near-full — T3).
+     visibility keeps the closed sheet's controls out of the Tab order; as a
+     discrete transition it flips at the END of the slide-out and the START
+     of the slide-in (same QR discipline as the desktop reader sheet). */
+  #sidebar {
+    position: fixed;
+    top: auto;
+    left: 0; right: 0; bottom: 0;
+    width: auto;
+    min-width: 0;
+    height: 75vh;   /* fallback for engines without dvh */
+    height: 75dvh;  /* dynamic viewport: excludes the iOS URL bar */
+    border-right: none;
+    border-top: 1px solid var(--border);
+    border-radius: 14px 14px 0 0;
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.25);
+    transform: translateY(100%);
+    visibility: hidden;
+    transition: transform 0.25s ease, visibility 0.25s, height 0.2s ease;
+    z-index: 30;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  /* The layout switch is desktop-only (redesign 02; Plan 03 owns mobile) —
+     showing it in the sheet settings would be a mobile-visible change,
+     and data-layout has no effect at this width anyway. The #settings-panel
+     prefix outranks the (1,1,0) `#settings-panel .settings-group`
+     display:flex rule. */
+  #settings-panel #settings-group-layout { display: none; }
+  /* The desktop collapse state is inert at phone widths. */
+  #sidebar.collapsed { transform: translateY(100%); }
+  /* visibility 0s on open: the flip must be synchronous so the search
+     slot's focus() lands in a visible input (desktop Ctrl+K QR finding). */
+  #app.drawer-open #sidebar {
+    transform: translateY(0);
+    visibility: visible;
+    transition: transform 0.25s ease, visibility 0s, height 0.2s ease;
+  }
+  /* Expanded detent (drag up — T3). 10px reveals a sliver of backdrop so
+     the sheet still reads as dismissable; safe-top keeps it off the notch. */
+  #sidebar.sheet-full {
+    height: calc(100vh - 10px - env(safe-area-inset-top));
+    height: calc(100dvh - 10px - env(safe-area-inset-top));
+  }
+  /* Grab bar: generous hit area, visual pill in the middle. touch-action
+     none — the handle owns its vertical pan (T3 drag controller). */
+  #sheet-handle {
+    display: block;
+    flex: 0 0 auto;
+    padding: 8px 0 4px;
+    cursor: grab;
+    touch-action: none;
+  }
+  #sheet-handle::before {
+    content: "";
+    display: block;
+    width: 40px;
+    height: 5px;
+    margin: 0 auto;
+    border-radius: 3px;
+    background: var(--border);
+  }
+  /* While the finger is down the sheet tracks it 1:1 — no easing fight. */
+  #sidebar.sheet-dragging { transition: none !important; }
+  /* The desktop column-resize handle has no role on a bottom sheet. */
+  #sidebar-resize { display: none; }
+
+  /* Backdrop only while the drawer is open. */
+  #app.drawer-open #drawer-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 20;
+  }
+
+  /* Content never docks at narrow width; bottom padding clears the fixed
+     toolbar (44px slots + bar padding) plus the home-indicator inset. */
+  #content { margin-left: 0; padding: 20px 16px calc(72px + env(safe-area-inset-bottom)); }
+
+  /* Reading progress spans the full width (no docked sidebar to clear). */
+  #reading-progress { left: 0; }
+
+  /* The Plan-04 hamburger is retired (redesign 03): the bottom toolbar is
+     the only sheet opener at phone widths. */
+  #sidebar-toggle { display: none; }
+
+  /* Five-slot bottom toolbar (spec section 5). Sits UNDER the sheet
+     backdrop (z 15 < 20): while a sheet is open the toolbar is dimmed and
+     inert, and a tap on it dismisses the sheet via the backdrop. The
+     selection toolbar (#hl-toolbar, z 200) stays above everything. */
+  #mobile-toolbar {
+    display: flex;
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 15;
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border);
+    padding: 4px 8px calc(4px + env(safe-area-inset-bottom));
+    transition: transform 0.2s ease;
+  }
+  #mobile-toolbar button {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-height: 44px;
+    background: none;
+    border: none;
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-size: 0.65rem;
+    cursor: pointer;
+  }
+  #mobile-toolbar button span { font-size: 1.15rem; line-height: 1; }
+  #mobile-toolbar button:active { background: color-mix(in srgb, var(--text) 10%, transparent); }
+  /* Auto-hide slide (T4): 130% clears the safe-area padding too.
+     pointer-events none — while hidden (including mid-slide) the toolbar
+     must not swallow the bottom-edge reveal tap: a tap during the 0.2s
+     slide-out still hit-tests the slot under the finger and would open a
+     sheet instead of revealing the chrome. */
+  html.reader-chrome-hidden #mobile-toolbar { transform: translateY(130%); pointer-events: none; }
+  .sidebar-tab {
+    min-height: 44px;
+    height: auto;
+    padding: 10px 0;
+  }
+
+  /* ── Touch-sized highlight toolbar ─────────────────────────────────
+     Enlarge swatches and buttons to >=40px touch targets so they are
+     tappable with a finger. Desktop sizes (the rules above this media
+     query) are unchanged. The wider widgets need more room, so allow a
+     wider toolbar and a slightly larger gap. */
+  #hl-toolbar {
+    max-width: calc(100vw - 16px);
+    gap: 6px;
+    padding: 6px 8px;
+  }
+  #hl-toolbar .hl-swatch {
+    width: 40px;
+    height: 40px;
+    border-width: 3px;
+  }
+  /* No scale-on-hover lift on touch; keep the pressed :active feedback only. */
+  #hl-toolbar .hl-swatch:hover { transform: none; }
+  #hl-toolbar .hl-btn,
+  #hl-toolbar .toolbar-cite-btn {
+    min-width: 40px;
+    min-height: 40px;
+    font-size: 1rem;
+    padding: 8px 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #hl-toolbar .hl-sep { height: 28px; }
+}
+
+/* ── Reader layout, desktop (redesign 02) ───────────────────────────
+   Everything is scoped to >768px AND html[data-layout="reader"]:
+   Classic keeps the docked shell (behavioral parity bar — redesign 04
+   retired the interim byte-identity constraint) and ≤768px is the
+   always-reader mobile shell (redesign 03). The overlay reuses the
+   SAME #app.drawer-open machinery as mobile. */
+/* Reader-only chrome defaults to hidden everywhere (classic + mobile);
+   the scoped block below turns it on. */
+#reader-topbar { display: none; }
+#reader-pill { display: none; }
+#reader-rail { display: none; }
+/* `screen and`: without the media type this block is `all and (...)` and
+   matches PRINT too (letter/A4 page boxes are ≥769px at some margins),
+   stamping the fixed chrome and the 56px content padding onto printed
+   pages (QR finding). */
+@media screen and (min-width: 769px) {
+  html[data-layout="reader"] #reader-topbar {
+    display: flex;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 44px;
+    align-items: center;
+    gap: 10px;
+    padding: 0 14px;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    z-index: 40;
+    transition: transform 0.2s ease;
+  }
+  #reader-crumb { color: var(--text-muted); font-size: 0.85rem; }
+  .rt-spacer { flex: 1; }
+  #rt-aa, #rt-theme, #rt-palette {
+    background: none; border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text); cursor: pointer; padding: 3px 10px; font-size: 0.85rem;
+  }
+  #rt-aa:hover, #rt-theme:hover, #rt-palette:hover { background: var(--panel-bg); }
+  #rt-palette { font-weight: 600; }
+  html[data-layout="reader"] #content { padding-top: 56px; }
+  html[data-layout="reader"] #reader-pill {
+    display: flex;
+    position: fixed;
+    left: 50%;
+    bottom: 14px;
+    transform: translateX(-50%);
+    align-items: center;
+    gap: 4px;
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 4px 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+    z-index: 40;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+  #reader-pill button {
+    background: none; border: none; color: var(--text-muted);
+    cursor: pointer; font-size: 0.8rem; padding: 3px 8px; border-radius: 12px;
+  }
+  #reader-pill button:hover { background: color-mix(in srgb, var(--text) 8%, var(--panel-bg)); color: var(--text); }
+  #pill-pct { color: var(--text-muted); font-size: 0.75rem; min-width: 3.5ch; text-align: right; }
+  html[data-layout="reader"] #reader-rail {
+    display: block;
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: 5px;
+    z-index: 45;
+    cursor: pointer;
+    background: color-mix(in srgb, var(--text) 7%, transparent);
+  }
+  html[data-layout="reader"] #reader-rail-fill {
+    width: 100%;
+    height: 0%;
+    background: var(--accent);
+    opacity: 0.55;
+  }
+  html[data-layout="reader"] #reading-progress { display: none; }
+  html.no-reading-progress #reader-rail { display: none !important; }
+  /* The pill % is a progress indicator too — the setting hides all three. */
+  html.no-reading-progress #pill-pct { display: none; }
+  /* Base #sidebar is already position:fixed with a 0.2s transform
+     transition — the off-canvas transform inherits that slide. visibility
+     keeps the closed sheet's controls out of the Tab order (translated
+     elements stay focusable — QR finding); as a discrete transition it
+     flips at the END of the slide-out and the START of the slide-in. */
+  html[data-layout="reader"] #sidebar {
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition: transform 0.2s ease, visibility 0.2s;
+    z-index: 30;
+    box-shadow: 4px 0 10px rgba(0, 0, 0, 0.25);
+  }
+  /* The open sheet stacks ABOVE the reader chrome (top bar z:40): the
+     backdrop dims the chrome and the sheet is the top interaction
+     surface — otherwise the top bar covers the sheet's first 44px and
+     intercepts clicks on the sidebar header (gear, tabs). */
+  /* visibility 0s here: the flip to visible must be synchronous so a
+     focus() immediately after openDrawer() (Ctrl+K) lands; the closed
+     state's 0.2s visibility keeps the hide until after the slide-out. */
+  html[data-layout="reader"] #app.drawer-open #sidebar {
+    transform: none;
+    visibility: visible;
+    transition: transform 0.2s ease, visibility 0s;
+    z-index: 42;
+  }
+  html[data-layout="reader"] #app.drawer-open #drawer-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 41;
+  }
+  html[data-layout="reader"] #sidebar.collapsed { transform: translateX(-100%); }
+  html[data-layout="reader"] #sidebar-toggle { display: none; }
+  html[data-layout="reader"] #content {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* Auto-hidden reader chrome slides out of the way; transitions live on the
+   elements themselves (T3/T4). Class is only ever set in reader-desktop
+   (readerChromeTick guards; applyLayout clears it on mode switch). */
+html.reader-chrome-hidden #reader-topbar { transform: translateY(-110%); }
+html.reader-chrome-hidden #reader-pill { transform: translate(-50%, 220%); }
+
+/* The auto-hide slide is the app's first scroll-coupled motion — suppress
+   it for vestibular-sensitive users (QR finding). */
+@media (prefers-reduced-motion: reduce) {
+  #reader-topbar, #reader-pill, #mobile-toolbar { transition-duration: 0.01s; }
+}
+
+/* ── Print ─────────────────────────────────────────────────────── */
+@media print {
+  #sidebar, #search-box, #sidebar-toggle { display: none !important; }
+  /* Defense in depth: the reader block is screen-scoped, so these resolve
+     to their global display:none anyway; #reading-progress additionally
+     fixes the pre-existing classic-mode 3px bar stamp on page 1. */
+  #reader-topbar, #reader-pill, #reader-rail, #reading-progress, #mobile-toolbar { display: none !important; }
+  #content { margin-left: 0; max-width: 100%; padding: 0; }
+  mark, .hl-yellow, .hl-green, .hl-red, .hl-blue,
+  .hl-orange, .hl-purple, .hl-teal, .hl-pink {
+    border-bottom: 2px solid currentColor;
+    background: none !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .hl-green  { border-color: #4caf50; }
+  .hl-red    { border-color: #e53935; }
+  .hl-blue   { border-color: #1e88e5; }
+  .hl-orange { border-color: #ef6c00; }
+  .hl-purple { border-color: #7b1fa2; }
+  .hl-teal   { border-color: #00695c; }
+  .hl-pink   { border-color: #c2185b; }
+}
+
+/* ── Note popover (Task 13 wires the DOM, this styles it) ──────────── */
+#note-popover {
+  position: fixed;
+  display: none;
+  z-index: 1000;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+  padding: 10px 12px;
+  width: 360px;
+  max-width: 90vw;
+  font-family: inherit;
+  font-size: 13px;
+}
+#note-popover.visible { display: block; }
+#note-popover .np-header {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--text-muted);
+  font-size: 11px;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#note-popover textarea.np-body {
+  width: 100%;
+  min-height: 60px;
+  max-height: 220px;
+  resize: vertical;
+  font-family: inherit;
+  font-size: 13px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--panel-bg);
+  color: var(--text);
+}
+#note-popover .np-footer {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  align-items: center;
+}
+#note-popover .np-footer .np-spacer { flex: 1; }
+#note-popover .np-footer button {
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+  cursor: pointer;
+}
+#note-popover .np-save {
+  background: var(--accent);
+  color: #fff;
+  border-color: transparent;
+}
+#note-popover .np-delete {
+  color: #c33;
+  border-color: color-mix(in srgb, var(--hl-red) 65%, var(--border));
+}
+
+/* ── Note indicator in sidebar entries ─────────────────────────────── */
+/* Two settable styles, picked from the settings panel and applied via
+   html.note-marker-icon (default) or html.note-marker-ring. The JS emits
+   the .hl-note-icon span unconditionally; the active mode decides whether
+   it's visible and whether the color dot grows an accent ring. */
+.highlights-entry .hl-note-icon {
+  display: inline-block;
+  margin: 0 3px 0 0;
+  font-size: 0.85em;
+  line-height: 1;
+  color: var(--accent);
+  cursor: pointer;
+  user-select: none;
+}
+html.note-marker-ring .highlights-entry .hl-note-icon { display: none; }
+html.note-marker-ring .hl-entry.has-note .hl-entry-dot {
+  box-shadow: 0 0 0 2px var(--accent);
+  cursor: pointer;
+}
+html.note-marker-ring .hl-entry.has-note .hl-entry-dot:hover {
+  box-shadow: 0 0 0 3px var(--accent);
+}
+.highlights-entry .hl-note-body {
+  display: none;
+  margin: 6px 0 4px 0;
+  padding: 6px 10px;
+  background: color-mix(in srgb, var(--text) 6%, var(--bg));
+  border-left: 3px solid var(--border);
+  border-radius: 0 4px 4px 0;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.highlights-entry.hl-note-expanded .hl-note-body { display: block; }
+.highlights-entry .hl-note-edit {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+/* ── Footnote ref hover tooltip ────────────────────────────────────── */
+.note-ref-tooltip {
+  position: fixed;
+  display: none;
+  z-index: 1001;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
+  padding: 6px 9px;
+  max-width: 360px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text);
+  pointer-events: none;
+}
+.note-ref-tooltip.visible { display: block; }
+
+/* ── Hide bottom-of-doc footnotes section ──────────────────────────── */
+/* The section is kept in DOM (a11y, GitHub canonical render) but hidden
+   visually since the sidebar is the v1 reading surface. */
+#content .footnotes {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* ── Footnote-ref click flash (Task 20) ─────────────────────────────── */
+.hl-entry.hl-flash,
+.highlights-entry.hl-flash {
+  animation: hl-flash-anim 0.8s ease-out;
+}
+@keyframes hl-flash-anim {
+  0%   { background: color-mix(in srgb, var(--accent) 25%, var(--bg)); }
+  100% { background: transparent; }
+}
+
+/* ── Reading progress bar ──────────────────────────────────────── */
+#reading-progress {
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-w);
+  right: 0;
+  height: 3px;
+  z-index: 50;
+  pointer-events: none;
+  transition: left 0.2s ease;
+}
+#sidebar.collapsed ~ #reading-progress { left: 0; }
+#reading-progress-fill {
+  height: 100%;
+  width: 0; /* initial/hidden state; live width set by scrollSyncTick() in viewer.js (Task 3) */
+  background: var(--accent);
+  transition: width 0.05s linear;
+}
+html.no-reading-progress #reading-progress { display: none; }
+/* Mode is intentionally preserved across on/off cycles; just make the
+   mode radios visibly inert while the bar is hidden. */
+html.no-reading-progress input[name="reading-progress-mode"] {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* ── Command palette (redesign 05) ─────────────────────────────────────
+   Top-level modal at z 1200 (above note-popover 1000 / footnote tooltip
+   1001). position:fixed so its DOM slot inside #app is irrelevant to
+   stacking and it never sits between the drawer backdrop and the sheet. */
+#cmd-palette {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: max(12vh, env(safe-area-inset-top, 0px)) 16px 16px;
+  background: rgba(0, 0, 0, 0.35);
+}
+#cmd-palette[hidden] { display: none; }
+html[data-theme="dark"] #cmd-palette { background: rgba(0, 0, 0, 0.5); }
+#cmd-palette-box {
+  width: min(640px, 100%);
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 12px 44px rgba(0, 0, 0, 0.32);
+  overflow: hidden;
+}
+#cmd-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 1.05rem;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+#cmd-input:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+#cmd-results {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+}
+.pal-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 0.92rem;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.pal-item-label { overflow: hidden; text-overflow: ellipsis; }
+/* Selected row: full-row accent fill + an inset bar so selection is not
+   conveyed by colour alone (WCAG 1.4.1). Review weqs70hun. */
+.pal-item.sel { background: var(--accent); color: #fff; box-shadow: inset 3px 0 0 currentColor; }
+.pal-item mark { background: transparent; color: var(--accent); font-weight: 700; }
+.pal-item.sel mark { color: #fff; text-decoration: underline; }
+/* Dark theme --accent (#7aa2f7) is light: white text fails contrast on it, so
+   use dark text + dark marks on the selected row. Review weqs70hun. */
+html[data-theme="dark"] .pal-item.sel,
+html[data-theme="dark"] .pal-item.sel mark { color: #14161b; }
+.pal-hint {
+  flex: 0 0 auto;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+.pal-item.sel .pal-hint { color: rgba(255, 255, 255, 0.85); }
+.pal-empty { padding: 14px 12px; color: var(--text-muted); font-size: 0.9rem; }
+
+/* ── In-situ peek popover (redesign 06) ───────────────────────────────
+   Anchored, viewport-clamped (clampToolbarBox), internally scrollable.
+   z 1050 sits above content/chrome and the note-popover (1000) but below
+   the command palette (1200). */
+#peek-popover {
+  position: fixed;
+  z-index: 1050;
+  width: min(420px, calc(100vw - 16px));
+  max-height: min(60vh, 460px);
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+}
+#peek-popover[hidden] { display: none; }
+#peek-body { padding: 12px 14px; overflow: auto; flex: 1 1 auto; min-height: 0; }
+#peek-body .katex-display { margin: 0; }
+#peek-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  border-top: 1px solid var(--border);
+}
+#peek-goto {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 3px 12px;
+  font: inherit;
+  font-size: 0.85rem;
+}
+/* color-mix tints with the active accent so the hover reads the same in light,
+   sepia, and dark (review wrnjhusbu — var(--bg) was harsh on dark). */
+#peek-goto:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); border-color: var(--accent); }
+#peek-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+#peek-close:hover { color: var(--text); background: color-mix(in srgb, var(--text) 8%, transparent); }
+#peek-goto:focus-visible, #peek-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+html[data-theme="dark"] #peek-popover { box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6); }
+.peek-sec-heading { font-weight: 700; margin-bottom: 6px; }
+/* Keyboard focus on a peekable reference link (review wrnjhusbu). */
+#content a[href^="#eq-"]:focus-visible,
+#content a[href^="#ref-"]:focus-visible,
+#content a[href^="#sec-"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }

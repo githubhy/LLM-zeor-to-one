@@ -13,6 +13,9 @@ download/*
 !download/.gitkeep
 !download/*.pdf
 
+# Node (viewer server deps; install via `cd viewer && npm install`)
+node_modules/
+
 # OS / editor
 .DS_Store
 *.swp
