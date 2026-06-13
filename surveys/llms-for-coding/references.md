@@ -158,3 +158,18 @@
 
 <a id="p-references-53"></a><!-- para:references-53 --> <a id="ref-53"></a><!-- bib:53 -->
 [53] Doe v. GitHub, Inc. — copyright/DMCA litigation status (N.D. Cal. ruling June 2024; Ninth Circuit interlocutory appeal certified Sep 2024). 2024. [link](https://githubcopilotlitigation.com/) (web)
+
+<a id="ref-54"></a><!-- bib:54 -->
+[54] A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, et al., "Attention Is All You Need." *NeurIPS 2017.* arXiv:1706.03762. (local: download/vaswani-attention-is-all-you-need-2017.pdf)
+
+<a id="ref-55"></a><!-- bib:55 -->
+[55] J. Kaplan, S. McCandlish, T. Henighan, T. B. Brown, et al., "Scaling Laws for Neural Language Models." 2020. arXiv:2001.08361. (local: download/kaplan-scaling-laws-2020.pdf)
+
+<a id="ref-56"></a><!-- bib:56 -->
+[56] J. Hoffmann, S. Borgeaud, A. Mensch, E. Buchatskaya, et al., "Training Compute-Optimal Large Language Models." *NeurIPS 2022.* arXiv:2203.15556. (local: download/hoffmann-chinchilla-2022.pdf)
+
+<a id="ref-57"></a><!-- bib:57 -->
+[57] J. Su, Y. Lu, S. Pan, A. Murtadha, et al., "RoFormer: Enhanced Transformer with Rotary Position Embedding." *Neurocomputing 2024.* arXiv:2104.09864. (local: download/su-rope-2021.pdf)
+
+<a id="ref-58"></a><!-- bib:58 -->
+[58] W. Fedus, B. Zoph, N. Shazeer, "Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity." *JMLR 2022.* arXiv:2101.03961. (local: download/fedus-switch-transformer-2021.pdf)
