@@ -16,7 +16,7 @@
 
 <a id="p-172-choose-the-model-1"></a><!-- para:172-choose-the-model-1 --> Three sub-decisions recur:
 
-- <a id="p-172-choose-the-model-2"></a><!-- para:172-choose-the-model-2 --> **Open-weight versus frontier.** The open-weight lines (StarCoder, DeepSeek-Coder, Qwen-Coder) track the frontier closely on function- and repository-level tasks (Sections 3, 15) and win on cost, latency control, data governance, and self-hosting. Reach for a proprietary frontier model when the task is hard agentic work where the top of the leaderboard meaningfully outperforms and the solve rate justifies the cost.
+- <a id="p-172-choose-the-model-2"></a><!-- para:172-choose-the-model-2 --> **Open-weight versus frontier.** The open-weight lines (StarCoder, DeepSeek-Coder, Qwen-Coder) track the frontier closely on function- and repository-level tasks (Sections 4, 15) and win on cost, latency control, data governance, and self-hosting. Reach for a proprietary frontier model when the task is hard agentic work where the top of the leaderboard meaningfully outperforms and the solve rate justifies the cost.
 - **Size and sparsity.** Parameter count is a weak proxy for capability; mixture-of-experts sparsity and deliberate over-training decouple capability from inference cost (Section 14), so evaluate on *your* task and serving budget rather than on nominal size.
 - **When to fine-tune.** Prefer prompting and retrieval (Section 11) first. Fine-tune when you have a narrow, stable distribution and quality data — and remember the data-quality lesson (Section 6): a small, carefully constructed instruction set (Evol-Instruct, OSS-Instruct, Section 8) beats a large generic one. Security behavior is itself steerable with lightweight methods (SVEN, Section 16) without full retraining.
 

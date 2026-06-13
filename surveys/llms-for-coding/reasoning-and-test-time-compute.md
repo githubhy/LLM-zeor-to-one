@@ -1,6 +1,6 @@
 ## 9 Reasoning and Test-Time Compute
 
-<a id="p-9-reasoning-and-test-time-compute-1"></a><!-- para:9-reasoning-and-test-time-compute-1 --> The pass@k metric (Section 4) exposes a gap that defines this section: a model's single-sample quality (pass@1) is often far below what it can achieve when allowed to *generate many candidates and select* (pass@100). That gap is latent capability recoverable at inference time — and code's executable reward makes recovering it unusually easy, because the model can *check* candidates by running them. This section moves from cheap inference-time tricks to full RL-trained reasoning models, the current frontier.
+<a id="p-9-reasoning-and-test-time-compute-1"></a><!-- para:9-reasoning-and-test-time-compute-1 --> The pass@k metric (Section 3) exposes a gap that defines this section: a model's single-sample quality (pass@1) is often far below what it can achieve when allowed to *generate many candidates and select* (pass@100). That gap is latent capability recoverable at inference time — and code's executable reward makes recovering it unusually easy, because the model can *check* candidates by running them. This section moves from cheap inference-time tricks to full RL-trained reasoning models, the current frontier.
 
 <!-- sec:9.1 -->
 ### <a id="sec-9.1"></a>9.1 Chain-of-Thought and Sampling-and-Selection

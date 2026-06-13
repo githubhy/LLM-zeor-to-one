@@ -6,8 +6,8 @@
 ### <a id="sec-5.1"></a>5.1 The Stages
 
 1. <a id="p-51-the-stages-1"></a><!-- para:51-the-stages-1 --> **Data curation** (Section 6). Source code is crawled at internet scale, filtered by license, deduplicated, quality-filtered, and decontaminated against benchmarks. This stage, more than architecture, separates strong code models from weak ones.
-2. **Tokenization** (Section 4, Section 7). A byte-level BPE tokenizer tuned for code's whitespace and identifiers.
-3. **Pretraining** (Section 7). Next-token prediction (the autoregressive objective of Section 4) combined with fill-in-the-middle, over trillions of tokens, increasingly with a repository-level phase that teaches cross-file structure and extends the context window.
+2. **Tokenization** (Section 3, Section 7). A byte-level BPE tokenizer tuned for code's whitespace and identifiers.
+3. **Pretraining** (Section 7). Next-token prediction (the autoregressive objective of Section 3) combined with fill-in-the-middle, over trillions of tokens, increasingly with a repository-level phase that teaches cross-file structure and extends the context window.
 4. **Alignment** (Section 8). Supervised instruction tuning followed by preference optimization or reinforcement learning, where code's executable reward (Section 2) enables learning from test outcomes rather than human labels.
 5. **Reasoning / test-time scaling** (Section 9). At the frontier, additional RL and inference-time procedures (chain-of-thought, self-repair, sampling-and-selection) trade compute for correctness.
 6. **Serving** (Section 10). Decoding, constrained generation, caching, and latency engineering deliver the model to a user.

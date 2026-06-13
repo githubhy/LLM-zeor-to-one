@@ -1,6 +1,6 @@
 ## 12 Agentic Coding Systems
 
-<a id="p-12-agentic-coding-systems-1"></a><!-- para:12-agentic-coding-systems-1 --> Agents are where the field's center of gravity moved (Section 3). An agent wraps a code model in a loop: it observes a repository, takes an action (read a file, edit code, run tests, search), reads the result, and iterates until a task is done. The unit of work is no longer "a function from a docstring" but "a task in a real codebase," which is exactly what SWE-bench measures (Section 13). This section covers the loop, the systems that implement it, and the central methodological question — how much of the performance is the model versus the scaffolding.
+<a id="p-12-agentic-coding-systems-1"></a><!-- para:12-agentic-coding-systems-1 --> Agents are where the field's center of gravity moved (Section 4). An agent wraps a code model in a loop: it observes a repository, takes an action (read a file, edit code, run tests, search), reads the result, and iterates until a task is done. The unit of work is no longer "a function from a docstring" but "a task in a real codebase," which is exactly what SWE-bench measures (Section 13). This section covers the loop, the systems that implement it, and the central methodological question — how much of the performance is the model versus the scaffolding.
 
 <!-- sec:12.1 -->
 ### <a id="sec-12.1"></a>12.1 The Agent Loop: ReAct and the Agent-Computer Interface

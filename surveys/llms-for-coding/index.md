@@ -1,13 +1,13 @@
 # Large Language Models for Code: From Codex to Agentic Software Engineering
 
-<a id="p-large-language-models-for-code-from-codex-to-agentic-software-engineering-1"></a><!-- para:large-language-models-for-code-from-codex-to-agentic-software-engineering-1 --> A deep-research survey of the end-to-end stack for code LLMs — the modality and its history, the training pipeline from data to alignment and reasoning, serving and retrieval, agents, evaluation, and the practical and societal layer. The organizing thesis is that code is a distinct modality because its correctness is *executable and verifiable*, and that this single property explains the field's trajectory from autocomplete to autonomous software-engineering agents. Every external claim and number traces to a primary source acquired and read for this survey.
+<a id="p-large-language-models-for-code-from-codex-to-agentic-software-engineering-1"></a><!-- para:large-language-models-for-code-from-codex-to-agentic-software-engineering-1 --> A deep-research survey of the end-to-end stack for code LLMs — the code modality, a first-principles primer on language models (for readers new to deep learning), the historical arc, the training pipeline from data to alignment and reasoning, serving and retrieval, agents, evaluation, and the practical and societal layer. The organizing thesis is that code is a distinct modality because its correctness is *executable and verifiable*, and that this single property explains the field's trajectory from autocomplete to autonomous software-engineering agents. Every external claim and number traces to a primary source acquired and read for this survey.
 
 ## Contents
 
 1. <a id="p-contents-1"></a><!-- para:contents-1 --> [Executive Summary](executive-summary.md)
 2. [Scope and the Code Modality](scope-and-the-code-modality.md)
-3. [Historical Evolution](historical-evolution.md)
-4. [Conceptual and Mathematical Fundamentals](conceptual-and-mathematical-fundamentals.md)
+3. [Language Models from First Principles](language-models-from-first-principles.md)
+4. [Historical Evolution](historical-evolution.md)
 5. [The Code Model Pipeline](the-code-model-pipeline.md)
 6. [Pretraining Data](pretraining-data.md)
 7. [Pretraining Objectives and Scaling](pretraining-objectives-and-scaling.md)
