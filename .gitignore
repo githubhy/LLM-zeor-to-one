@@ -7,9 +7,11 @@ __pycache__/
 .claude/cache-warmer.*.active
 .claude/validate-refs.dirty
 
-# Acquired full-text sources are large/copyright-bound — keep the dir, not contents
+# Acquired full-text sources: PDFs are tracked via Git LFS (see .gitattributes).
+# Still ignore any other (non-PDF) contents of download/.
 download/*
 !download/.gitkeep
+!download/*.pdf
 
 # OS / editor
 .DS_Store
