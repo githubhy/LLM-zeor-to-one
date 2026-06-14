@@ -12,28 +12,32 @@ $$
 p_\theta(x_1,\dots,x_T) = \prod_{t=1}^{T} p_\theta\!\left(x_t \mid x_{<t}\right), \qquad x_{<t} \equiv (x_1,\dots,x_{t-1}). \tag{1}
 $$
 
-<a id="p-31-a-language-model-is-an-autoregressive-predictor-2"></a><!-- para:31-a-language-model-is-an-autoregressive-predictor-2 --> The model is the conditional $p_\theta(x_t \mid x_{<t})$: given the past, output a probability vector over the whole vocabulary for the next token. Training fits the parameters $\theta$ by minimizing the average negative log-likelihood over a corpus — equivalently, the **cross-entropy** between the data and the model:
+<a id="p-31-a-language-model-is-an-autoregressive-predictor-2"></a><!-- para:31-a-language-model-is-an-autoregressive-predictor-2 --> The model is the conditional $p_\theta(x_t \mid x_{<t})$: given the past, output a probability vector over the whole vocabulary for the next token. What should training optimize? The principled goal is to make the model distribution match the data — to minimize the **relative entropy** (KL divergence) from $p_{\text{data}}$ to $p_\theta$. Because the data's own entropy does not depend on $\theta$, that is equivalent to minimizing the **cross-entropy** between data and model, which a corpus lets us estimate by the average negative log-likelihood. Read top-down, the following *derives* the training loss $\mathcal{L}(\theta)$ rather than positing it:
 
 <a id="eq-2"></a><!-- eq:3-2 -->
 $$
 \begin{aligned}
-\mathcal{L}(\theta)
-&= -\frac{1}{T}\sum_{t=1}^{T}\log p_\theta\!\left(x_t \mid x_{<t}\right)
-&&\text{(negative log-likelihood)}\\
-&= -\frac{1}{T}\log \prod_{t=1}^{T} p_\theta\!\left(x_t \mid x_{<t}\right)\\
-&= -\frac{1}{T}\log p_\theta(x_1,\dots,x_T)
-&&\text{(chain rule: maximum likelihood)}\\
-&\xrightarrow[\;T\to\infty\;]{}\;
-H\!\left(p_{\text{data}},\,p_\theta\right)
-&&\text{(population cross-entropy)}\\
+\underbrace{H\!\left(p_{\text{data}},\,p_\theta\right)}_{\text{cross-entropy}}
 &= \underbrace{H\!\left(p_{\text{data}}\right)}_{\text{irreducible}}
 \;+\;
 \underbrace{D_{\mathrm{KL}}\!\left(p_{\text{data}}\,\big\|\,p_\theta\right)}_{\ge\,0,\;=\,0\,\Leftrightarrow\,p_\theta=p_{\text{data}}}
-&&\text{(data entropy}+\text{KL divergence)}
+&&\text{(match the data}\Rightarrow\text{minimize KL)}\\
+&= -\,\mathbb{E}_{p_{\text{data}}}\!\left[\log p_{\text{data}}\right]
+\;+\;
+\mathbb{E}_{p_{\text{data}}}\!\left[\log p_{\text{data}} - \log p_\theta\right]
+&&\text{(expand }H\text{ and }D_{\mathrm{KL}})\\
+&= -\,\mathbb{E}_{p_{\text{data}}}\!\left[\log p_\theta(x_{1:T})\right]
+&&\text{(the }\mathbb{E}[\log p_{\text{data}}]\text{ terms cancel)}\\
+&= -\,\mathbb{E}_{p_{\text{data}}}\!\left[\textstyle\sum_{t=1}^{T}\log p_\theta\!\left(x_t \mid x_{<t}\right)\right]
+&&\text{(chain rule on }p_\theta)\\
+\tfrac{1}{T}\,H\!\left(p_{\text{data}},\,p_\theta\right)
+&\approx -\frac{1}{T}\sum_{t=1}^{T}\log p_\theta\!\left(x_t \mid x_{<t}\right)
+\;\equiv\; \mathcal{L}(\theta)
+&&\text{(empirical mean; LLN, i.i.d./ergodic corpus)}
 \end{aligned} \tag{2}
 $$
 
-<a id="p-31-a-language-model-is-an-autoregressive-predictor-3"></a><!-- para:31-a-language-model-is-an-autoregressive-predictor-3 --> **Intuition (signal processing).** Equation <!-- ref:3-1 -->[(1)](#eq-1) is an AR($\infty$) model: the next symbol depends on the entire history. The differences from a classical AR($p$) model are three: the predictor is a *learned nonlinear* map (the neural network of Sections 3.3–3.4) instead of a linear filter; the output is a *categorical distribution* over a discrete alphabet (produced by a softmax) instead of a scalar plus Gaussian innovation; and the loss in Equation <!-- ref:3-2 -->[(2)](#eq-2) is cross-entropy, which is the negative log-likelihood and equals the KL divergence from the data distribution up to the data's own entropy. Minimizing it is maximum-likelihood fitting. "Generation" is then just running the AR recursion forward: sample $x_t$ from $p_\theta(\cdot \mid x_{<t})$, append it, repeat.
+<a id="p-31-a-language-model-is-an-autoregressive-predictor-3"></a><!-- para:31-a-language-model-is-an-autoregressive-predictor-3 --> **Intuition (signal processing).** Equation <!-- ref:3-1 -->[(1)](#eq-1) is an AR($\infty$) model: the next symbol depends on the entire history. The differences from a classical AR($p$) model are three: the predictor is a *learned nonlinear* map (the neural network of Sections 3.3–3.4) instead of a linear filter; the output is a *categorical distribution* over a discrete alphabet (produced by a softmax) instead of a scalar plus Gaussian innovation; and the loss in Equation <!-- ref:3-2 -->[(2)](#eq-2) is *derived, not posited*: matching the data distribution means minimizing the KL divergence to it, which — because the data's own entropy is a fixed floor — reduces to minimizing the cross-entropy, of which the per-token negative log-likelihood is the empirical (Monte-Carlo) estimate. Minimizing it is therefore maximum-likelihood fitting, and that irreducible entropy floor is exactly why the loss cannot reach zero. "Generation" is then just running the AR recursion forward: sample $x_t$ from $p_\theta(\cdot \mid x_{<t})$, append it, repeat.
 
 <a id="p-31-a-language-model-is-an-autoregressive-predictor-4"></a><!-- para:31-a-language-model-is-an-autoregressive-predictor-4 --> *Concrete example.* Prompt the model with the token sequence for `def add(a, b):\n    return ` and it returns a distribution over next tokens in which `a` carries high probability, `subtract` low, and `):` near zero — the same object an AR model produces, but over a code vocabulary.
 
