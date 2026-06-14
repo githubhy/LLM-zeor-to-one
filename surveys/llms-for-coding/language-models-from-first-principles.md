@@ -16,7 +16,21 @@ $$
 
 <a id="eq-2"></a><!-- eq:3-2 -->
 $$
-\mathcal{L}(\theta) = -\frac{1}{T}\sum_{t=1}^{T} \log p_\theta\!\left(x_t \mid x_{<t}\right). \tag{2}
+\begin{aligned}
+\mathcal{L}(\theta)
+&= -\frac{1}{T}\sum_{t=1}^{T}\log p_\theta\!\left(x_t \mid x_{<t}\right)
+&&\text{(negative log-likelihood)}\\
+&= -\frac{1}{T}\log \prod_{t=1}^{T} p_\theta\!\left(x_t \mid x_{<t}\right)\\
+&= -\frac{1}{T}\log p_\theta(x_1,\dots,x_T)
+&&\text{(chain rule: maximum likelihood)}\\
+&\xrightarrow[\;T\to\infty\;]{}\;
+H\!\left(p_{\text{data}},\,p_\theta\right)
+&&\text{(population cross-entropy)}\\
+&= \underbrace{H\!\left(p_{\text{data}}\right)}_{\text{irreducible}}
+\;+\;
+\underbrace{D_{\mathrm{KL}}\!\left(p_{\text{data}}\,\big\|\,p_\theta\right)}_{\ge\,0,\;=\,0\,\Leftrightarrow\,p_\theta=p_{\text{data}}}
+&&\text{(data entropy}+\text{KL divergence)}
+\end{aligned} \tag{2}
 $$
 
 <a id="p-31-a-language-model-is-an-autoregressive-predictor-3"></a><!-- para:31-a-language-model-is-an-autoregressive-predictor-3 --> **Intuition (signal processing).** Equation <!-- ref:3-1 -->[(1)](#eq-1) is an AR($\infty$) model: the next symbol depends on the entire history. The differences from a classical AR($p$) model are three: the predictor is a *learned nonlinear* map (the neural network of Sections 3.3–3.4) instead of a linear filter; the output is a *categorical distribution* over a discrete alphabet (produced by a softmax) instead of a scalar plus Gaussian innovation; and the loss in Equation <!-- ref:3-2 -->[(2)](#eq-2) is cross-entropy, which is the negative log-likelihood and equals the KL divergence from the data distribution up to the data's own entropy. Minimizing it is maximum-likelihood fitting. "Generation" is then just running the AR recursion forward: sample $x_t$ from $p_\theta(\cdot \mid x_{<t})$, append it, repeat.
