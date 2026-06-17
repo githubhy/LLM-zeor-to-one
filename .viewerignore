@@ -1,0 +1,11 @@
+# .viewerignore — gitignore-syntax exclude list applied WITHIN each content
+# root declared in viewer.content.json (Plan: multi-root viewer content).
+#
+# The built-in defaults (node_modules/ archive/ .viewer-highlights/ dist/
+# download/ temp/ .git/ viewer/) are always applied and need not be repeated
+# here. The reader-prose roots are curated, so this file only needs to prune
+# any incidental non-reader artifacts that land inside a root.
+
+# Scratch / backup files anywhere in a root.
+**/*.scratch.md
+**/*.bak.md

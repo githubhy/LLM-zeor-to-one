@@ -51,6 +51,7 @@
       const data = await res.json();
       return {
         files: Array.isArray(data.files) ? data.files : [],
+        roots: Array.isArray(data.roots) ? data.roots : null,
         defaultFile: data.defaultFile || null,
       };
     }
@@ -190,7 +191,7 @@
     async function listFiles() {
       const res = await fetchImpl(`${base}/files.json`, { headers: headers() });
       const data = await res.json();
-      return { files: Array.isArray(data.files) ? data.files : [], defaultFile: data.defaultFile || null, version: data.version || null };
+      return { files: Array.isArray(data.files) ? data.files : [], roots: Array.isArray(data.roots) ? data.roots : null, defaultFile: data.defaultFile || null, version: data.version || null };
     }
     async function getMarkdown(file) {
       const res = await fetchImpl(`${base}/content/${file}`, { headers: headers() });

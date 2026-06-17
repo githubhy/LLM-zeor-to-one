@@ -143,17 +143,39 @@
     };
   }
 
-  // Resolve the repo-root-relative path for a viewer-relative file.
-  // The /api/git-info endpoint returns `repoRelDir` (the viewer target dir,
-  // relative to the git repo root). GitHub blob URLs must embed the full
-  // path, not just the basename — otherwise citation URLs 404 whenever the
-  // viewer is launched against a subtree like `surveys/xxx/`.
+  // Resolve the repo-root-relative path for a viewer-relative file. GitHub blob
+  // URLs must embed the full path, not just the basename — else citation URLs
+  // 404 whenever the viewer is launched against a subtree like `surveys/xxx/`.
+  //
+  // Schema-2 (multi-root): gitInfo.roots is a map keyed by namespace id; the
+  // file's owning root (longest matching id prefix, '' = single-root fallback)
+  // supplies the repoRelDir, and only its root-relative remainder is appended.
+  // Legacy flat gitInfo (top-level available/repoRelDir) is still supported.
   function resolveRepoPath(currentFile, gitInfo) {
     const f = String(currentFile || '');
-    if (!gitInfo || !gitInfo.available) return f;
-    const prefix = String(gitInfo.repoRelDir || '').replace(/^[\\/]+|[\\/]+$/g, '');
-    if (!prefix) return f;
-    return prefix + '/' + f;
+    if (!gitInfo) return f;
+    const joinPrefix = (info, rel) => {
+      if (!info || !info.available) return f;
+      const prefix = String(info.repoRelDir || '').replace(/^[\\/]+|[\\/]+$/g, '');
+      return prefix ? prefix + '/' + rel : rel;
+    };
+    if (gitInfo.roots && typeof gitInfo.roots === 'object') {
+      let bestId = null;
+      let bestRel = f;
+      let hasEmpty = false;
+      for (const id of Object.keys(gitInfo.roots)) {
+        if (id === '') { hasEmpty = true; continue; }
+        const pfx = id + '/';
+        if ((f === id || f.startsWith(pfx)) && (bestId === null || id.length > bestId.length)) {
+          bestId = id;
+          bestRel = f === id ? '' : f.slice(pfx.length);
+        }
+      }
+      if (bestId !== null) return joinPrefix(gitInfo.roots[bestId], bestRel);
+      if (hasEmpty) return joinPrefix(gitInfo.roots[''], f);
+      return f;
+    }
+    return joinPrefix(gitInfo, f);
   }
 
   // Extract citation-ready text from a DOM Range while (a) replacing each

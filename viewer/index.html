@@ -12,6 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Surveys">
+  <meta name="color-scheme" content="light dark">
 
   <script>
     // Theme FOUC guard: set data-theme + browser-chrome tint before first
@@ -21,19 +22,54 @@
     // and viewer.js THEME_COLORS — the cross-file contract is pinned by
     // tests/unit/fouc-guard.test.js.
     (function () {
-      // The parse is isolated so corrupt storage cannot skip the layout
-      // stamp: data-layout must be set before first paint in EVERY case, or
-      // the page boots painted classic while the JS treats it as reader
+      // The parse is isolated so corrupt storage cannot skip the chrome
+      // stamp: data-chrome must be set before first paint in EVERY case, or
+      // the page boots painted docs while the JS treats it as reader
       // until loadSettings() lands (QR finding).
       var s = {};
       try { s = JSON.parse(localStorage.getItem('viewer.settings.v1') || '{}') || {}; } catch (e) {}
-      if (s.theme === 'sepia' || s.theme === 'dark') {
-        document.documentElement.dataset.theme = s.theme;
-        var tint = s.theme === 'dark' ? '#1a1d23' : '#8a5a2b';
+      // Resolve the EFFECTIVE theme synchronously. 'auto' tracks the OS via
+      // prefers-color-scheme — matchMedia IS readable in an inline head script,
+      // so an auto-on-dark-OS user must NOT flash the light :root baseline
+      // (the CSS dark palette is keyed solely off html[data-theme="dark"];
+      // there is no prefers-color-scheme @media fallback). light stays
+      // unstamped (it is the :root baseline). Pinned by fouc-guard.test.js.
+      var eff = s.theme;
+      if (eff === 'auto') {
+        eff = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+      }
+      if (eff === 'sepia' || eff === 'dark') {
+        document.documentElement.dataset.theme = eff;
+        var tint = eff === 'dark' ? '#1a1d23' : '#8a5a2b';
         var meta = document.querySelector('meta[name="theme-color"]');
         if (meta) meta.setAttribute('content', tint);
       }
-      document.documentElement.dataset.layout = (s.layout === 'classic') ? 'classic' : 'reader';
+      // chrome = docs|reader|focus; legacy layout:classic -> docs.
+      var ch = s.chrome || (s.layout === 'classic' ? 'docs' : 'reader');
+      var stamped = (ch === 'docs' || ch === 'focus') ? ch : 'reader';
+      document.documentElement.dataset.chrome = stamped;
+      // Immersive (reader|focus) shares the off-canvas chrome — stamp pre-paint
+      // so reader/focus users never flash the docked shell.
+      if (stamped !== 'docs') document.documentElement.classList.add('immersive');
+      // Density preset (compact|spacious) is part of the first-paint chrome
+      // state too — stamp it pre-paint so non-default-density users don't flash
+      // the normal-density spacing/line-height before applyDensity() lands.
+      // :root defaults equal density-normal, so only compact/spacious need a class.
+      var d = s.density;
+      if (d === 'compact' || d === 'spacious') {
+        document.documentElement.classList.add('density-' + d);
+      }
+      // Prose measure (--measure-ch) is slider-controlled and caps the content
+      // column width. applyTypography() sets it post-load, so a non-default
+      // measure reflows the prose column on first paint unless we stamp it
+      // pre-paint here (mirrors the density stamp above). Schema range is
+      // 48..80ch (lib/settings-store.js measureCh.ok); reject anything outside
+      // it so a corrupt store can't poison the layout. Pinned by
+      // fouc-guard.test.js. The :root default is 66ch.
+      var mc = s.measureCh;
+      if (typeof mc === 'number' && mc >= 48 && mc <= 80) {
+        document.documentElement.style.setProperty('--measure-ch', mc + 'ch');
+      }
     })();
   </script>
 
@@ -80,8 +116,9 @@
       <span id="reader-crumb"></span>
       <span class="rt-spacer"></span>
       <button id="rt-palette" title="Command palette (Ctrl+K)" aria-label="Command palette" aria-keyshortcuts="Control+K Meta+K"><span aria-hidden="true">&#8984;K</span></button>
-      <button id="rt-aa" title="Appearance &amp; settings" aria-label="Appearance and settings" aria-controls="sidebar" aria-expanded="false">Aa</button>
+      <button id="rt-aa" title="Appearance &amp; settings" aria-label="Appearance and settings" aria-controls="settings-sheet" aria-haspopup="dialog" aria-expanded="false">Aa</button>
       <button id="rt-theme" title="Cycle theme" aria-label="Cycle theme">&#9681;</button>
+      <button id="rt-mode" title="Switch to Docs view (Ctrl+Shift+F: Focus)" aria-label="Switch to Docs view">&#9707;</button>
     </header>
     <nav id="reader-pill" aria-label="Reader navigation">
       <button data-pill="files" title="Files" aria-label="Files" aria-controls="sidebar" aria-expanded="false"><span aria-hidden="true">&#9636;</span> files</button>
@@ -92,20 +129,20 @@
     <nav id="mobile-toolbar" aria-label="Reader toolbar">
       <button data-mt="files" title="Files" aria-label="Files" aria-controls="sidebar" aria-expanded="false"><span aria-hidden="true">&#9636;</span>files</button>
       <button data-mt="outline" title="Outline" aria-label="Outline" aria-controls="sidebar" aria-expanded="false"><span aria-hidden="true">&#9776;</span>outline</button>
-      <button data-mt="search" title="Search" aria-label="Search" aria-controls="sidebar" aria-expanded="false"><span aria-hidden="true">&#8981;</span>search</button>
+      <button data-mt="search" title="Command palette" aria-label="Command palette" aria-haspopup="dialog"><span aria-hidden="true">&#8984;</span>search</button>
       <button data-mt="highlights" title="Highlights" aria-label="Highlights" aria-controls="sidebar" aria-expanded="false"><span aria-hidden="true">&#9998;</span>marks</button>
-      <button data-mt="aa" title="Appearance &amp; settings" aria-label="Appearance and settings" aria-controls="sidebar" aria-expanded="false"><span aria-hidden="true">Aa</span>settings</button>
+      <button data-mt="aa" title="Appearance &amp; settings" aria-label="Appearance and settings" aria-controls="settings-sheet" aria-haspopup="dialog" aria-expanded="false"><span aria-hidden="true">Aa</span>settings</button>
     </nav>
     <aside id="sidebar">
       <div id="sheet-handle" aria-hidden="true"></div>
       <div id="sidebar-header">
         <div id="sidebar-tabs" role="tablist">
-          <button class="sidebar-tab active" data-tab="files" title="Files" aria-label="Files">
+          <button class="sidebar-tab active" data-tab="files" title="Files" aria-label="Files" role="tab" aria-selected="true">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M3 6h7l2 2h9v11a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1z"/>
             </svg>
           </button>
-          <button class="sidebar-tab" data-tab="outline" title="Outline (Ctrl+Shift+O)" aria-label="Outline">
+          <button class="sidebar-tab" data-tab="outline" title="Outline (Ctrl+Shift+O)" aria-label="Outline" role="tab" aria-selected="false" tabindex="-1">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <line x1="8" y1="6" x2="20" y2="6"/>
               <line x1="8" y1="12" x2="20" y2="12"/>
@@ -115,7 +152,7 @@
               <circle cx="4" cy="18" r="1.2"/>
             </svg>
           </button>
-          <button class="sidebar-tab" data-tab="highlights" title="Highlights (Ctrl+Shift+H)" aria-label="Highlights">
+          <button class="sidebar-tab" data-tab="highlights" title="Highlights (Ctrl+Shift+H)" aria-label="Highlights" role="tab" aria-selected="false" tabindex="-1">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M4 19l3-1 10-10-2-2L5 16l-1 3z"/>
               <path d="M14 6l4 4"/>
@@ -123,47 +160,7 @@
             </svg>
           </button>
         </div>
-        <button id="settings-btn" title="Settings" aria-label="Settings">&#9881;</button>
-      </div>
-      <div id="settings-panel" class="settings-hidden">
-        <label><input type="checkbox" id="setting-scroll-fx" checked> Scroll effects</label>
-        <label><input type="checkbox" id="setting-update-fx" checked> Update effects</label>
-        <div class="settings-group">
-          <div class="settings-label">Citation link mode</div>
-          <label><input type="radio" name="citation-mode" value="github"> GitHub blob (HEAD sha)</label>
-          <label><input type="radio" name="citation-mode" value="local"> Localhost viewer</label>
-          <label><input type="radio" name="citation-mode" value="relative"> Relative repo path</label>
-        </div>
-        <div class="settings-group">
-          <div class="settings-label">Note marker</div>
-          <label><input type="radio" name="note-marker" value="icon"> Icon (✎)</label>
-          <label><input type="radio" name="note-marker" value="ring"> Color ring</label>
-        </div>
-        <label><input type="checkbox" id="setting-reading-progress" checked> Reading progress bar</label>
-        <div class="settings-group">
-          <div class="settings-label">Reading progress</div>
-          <label><input type="radio" name="reading-progress-mode" value="whole-doc"> Whole document</label>
-          <label><input type="radio" name="reading-progress-mode" value="section"> Current section</label>
-        </div>
-        <div class="settings-group" id="settings-group-layout">
-          <div class="settings-label">Layout (desktop)</div>
-          <label><input type="radio" name="layout-mode" value="reader"> Reader</label>
-          <label><input type="radio" name="layout-mode" value="classic"> Classic</label>
-        </div>
-        <div class="settings-group">
-          <div class="settings-label">Theme</div>
-          <label><input type="radio" name="theme" value="light"> Light</label>
-          <label><input type="radio" name="theme" value="sepia"> Sepia</label>
-          <label><input type="radio" name="theme" value="dark"> Dark</label>
-        </div>
-        <div class="settings-group">
-          <div class="settings-label">Typography</div>
-          <label>Size <input type="range" id="setting-font-scale" min="0.85" max="1.3" step="0.05"></label>
-          <label>Line height <input type="range" id="setting-line-height" min="1.4" max="2.0" step="0.05"></label>
-          <label>Width <input type="range" id="setting-content-max" min="640" max="1100" step="20"></label>
-          <label><input type="radio" name="content-font" value="sans"> Sans</label>
-          <label><input type="radio" name="content-font" value="serif"> Serif</label>
-        </div>
+        <button id="settings-btn" title="Settings" aria-label="Settings" aria-controls="settings-sheet" aria-haspopup="dialog" aria-expanded="false">&#9881;</button>
       </div>
       <div id="search-box">
         <div id="search-input-wrap">
@@ -180,6 +177,39 @@
     <button id="sidebar-toggle" title="Toggle sidebar (Ctrl+B)" aria-label="Toggle sidebar" aria-controls="sidebar" aria-expanded="true">&#9776;</button>
     <div id="drawer-backdrop" hidden></div>
     <main id="content"></main>
+    <!-- Pane B (redesign T7 split-view): a secondary, light read-only reference
+         pane shown only beside #content at wide desktop width (≥1440px). Unlike
+         Pane A it has NO outline scroll-spy, NO sidenote band, and NO progress —
+         it renders a referenced section/file through the same render() pipeline
+         into .cb-body, with its own scroll, breadcrumb, and close control.
+         viewer.js owns its visibility (the #app.split-open state class). -->
+    <aside id="content-b" hidden aria-label="Reference pane">
+      <div id="cb-head">
+        <span id="cb-crumb"></span>
+        <span class="cb-spacer"></span>
+        <button type="button" class="cb-close" title="Close reference pane (Esc)" aria-label="Close reference pane">&times;</button>
+      </div>
+      <div class="cb-body"></div>
+    </aside>
+    <!-- Right context column (redesign T4): a third fixed zone shown only in
+         the docked Docs shell at wide desktop width (≥1400px). The Outline and
+         Marks segments host the SAME #outline-list / #highlights-list nodes the
+         sidebar drawer uses in reader/focus — viewer.js reparents them in/out on
+         each applyChrome() so the existing builders + scroll-spy keep working
+         regardless of which zone owns the node. The Peek segment mirrors the
+         floating cross-reference preview into the pane while in Docs. -->
+    <aside id="right-pane" aria-label="Context column">
+      <div id="rp-segs" role="tablist" aria-label="Context column view">
+        <button class="rp-seg active" data-seg="outline" role="tab" aria-selected="true" aria-controls="rp-outline" title="Outline">Outline</button>
+        <button class="rp-seg" data-seg="marks" role="tab" aria-selected="false" aria-controls="rp-marks" title="Highlights" tabindex="-1">Marks</button>
+        <button class="rp-seg" data-seg="peek" role="tab" aria-selected="false" aria-controls="rp-peek" title="Cross-reference preview" tabindex="-1">Peek</button>
+      </div>
+      <div id="rp-outline" class="rp-panel" role="tabpanel" aria-label="Outline"></div>
+      <div id="rp-marks" class="rp-panel tab-hidden" role="tabpanel" aria-label="Highlights"></div>
+      <div id="rp-peek" class="rp-panel tab-hidden" role="tabpanel" aria-label="Cross-reference preview">
+        <div class="rp-peek-empty">Hover a cross-reference to preview it here.</div>
+      </div>
+    </aside>
     <div id="reading-progress" aria-hidden="true"><div id="reading-progress-fill"></div></div>
     <div id="reader-rail" aria-hidden="true"><div id="reader-rail-fill"></div></div>
     <div id="cmd-palette" hidden role="dialog" aria-modal="true" aria-label="Command palette">
@@ -195,6 +225,71 @@
         <button id="peek-goto" type="button" aria-label="Go to target">Go to &#8599;</button>
       </div>
     </div>
+    <div id="settings-sheet" hidden role="dialog" aria-modal="true" aria-label="Settings">
+      <div id="settings-sheet-box">
+        <div id="settings-sheet-head">
+          <span id="settings-sheet-title">Settings</span>
+          <button id="settings-close" type="button" title="Close settings" aria-label="Close settings">&times;</button>
+        </div>
+        <div id="settings-sheet-body">
+          <label><input type="checkbox" id="setting-scroll-fx" checked> Scroll effects</label>
+          <label><input type="checkbox" id="setting-update-fx" checked> Update effects</label>
+          <div class="settings-group">
+            <div class="settings-label">Citation link mode</div>
+            <label><input type="radio" name="citation-mode" value="github"> GitHub blob (HEAD sha)</label>
+            <label><input type="radio" name="citation-mode" value="local"> Localhost viewer</label>
+            <label><input type="radio" name="citation-mode" value="relative"> Relative repo path</label>
+          </div>
+          <div class="settings-group">
+            <div class="settings-label">Note marker</div>
+            <label><input type="radio" name="note-marker" value="icon"> Icon (✎)</label>
+            <label><input type="radio" name="note-marker" value="ring"> Color ring</label>
+          </div>
+          <label><input type="checkbox" id="setting-reading-progress" checked> Reading progress bar</label>
+          <div class="settings-group">
+            <div class="settings-label">Reading progress</div>
+            <label><input type="radio" name="reading-progress-mode" value="whole-doc"> Whole document</label>
+            <label><input type="radio" name="reading-progress-mode" value="section"> Current section</label>
+          </div>
+          <div class="settings-group" id="settings-group-layout">
+            <div class="settings-label">Mode (desktop)</div>
+            <label><input type="radio" name="chrome-mode" value="docs"> Non-immersive (Docs)</label>
+            <label><input type="radio" name="chrome-mode" value="reader"> Immersive (Reader)</label>
+            <label><input type="radio" name="chrome-mode" value="focus"> Focus</label>
+          </div>
+          <!-- T7 — Tufte margin sidenotes. Immersive-only, wide-desktop only
+               (≥1400px); resolves refs in the right whitespace beside the prose.
+               Sits with the Mode group because it only takes effect in the
+               immersive desktop shells the Mode radios select. -->
+          <label><input type="checkbox" id="setting-margin-notes"> Margin notes (immersive, wide)</label>
+          <div class="settings-group">
+            <div class="settings-label">Theme</div>
+            <label><input type="radio" name="theme" value="light"> Light</label>
+            <label><input type="radio" name="theme" value="sepia"> Sepia</label>
+            <label><input type="radio" name="theme" value="dark"> Dark</label>
+            <label><input type="radio" name="theme" value="auto"> Auto (system)</label>
+          </div>
+          <div class="settings-group">
+            <div class="settings-label">Density</div>
+            <label><input type="radio" name="density-mode" value="compact"> Compact</label>
+            <label><input type="radio" name="density-mode" value="normal"> Normal</label>
+            <label><input type="radio" name="density-mode" value="spacious"> Spacious</label>
+          </div>
+          <div class="settings-group">
+            <div class="settings-label">Typography</div>
+            <label>Size <input type="range" id="setting-font-scale" min="0.85" max="1.3" step="0.05"></label>
+            <label>Line height <input type="range" id="setting-line-height" min="1.4" max="2.0" step="0.05"></label>
+            <label>Measure <input type="range" id="setting-measure-ch" min="48" max="80" step="1"></label>
+            <label><input type="radio" name="content-font" value="sans"> Sans</label>
+            <label><input type="radio" name="content-font" value="serif"> Serif</label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="mobile-rail" role="button" tabindex="0" aria-label="Reading position; tap to show the menu">
+      <div id="mobile-rail-fill"></div>
+    </div>
+    <span id="mobile-rail-label" role="status" aria-live="polite"></span>
   </div>
   <script src="lib/highlight-shared.js"></script>
   <script src="lib/scroll-sync.js"></script>
@@ -207,6 +302,7 @@
   <script src="lib/version-check.js"></script>
   <script src="lib/palette-rank.js"></script>
   <script src="lib/peek-target.js"></script>
+  <script src="lib/reading-position.js"></script>
   <script src="viewer.js"></script>
 </body>
 </html>

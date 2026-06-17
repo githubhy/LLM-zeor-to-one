@@ -7,11 +7,11 @@
   const SETTINGS_KEY = 'viewer.settings.v1';
 
   const SCHEMA = {
-    layout:              { def: 'reader', ok: (v) => v === 'reader' || v === 'classic' },
-    theme:               { def: 'light',  ok: (v) => v === 'light' || v === 'sepia' || v === 'dark' },
+    chrome:              { def: 'reader', ok: (v) => v === 'docs' || v === 'reader' || v === 'focus' },
+    theme:               { def: 'light',  ok: (v) => v === 'light' || v === 'sepia' || v === 'dark' || v === 'auto' },
     fontScale:           { def: 1.0,      ok: (v) => typeof v === 'number' && v >= 0.8 && v <= 1.4 },
     lineHeight:          { def: 1.7,      ok: (v) => typeof v === 'number' && v >= 1.3 && v <= 2.1 },
-    contentMax:          { def: 860,      ok: (v) => typeof v === 'number' && v >= 600 && v <= 1200 },
+    measureCh:           { def: 66,       ok: (v) => typeof v === 'number' && v >= 48 && v <= 80 },
     fontFamily:          { def: 'sans',   ok: (v) => v === 'sans' || v === 'serif' },
     scrollFx:            { def: true,     ok: (v) => typeof v === 'boolean' },
     updateFx:            { def: true,     ok: (v) => typeof v === 'boolean' },
@@ -19,6 +19,17 @@
     readingProgress:     { def: true,     ok: (v) => typeof v === 'boolean' },
     readingProgressMode: { def: 'doc',    ok: (v) => v === 'doc' || v === 'section' },
     citationMode:        { def: 'github', ok: (v) => v === 'github' || v === 'local' || v === 'relative' },
+    railLabelMode:       { def: 'percent', ok: (v) => v === 'percent' || v === 'section' },
+    // Chrome/navigation density preset — ORTHOGONAL to body typography (spec §8).
+    // Tunes only outline/marks/right-pane/code line-height (--ui-density-lh) and
+    // section spacing; never touches --content-lh / --font-scale / --measure-ch.
+    density:             { def: 'normal', ok: (v) => v === 'compact' || v === 'normal' || v === 'spacious' },
+    // Tufte margin sidenotes (T7) — render footnotes / numbered citations /
+    // eq·sec·ref cross-refs as sidenotes in the right whitespace beside the
+    // prose, vertically aligned to the invoking paragraph. Immersive-only,
+    // wide-desktop only; opt-in (default off). The floating peek popover stays
+    // the resolution path whenever the band is gated off.
+    marginNotes:         { def: false,    ok: (v) => typeof v === 'boolean' },
   };
 
   // [legacyKey, schemaKey, parse]
@@ -51,6 +62,12 @@
         for (const k of Object.keys(SCHEMA)) {
           if (k in parsed && SCHEMA[k].ok(parsed[k])) o[k] = parsed[k];
         }
+        // In-namespace migration: legacy `layout` (reader|classic) -> `chrome`
+        // (docs|reader|focus). classic docked -> docs; reader stays default.
+        if (!('chrome' in parsed) && parsed.layout === 'classic') o.chrome = 'docs';
+        // measure: legacy px `contentMax` is retired; reset to the 66ch default
+        // (font-dependent px->ch conversion is intentionally not attempted).
+        if (!('measureCh' in parsed) && 'contentMax' in parsed) o.measureCh = SCHEMA.measureCh.def;
         return o;
       } catch (e) { return null; }
     }

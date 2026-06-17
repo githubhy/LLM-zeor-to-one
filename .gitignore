@@ -16,6 +16,11 @@ download/*
 # Node (viewer server deps; install via `cd viewer && npm install`)
 node_modules/
 
+# Viewer test/deploy artifacts (Playwright + multi-root publish bundle)
+viewer/test-results/
+viewer/playwright-report/
+viewer/dist/
+
 # OS / editor
 .DS_Store
 *.swp

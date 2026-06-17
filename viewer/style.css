@@ -3,7 +3,28 @@
 
 :root {
   --sidebar-w: 230px;
-  --content-max: 860px;
+  /* Right context column width (redesign T4 — Docs-only third zone). */
+  --right-pane-w: 260px;
+  /* Prose measure: ch-anchored (the unanimous SOTA readability finding —
+     66ch ≈ 75-85 CPL), capped so a very wide font never blows past ~1100px.
+     applyTypography overrides --measure-ch per the user's slider (48-80ch). */
+  --measure-ch: 66ch;
+  --measure-cap: 1100px;
+  /* Density preset (spec §8) — chrome/navigation line-height + section spacing.
+     ORTHOGONAL to the prose measure/line-height above: density NEVER touches
+     --content-lh / --font-scale / --measure-ch, only the UI surfaces below
+     (outline / marks / right-pane / code). html.density-compact|spacious swap
+     these; html.density-normal keeps the defaults. applyDensity() in viewer.js
+     toggles exactly one density-* class. */
+  --ui-density-lh: 1.4;
+  --section-gap: 14px;
+  /* Anchor-landing inset (T6 Part A). Docs/classic have no fixed TOP chrome,
+     so a deep-link / palette / outline landing sits flush at ~0. In immersive
+     (reader/focus) the fixed 44px #reader-topbar would occlude the target, so
+     html.immersive bumps this to 64px (topbar + breathing room). Mobile chrome
+     is a BOTTOM toolbar only — no top inset needed there. Drives the
+     scroll-margin-top of every in-content landing target below. */
+  --chrome-top: 0px;
   --accent: #2563eb;
   --bg: #fafafa;
   --sidebar-bg: #f0f0f0;
@@ -27,6 +48,14 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left:   env(safe-area-inset-left, 0px);
 }
+
+/* ── Density presets (redesign T5, spec §8) — chrome/nav density only ──
+   compact tightens / spacious loosens the UI line-height + section gap; the
+   prose --content-lh / --font-scale / --measure-ch are deliberately absent
+   here so they stay user-slider-controlled and orthogonal to density. */
+html.density-compact  { --ui-density-lh: 1.25; --section-gap: 9px; }
+html.density-normal   { --ui-density-lh: 1.4;  --section-gap: 14px; }
+html.density-spacious { --ui-density-lh: 1.6;  --section-gap: 20px; }
 
 /* ── Themes (redesign 01) — variable swaps only; light stays in :root ── */
 html[data-theme="sepia"] {
@@ -70,7 +99,15 @@ body {
 }
 
 /* ── Layout ────────────────────────────────────────────────────── */
-#app { display: flex; min-height: 100vh; }
+/* overflow-x:clip prevents an absolutely-positioned descendant (the Tufte
+   margin sidenote band, T7) from widening the page and forcing a horizontal
+   scrollbar at wide measure/font-scale between ~1400-1610px. `clip` (not
+   `hidden`) adds no scroll container and — unlike transform/filter — does NOT
+   establish a containing block for position:fixed descendants, so Pane B, the
+   right pane, the palette, and the peek popover stay viewport-anchored. Wide
+   block children (tables/pre/equations) already scroll inside #content
+   (min-width:0), so nothing legitimately relies on #app scrolling sideways. */
+#app { display: flex; min-height: 100vh; overflow-x: clip; }
 
 #sidebar {
   width: var(--sidebar-w);
@@ -157,24 +194,77 @@ html.sidebar-resizing { cursor: col-resize !important; user-select: none !import
 }
 #settings-btn:hover { color: var(--text); }
 
-/* Settings panel */
-#settings-panel {
-  padding: 6px 14px 8px;
+/* Settings sheet — a self-contained top-level modal (settings-isolation),
+   sibling of #cmd-palette. Decoupled from #sidebar so settings no longer shares
+   the tab container. Desktop = centred panel; mobile = bottom sheet (below). */
+#settings-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 1150;                 /* above peek (1050), below palette (1200) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.32);
+  padding: 24px;
+}
+#settings-sheet[hidden] { display: none; }
+html[data-theme="dark"] #settings-sheet { background: rgba(0, 0, 0, 0.5); }
+#settings-sheet-box {
+  background: var(--panel-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+  width: 100%;
+  max-width: 420px;
+  max-height: min(80vh, 640px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: settings-emerge 0.18s ease;
+}
+@media (prefers-reduced-motion: reduce) { #settings-sheet-box { animation: none; } }
+@keyframes settings-emerge { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+#settings-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
   border-bottom: 1px solid var(--border);
+  flex: 0 0 auto;
+}
+#settings-sheet-title { font-weight: 600; font-size: 0.9rem; color: var(--text); }
+#settings-close {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 6px;
+  border-radius: 6px;
+}
+#settings-close:hover { color: var(--text); background: color-mix(in srgb, var(--text) 10%, transparent); }
+/* The control column; scrolls inside the box on short viewports (replaces the
+   old in-sidebar #settings-panel overflow rule — bug 2026-06-12-02 and
+   todos/2026-06-12-settings-panel-scroll-mobile.md, now satisfied here). */
+#settings-sheet-body {
+  padding: 8px 14px 12px;
+  overflow-y: auto;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   color: var(--text-muted);
 }
-#settings-panel.settings-hidden { display: none; }
-#settings-panel label {
+#settings-sheet label {
   display: flex;
   align-items: center;
   gap: 6px;
   cursor: pointer;
 }
-#settings-panel .settings-group {
+#settings-sheet .settings-group {
   margin-top: 8px;
   padding-top: 6px;
   border-top: 1px solid var(--border);
@@ -182,20 +272,14 @@ html.sidebar-resizing { cursor: col-resize !important; user-select: none !import
   flex-direction: column;
   gap: 4px;
 }
-#settings-panel .settings-label {
+#settings-sheet .settings-label {
   font-size: 0.68rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-muted);
   margin-bottom: 2px;
 }
-/* The open panel can exceed its container's fixed height (the desktop rail
-   on short windows — bug 2026-06-12-02; the 75dvh mobile sheet —
-   todos/2026-06-12-settings-panel-scroll-mobile.md); the column has no
-   scrollable ancestor, so without this the bottom groups are unreachable.
-   min-height:0 overrides the flex-item min-height:auto floor so the panel
-   can actually shrink; overflow-y then provides the scroll. */
-#settings-panel { min-height: 0; overflow-y: auto; }
+@keyframes settings-sheet-emerge { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
 /* Tab visibility */
 .tab-hidden { display: none !important; }
@@ -229,8 +313,14 @@ html.sidebar-resizing { cursor: col-resize !important; user-select: none !import
      block children (table/pre/.display-math-wrap) then scroll inside it. */
   min-width: 0;
   overflow-wrap: break-word;
+  /* Positioning context for the Tufte margin sidenote band (T7), which is an
+     absolutely-positioned child so it scrolls WITH the prose. Harmless in
+     docs/mobile where the band is never built. */
+  position: relative;
   padding: 32px 40px 80px;
-  max-width: calc(var(--content-max) + 80px);
+  /* +80px compensates the 40px L/R border-box padding so the *text* measure
+     equals min(--measure-ch, --measure-cap). */
+  max-width: calc(min(var(--measure-ch, 66ch), var(--measure-cap, 1100px)) + 80px);
   font-size: calc(1rem * var(--font-scale, 1));
   line-height: var(--content-lh, 1.7);
   font-family: var(--content-font, inherit);
@@ -240,6 +330,115 @@ html.sidebar-resizing { cursor: col-resize !important; user-select: none !import
   user-select: text;
 }
 #sidebar.collapsed ~ #content { margin-left: 0; }
+
+/* ── Pane B — split-view secondary reference pane (redesign T7) ─────
+   Hidden by default everywhere. The pane is a LIGHT read-only surface: a
+   fixed right-half panel that hosts a referenced section/file through the
+   same render() pipeline. It only becomes visible inside #app.split-open at
+   ≥1440px (the desktop gate); viewer.js refuses to open it below that width
+   or on the mobile shell, so the `hidden` attribute is the floor and the
+   wide-desktop rule below is the only place it lifts. z-index sits BELOW the
+   palette (1200) and cheat-sheet (1210) so those modals always overlay it. */
+#content-b { display: none; }
+#content-b[hidden] { display: none !important; }
+#cb-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--sidebar-bg);
+}
+#cb-crumb {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+#cb-head .cb-spacer { flex: 1; }
+#cb-head .cb-close {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 1.1rem;
+  line-height: 1;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+}
+#cb-head .cb-close:hover { background: var(--border); }
+.cb-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-wrap: break-word;
+  padding: 24px 28px 60px;
+  /* Slightly smaller than Pane A — it is a reference surface, not the primary
+     read. The measure is intentionally NOT 66ch-capped: the pane is narrow. */
+  font-size: calc(0.95rem * var(--font-scale, 1));
+  line-height: var(--content-lh, 1.7);
+  font-family: var(--content-font, inherit);
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* ── Right context column (redesign T4) ────────────────────────────
+   Hidden by default everywhere (mobile shell, reader/focus, and Docs below
+   the wide-desktop breakpoint). The scoped rule in the ≥769px + ≥1400px
+   block below is the ONLY place it becomes visible — a third fixed zone in
+   the docked Docs shell. */
+#right-pane { display: none; }
+#right-pane #outline-list,
+#right-pane #highlights-list { flex: 1; }
+#rp-segs {
+  display: flex;
+  gap: 4px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.rp-seg {
+  flex: 1;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  padding: 4px 6px;
+  color: var(--text);
+  font-family: inherit;
+  line-height: 1.3;
+}
+.rp-seg:hover { background: var(--border); }
+.rp-seg.active {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+.rp-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; }
+.rp-panel.tab-hidden { display: none !important; }
+/* Density preset drives the right-pane panel line-height (chrome density). */
+#right-pane .rp-panel { line-height: var(--ui-density-lh, 1.4); }
+#rp-peek { padding: 12px 14px; font-size: 0.85rem; }
+.rp-peek-empty { color: var(--text-muted); font-style: italic; font-size: 0.8rem; }
+.rp-peek-goto {
+  margin-top: 10px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  padding: 3px 10px;
+  color: var(--accent);
+  font-family: inherit;
+}
+.rp-peek-goto:hover { background: var(--panel-bg); }
 
 /* ── Search ────────────────────────────────────────────────────── */
 #search-box { padding: 4px 14px 10px; }
@@ -331,6 +530,8 @@ html.sidebar-resizing { cursor: col-resize !important; user-select: none !import
   display: block;
   padding: 4px 14px;
   font-size: 0.8rem;
+  /* Density preset drives the entry line-height (chrome density, not prose). */
+  line-height: var(--ui-density-lh, 1.4);
   color: var(--text);
   cursor: pointer;
   border-left: 3px solid transparent;
@@ -379,11 +580,29 @@ html.sidebar-resizing { cursor: col-resize !important; user-select: none !import
   border-color: var(--accent);
   font-weight: 600;
 }
+/* Outline chapter-number sort toggle (#5, off by default). */
+.outline-sort-toggle {
+  margin: 4px 12px 0;
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.outline-sort-toggle[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
 
 /* Folder-wide outline: file-separator row and current-file tint */
 .outline-file-sep {
   padding: 10px 14px 4px;
-  margin-top: 4px;
+  /* Inter-file gap in the folder-wide outline scales with the density preset. */
+  margin-top: var(--section-gap, 14px);
   font-size: 0.7rem;
   color: var(--text-muted);
   letter-spacing: 0.04em;
@@ -399,6 +618,28 @@ html.sidebar-resizing { cursor: col-resize !important; user-select: none !import
 }
 .outline-entry[data-current] {
   background: linear-gradient(to right, var(--border) 0, transparent 180px);
+}
+/* Collapsible sibling-file groups (#2): non-current seps toggle their entries. */
+.outline-file-group > .outline-file-sep:not([data-current]) {
+  pointer-events: auto;
+  cursor: pointer;
+}
+.outline-file-group > .outline-file-sep:not([data-current])::before {
+  content: '\25B8';                 /* ▸ */
+  display: inline-block;
+  margin-right: 4px;
+  font-size: 0.6rem;
+  transition: transform 0.15s ease;
+}
+.outline-file-group:not(.collapsed) > .outline-file-sep:not([data-current])::before {
+  transform: rotate(90deg);
+}
+.outline-file-group.collapsed > .outline-file-children { display: none; }
+.outline-entry:focus-visible,
+.outline-file-sep:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  border-radius: 3px;
 }
 .outline-empty {
   padding: 6px 14px;
@@ -453,7 +694,8 @@ html.sidebar-resizing { cursor: col-resize !important; user-select: none !import
   padding: 5px 10px;
   cursor: pointer;
   font-size: 13px;
-  line-height: 1.4;
+  /* Density preset drives the mark-entry line-height (chrome density). */
+  line-height: var(--ui-density-lh, 1.4);
   border-bottom: 1px solid var(--border);
   border-left: none;
   border-right: none;
@@ -526,6 +768,18 @@ html.sidebar-resizing { cursor: col-resize !important; user-select: none !import
 }
 .dir-group.open > .dir-children { display: block; }
 
+/* Multi-root: the outer per-root group header is the top navigation level. */
+.root-header {
+  font-weight: 700;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 0.74rem;
+}
+.root-group > .dir-children > .dir-group > .dir-header { padding-left: 18px; }
+.root-group > .dir-children > .dir-group > .dir-children .file-entry { padding-left: 30px; }
+.root-group > .dir-children > .file-entry { padding-left: 26px; }
+
 /* File entries */
 .file-entry {
   display: block;
@@ -584,6 +838,10 @@ html.sidebar-resizing { cursor: col-resize !important; user-select: none !import
 #content pre {
   max-width: 100%;
   overflow-x: auto;
+  /* Code block line-height follows the density preset (chrome density), kept
+     separate from the prose --content-lh so dense readers can tighten code
+     without affecting body text. */
+  line-height: var(--ui-density-lh, 1.4);
 }
 #content pre code { background: none; padding: 0; }
 
@@ -624,8 +882,14 @@ html.sidebar-resizing { cursor: col-resize !important; user-select: none !import
 .katex-display { margin: 1rem 0 !important; }
 .katex-display > .katex { text-align: center; }
 
-/* Anchor scroll offset */
-[id^="eq-"] { scroll-margin-top: 80px; }
+/* Anchor scroll offset — landing targets clear the sticky topbar (T6 Part A).
+   --chrome-top is 0 in docs/classic and 64px in immersive (reader/focus), so a
+   deep-link, palette, or outline jump never lands behind the fixed topbar.
+   :where() keeps specificity at 0 so per-element overrides (if any) still win. */
+#content :where(h1, h2, h3, h4, h5, h6),
+#content :where([id^="eq-"], [id^="sec-"], [id^="ref-"]) {
+  scroll-margin-top: var(--chrome-top);
+}
 
 /* Highlight animation for scrolled-to anchors */
 @keyframes anchor-flash {
@@ -857,11 +1121,9 @@ mark { background-color: var(--hl-yellow); padding: 0.1em 0.2em; border-radius: 
 }
 #undo-toast button:hover { background: rgba(255,255,255,0.15); }
 
-/* ── Heading scroll-margin for TOC clicks ─────────────────────── */
-#content h1, #content h2, #content h3,
-#content h4, #content h5, #content h6 {
-  scroll-margin-top: 24px;
-}
+/* Heading scroll-margin for TOC clicks now lives in the consolidated
+   var(--chrome-top) landing rule above (T6 Part A) — a single :where()
+   selector covers headings + eq/sec/ref anchors with state-driven inset. */
 
 /* ── Effect-suppression classes (on <html>) ───────────────────── */
 html.no-scroll-fx { scroll-behavior: auto !important; }
@@ -881,6 +1143,8 @@ html.no-update-fx .file-entry.changed { animation: none !important; }
    block follows its defaults). */
 #mobile-toolbar { display: none; }
 #sheet-handle { display: none; }
+#mobile-rail { display: none; }
+#mobile-rail-label { display: none; }
 
 /* ── Responsive ────────────────────────────────────────────────── */
 /*
@@ -914,12 +1178,27 @@ html.no-update-fx .file-entry.changed { animation: none !important; }
     z-index: 30;
     padding-bottom: env(safe-area-inset-bottom);
   }
-  /* The layout switch is desktop-only (redesign 02; Plan 03 owns mobile) —
-     showing it in the sheet settings would be a mobile-visible change,
-     and data-layout has no effect at this width anyway. The #settings-panel
-     prefix outranks the (1,1,0) `#settings-panel .settings-group`
-     display:flex rule. */
-  #settings-panel #settings-group-layout { display: none; }
+  /* The settings sheet renders as a bottom sheet at phone widths. The layout
+     switch is desktop-only (redesign 02; Plan 03 owns mobile) — showing it in
+     the sheet would be a mobile-visible change, and data-layout has no effect
+     at this width anyway. The #settings-sheet prefix outranks the (1,1,0)
+     `#settings-sheet .settings-group` display:flex rule. */
+  #settings-sheet { align-items: flex-end; padding: 0; }
+  #settings-sheet-box {
+    max-width: none;
+    border-radius: 16px 16px 0 0;
+    max-height: 85dvh;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  /* Slide-up only when motion is welcome — mirrors the #sidebar sheet-emerge
+     nesting above; under reduced motion the box just appears (no animation).
+     The desktop `animation: settings-emerge` is suppressed by the top-level
+     reduced-motion override, but that rule loses to this equal-specificity
+     mobile one on source order, so the gate must live here. */
+  @media (prefers-reduced-motion: no-preference) {
+    #settings-sheet-box { animation: settings-sheet-emerge 0.24s ease; }
+  }
+  #settings-sheet #settings-group-layout { display: none; }
   /* The desktop collapse state is inert at phone widths. */
   #sidebar.collapsed { transform: translateY(100%); }
   /* visibility 0s on open: the flip must be synchronous so the search
@@ -928,6 +1207,16 @@ html.no-update-fx .file-entry.changed { animation: none !important; }
     transform: translateY(0);
     visibility: visible;
     transition: transform 0.25s ease, visibility 0s, height 0.2s ease;
+  }
+  /* Emerge-from-origin (mobile-bar T4): a gentle fade-in layered on the existing
+     bottom slide, so the sheet reads as materialising up from the edge. Pure
+     opacity — NO transform — so it never perturbs the sheet geometry (a scale
+     shrank the measured width mid-animation, tripping the 75dvh geometry pin).
+     Reduced-motion keeps the plain slide (this nested block does not apply). The
+     named detents are the existing 75dvh rest + .sheet-full expand (medium/large). */
+  @media (prefers-reduced-motion: no-preference) {
+    #app.drawer-open #sidebar { animation: sheet-emerge 0.26s ease; }
+    @keyframes sheet-emerge { from { opacity: 0.35; } to { opacity: 1; } }
   }
   /* Expanded detent (drag up — T3). 10px reveals a sliver of backdrop so
      the sheet still reads as dismissable; safe-top keeps it off the notch. */
@@ -1011,6 +1300,9 @@ html.no-update-fx .file-entry.changed { animation: none !important; }
   }
   #mobile-toolbar button span { font-size: 1.15rem; line-height: 1; }
   #mobile-toolbar button:active { background: color-mix(in srgb, var(--text) 10%, transparent); }
+  /* Active-state pill on the slot whose sheet is open (mobile-bar T5). 18% tint
+     keeps the accent-on-tint legible in sepia (brown-on-tan is the tightest). */
+  #mobile-toolbar button.mt-active { color: var(--accent); background: color-mix(in srgb, var(--accent) 18%, transparent); }
   /* Auto-hide slide (T4): 130% clears the safe-area padding too.
      pointer-events none — while hidden (including mid-slide) the toolbar
      must not swallow the bottom-edge reveal tap: a tap during the 0.2s
@@ -1051,10 +1343,66 @@ html.no-update-fx .file-entry.changed { animation: none !important; }
     justify-content: center;
   }
   #hl-toolbar .hl-sep { height: 28px; }
+
+  /* Selection morph (mobile-bar T3): on mobile the selection toolbar docks to
+     the bottom edge full-width — the bar "morphs" into the annotation surface —
+     instead of floating near the selection. z 210 sits above the nav bar (15)
+     and rail (16). The nav bar + rail yield while annotating. */
+  #hl-toolbar.docked {
+    position: fixed; left: 0; right: 0; bottom: 0; top: auto !important;
+    max-width: 100%; width: 100%; justify-content: center; flex-wrap: wrap;
+    border-radius: 14px 14px 0 0; border-top: 1px solid var(--border);
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.18); z-index: 210;
+  }
+  /* The explicit hide is PRIMARY (not just a z-order backup): the docked toolbar
+     sits at z 210 above the nav bar (15) and rail (16), but hiding them also
+     stops them claiming space / touch targets under the full-width docked bar. */
+  body.annotating #mobile-toolbar { transform: translateY(130%); pointer-events: none; }
+  body.annotating #mobile-rail { display: none; }
+
+  /* Reading position rail (mobile-bar T1): always-visible at the bottom edge
+     (above the home indicator). Tap reveals the auto-hidden toolbar and shows a
+     cycling position label. Sits just above the toolbar's z (15). */
+  /* Shown ONLY in immersive mode (toolbar auto-hidden) — that is exactly when a
+     position indicator + summon affordance is wanted, and it avoids the rail
+     overlapping the toolbar, which shares the bottom edge (review w9brruifz). */
+  #mobile-rail {
+    display: none;
+    position: fixed;
+    left: 0; right: 0;
+    bottom: env(safe-area-inset-bottom);
+    height: 4px;
+    z-index: 16;
+    background: color-mix(in srgb, var(--text) 10%, transparent);
+    cursor: pointer;
+  }
+  html.reader-chrome-hidden #mobile-rail { display: block; }
+  /* Expand the tap target above the 4px visual: a bare 4px strip is far below
+     the 44px guidance, but a full 44px invisible zone would swallow taps on the
+     last lines of content — ~24px total is the balance (taps summon; drags still
+     scroll, since the click handler fires only on a tap). */
+  #mobile-rail::before { content: ""; position: absolute; left: 0; right: 0; top: -20px; height: 20px; }
+  #mobile-rail-fill { height: 100%; width: 0; background: var(--accent); transition: width 0.1s linear; }
+  /* Independent overlay (a sibling of the rail, not a child) so it stays visible
+     for its 1.8s even after a rail tap summons the bar and hides the rail. Sits
+     centered just above the (now-shown) toolbar. */
+  #mobile-rail-label {
+    display: block;
+    position: fixed; left: 50%; transform: translateX(-50%);
+    bottom: calc(66px + env(safe-area-inset-bottom));
+    background: rgba(20, 20, 20, 0.82); color: #fff; font-size: 0.78rem;
+    padding: 5px 12px; border-radius: 14px; white-space: nowrap;
+    z-index: 40; opacity: 0; transition: opacity 0.2s; pointer-events: none;
+  }
+  #mobile-rail-label.show { opacity: 1; }
+  /* Progress-bar-off: keep a neutral summon strip (no fill) so the rail stays
+     discoverable as the way to bring the menu back. */
+  html.no-reading-progress #mobile-rail-fill { display: none; }
 }
 
 /* ── Reader layout, desktop (redesign 02) ───────────────────────────
-   Everything is scoped to >768px AND html[data-layout="reader"]:
+   Everything is scoped to >768px AND html[data-chrome="reader"]:
    Classic keeps the docked shell (behavioral parity bar — redesign 04
    retired the interim byte-identity constraint) and ≤768px is the
    always-reader mobile shell (redesign 03). The overlay reuses the
@@ -1069,7 +1417,7 @@ html.no-update-fx .file-entry.changed { animation: none !important; }
    stamping the fixed chrome and the 56px content padding onto printed
    pages (QR finding). */
 @media screen and (min-width: 769px) {
-  html[data-layout="reader"] #reader-topbar {
+  html[data-chrome="reader"] #reader-topbar {
     display: flex;
     position: fixed;
     top: 0; left: 0; right: 0;
@@ -1092,8 +1440,13 @@ html.no-update-fx .file-entry.changed { animation: none !important; }
   }
   #rt-aa:hover, #rt-theme:hover, #rt-palette:hover { background: var(--panel-bg); }
   #rt-palette { font-weight: 600; }
-  html[data-layout="reader"] #content { padding-top: 56px; }
-  html[data-layout="reader"] #reader-pill {
+  html[data-chrome="reader"] #content { padding-top: 56px; }
+  /* Anchor-landing inset (T6 Part A): desktop immersive (reader+focus) shows
+     the fixed 44px topbar, so in-content landing targets must scroll-clear it.
+     Scoped to this desktop media block — mobile immersive keeps --chrome-top:0
+     (its chrome is a bottom toolbar that never occludes a top landing). */
+  html.immersive { --chrome-top: 64px; }
+  html[data-chrome="reader"] #reader-pill {
     display: flex;
     position: fixed;
     left: 50%;
@@ -1115,7 +1468,7 @@ html.no-update-fx .file-entry.changed { animation: none !important; }
   }
   #reader-pill button:hover { background: color-mix(in srgb, var(--text) 8%, var(--panel-bg)); color: var(--text); }
   #pill-pct { color: var(--text-muted); font-size: 0.75rem; min-width: 3.5ch; text-align: right; }
-  html[data-layout="reader"] #reader-rail {
+  html.immersive #reader-rail {
     display: block;
     position: fixed;
     top: 0; right: 0; bottom: 0;
@@ -1124,13 +1477,13 @@ html.no-update-fx .file-entry.changed { animation: none !important; }
     cursor: pointer;
     background: color-mix(in srgb, var(--text) 7%, transparent);
   }
-  html[data-layout="reader"] #reader-rail-fill {
+  html.immersive #reader-rail-fill {
     width: 100%;
     height: 0%;
     background: var(--accent);
     opacity: 0.55;
   }
-  html[data-layout="reader"] #reading-progress { display: none; }
+  html.immersive #reading-progress { display: none; }
   html.no-reading-progress #reader-rail { display: none !important; }
   /* The pill % is a progress indicator too — the setting hides all three. */
   html.no-reading-progress #pill-pct { display: none; }
@@ -1139,7 +1492,7 @@ html.no-update-fx .file-entry.changed { animation: none !important; }
      keeps the closed sheet's controls out of the Tab order (translated
      elements stay focusable — QR finding); as a discrete transition it
      flips at the END of the slide-out and the START of the slide-in. */
-  html[data-layout="reader"] #sidebar {
+  html.immersive #sidebar {
     transform: translateX(-100%);
     visibility: hidden;
     transition: transform 0.2s ease, visibility 0.2s;
@@ -1153,26 +1506,172 @@ html.no-update-fx .file-entry.changed { animation: none !important; }
   /* visibility 0s here: the flip to visible must be synchronous so a
      focus() immediately after openDrawer() (Ctrl+K) lands; the closed
      state's 0.2s visibility keeps the hide until after the slide-out. */
-  html[data-layout="reader"] #app.drawer-open #sidebar {
+  html.immersive #app.drawer-open #sidebar {
     transform: none;
     visibility: visible;
     transition: transform 0.2s ease, visibility 0s;
     z-index: 42;
   }
-  html[data-layout="reader"] #app.drawer-open #drawer-backdrop {
+  html.immersive #app.drawer-open #drawer-backdrop {
     display: block;
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.35);
     z-index: 41;
   }
-  html[data-layout="reader"] #sidebar.collapsed { transform: translateX(-100%); }
-  html[data-layout="reader"] #sidebar-toggle { display: none; }
-  html[data-layout="reader"] #content {
+  html.immersive #sidebar.collapsed { transform: translateX(-100%); }
+  html.immersive #sidebar-toggle { display: none; }
+  html.immersive #content {
     margin-left: auto;
     margin-right: auto;
   }
 }
+
+/* ── Tufte margin sidenotes (T7) ───────────────────────────────────
+   The band is an absolutely-positioned child of #content (which is
+   position:relative), so it scrolls WITH the prose rather than floating
+   (no position:fixed). It lives in the right whitespace: left:100% pins
+   its left edge to the content box's right edge, and a gap pushes it clear.
+   JS owns its existence — it is built only when the gate (marginNotes ON +
+   html.immersive + ≥1400px) holds, and removed otherwise — so these rules
+   are pure presentation; the activation logic is in viewer.js. The width is
+   capped so a tall KaTeX sidenote never spills past the rail at the far right.
+   Only meaningful at ≥1400px (where the right whitespace is wide enough to
+   host a readable column); below that JS never builds the band. */
+#sidenote-band {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  /* Gutter between the prose box edge and the band. */
+  margin-left: 28px;
+  /* Width is CAPPED to the available right whitespace so the band can never
+     cross the viewport's right edge and force a horizontal page scrollbar.
+     The band is built only in immersive (reader/focus), where #content is
+     CENTERED, so the right whitespace = (viewportW - contentWidth)/2. Here
+     100% == contentWidth (the band's containing block is #content), so that
+     whitespace is calc((100vw - 100%) / 2). Subtract the 28px gutter and ~12px
+     of rail clearance. min() clamps the nominal 240px to whatever fits — below
+     ~1610px the band shrinks instead of overflowing. Belt-and-suspenders:
+     #app carries overflow-x:clip (below) so a fixed band can never widen the
+     page even if this estimate is off. Verified by the scrollWidth ≤ clientWidth
+     assertions in margin-notes.spec.js. */
+  width: min(var(--sidenote-w, 240px),
+             calc((100vw - 100%) / 2 - 40px));
+  pointer-events: none;            /* the band is a layout host; notes opt back in */
+}
+.sidenote {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  pointer-events: auto;
+  font-size: 0.82rem;
+  /* UI surface — uses the chrome density line-height, NOT the prose --content-lh. */
+  line-height: var(--ui-density-lh, 1.4);
+  color: var(--text);
+  background: var(--bg);
+  border-left: 2px solid var(--accent);
+  border-radius: 2px;
+  padding: 4px 10px;
+  box-shadow: 0 1px 4px color-mix(in srgb, var(--text) 8%, transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sidenote { transition: top 0.15s ease; }
+}
+.sidenote .sidenote-mark {
+  color: var(--accent);
+  font-weight: 600;
+  margin-right: 0.4em;
+}
+.sidenote .sidenote-body { display: inline; }
+/* The sidenote body reuses the peek builders' rendered clones; keep their
+   block math compact and let long entries scroll rather than blow the cap. */
+.sidenote .peek-math,
+.sidenote .peek-ref,
+.sidenote .peek-sec { font-size: inherit; }
+.sidenote .katex-display { margin: 0.3em 0; font-size: 0.95em; }
+.sidenote a { color: var(--accent); text-decoration: none; }
+.sidenote a:hover { text-decoration: underline; }
+
+/* ── Three-zone Docs layout (redesign T4) ──────────────────────────
+   The docked Docs shell gains a third fixed zone — the right context column —
+   so the file tree (left), the live outline (right), and a peeked cross-ref can
+   all be visible at once. The column is only worth its width on a genuinely
+   wide desktop, so it appears at ≥1400px; between 769–1399px Docs stays a
+   two-zone shell and the outline/marks stay reachable via the sidebar drawer
+   tabs (which applyRightPane re-homes there when chrome ≠ docs — but in this
+   width band chrome IS docs, so they are reparented OUT; the tab buttons are
+   re-shown below so the left nav can still reach them). */
+@media screen and (min-width: 1400px) {
+  html[data-chrome="docs"] #right-pane {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: var(--right-pane-w, 260px);
+    background: var(--sidebar-bg);
+    border-left: 1px solid var(--border);
+    z-index: 10;
+    overflow: hidden;       /* panels scroll internally */
+  }
+  /* Mirror the existing left margin-left:var(--sidebar-w): reserve the right
+     rail so #content centres in the band between the two fixed zones. */
+  html[data-chrome="docs"] #content { margin-right: var(--right-pane-w, 260px); }
+  /* The left nav is files-only once outline/marks are reparented OUT — hide
+     their now-empty tab buttons so the sidebar tab row doesn't dangle two
+     dead controls. (They stay functional in reader/focus, where the nodes are
+     back in the drawer and #right-pane is display:none.) */
+  html[data-chrome="docs"] .sidebar-tab[data-tab="outline"],
+  html[data-chrome="docs"] .sidebar-tab[data-tab="highlights"] { display: none; }
+}
+
+/* ── Split-view (Pane B) layout — wide-desktop gate (≥1440px) ───────
+   The gate is intentionally TIGHTER than the right-pane's 1400px: split needs
+   two readable columns, so it only lifts at 1440px (matching the viewer.js
+   mqlSplit matchMedia). #content-b is a fixed right-half panel; #content gives
+   up its right half via margin-right and drops its measure cap so it fills the
+   left column. In docs the #right-pane is hidden while split is open (the JS
+   also clears the reserved margin-right via the split-open class). */
+@media screen and (min-width: 1440px) {
+  #app.split-open #content-b {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: 50vw;
+    background: var(--bg);
+    border-left: 1px solid var(--border);
+    z-index: 50;             /* above content/right-pane, below palette (1200) */
+  }
+  /* Pane A occupies the left half: reserve the right 50vw, relax the centering
+     so the prose fills the available left column instead of staying capped. */
+  #app.split-open #content {
+    margin-right: 50vw;
+    margin-left: var(--sidebar-w);
+    max-width: none;
+  }
+  html.immersive #app.split-open #content {
+    margin-left: 0;
+  }
+  /* In docs the right rail is hidden while split is open (it would collide with
+     Pane B); also drop the reserved right margin the docs rule adds. */
+  html[data-chrome="docs"] #app.split-open #right-pane { display: none; }
+  /* In DOCS the left column is ALSO encumbered by the docked sidebar
+     (--sidebar-w, draggable up to 600px). A flat 50vw Pane B then leaves Pane A
+     = 100vw − sidebar − 50vw, which at 1500px with a 600px sidebar collapses to
+     ~150px — unreadable (review w9d47hl9a #13). Cap Pane B so Pane A keeps a
+     readable floor: width = min(50vw, 100vw − sidebar − 360px). Both Pane B's
+     width and Pane A's reserved right margin key off the same --pane-b-w so the
+     two columns stay flush. Immersive split keeps the flat 50vw (no sidebar to
+     reserve), so this override is docs-only. */
+  html[data-chrome="docs"] #app.split-open {
+    --pane-b-w: min(50vw, calc(100vw - var(--sidebar-w) - 360px));
+  }
+  html[data-chrome="docs"] #app.split-open #content-b { width: var(--pane-b-w); }
+  html[data-chrome="docs"] #app.split-open #content { margin-right: var(--pane-b-w); }
+}
+/* Below the gate the split state class is inert — the pane stays hidden and
+   Pane A keeps its normal single-column layout (defense in depth: the JS also
+   refuses to enter split-open below 1440px). */
 
 /* Auto-hidden reader chrome slides out of the way; transitions live on the
    elements themselves (T3/T4). Class is only ever set in reader-desktop
@@ -1193,7 +1692,9 @@ html.reader-chrome-hidden #reader-pill { transform: translate(-50%, 220%); }
      to their global display:none anyway; #reading-progress additionally
      fixes the pre-existing classic-mode 3px bar stamp on page 1. */
   #reader-topbar, #reader-pill, #reader-rail, #reading-progress, #mobile-toolbar { display: none !important; }
-  #content { margin-left: 0; max-width: 100%; padding: 0; }
+  #right-pane { display: none !important; }
+  #content-b { display: none !important; }
+  #content { margin-left: 0; margin-right: 0; max-width: 100%; padding: 0; }
   mark, .hl-yellow, .hl-green, .hl-red, .hl-blue,
   .hl-orange, .hl-purple, .hl-teal, .hl-pink {
     border-bottom: 2px solid currentColor;
@@ -1453,6 +1954,68 @@ html[data-theme="dark"] .pal-item.sel mark { color: #14161b; }
 }
 .pal-item.sel .pal-hint { color: rgba(255, 255, 255, 0.85); }
 .pal-empty { padding: 14px 12px; color: var(--text-muted); font-size: 0.9rem; }
+
+/* ── Keyboard cheat-sheet (T6) ────────────────────────────────────────
+   A small top-level modal (sibling of #cmd-palette) opened from the '?'
+   palette mode / the "Keyboard shortcuts" command. z 1210 so it sits just
+   above the palette's own 1200 layer. */
+#shortcut-cheatsheet {
+  position: fixed;
+  inset: 0;
+  z-index: 1210;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.4);
+}
+#shortcut-cheatsheet[hidden] { display: none; }
+html[data-theme="dark"] #shortcut-cheatsheet { background: rgba(0, 0, 0, 0.55); }
+#shortcut-cheatsheet-box {
+  width: min(420px, 100%);
+  max-height: 80vh;
+  overflow-y: auto;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+#shortcut-cheatsheet .sc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+#shortcut-cheatsheet .sc-title { margin: 0; font-size: 1rem; font-weight: 600; color: var(--text); }
+#shortcut-cheatsheet .sc-close {
+  background: none; border: none; cursor: pointer; color: var(--text-muted);
+  font-size: 1.3rem; line-height: 1; padding: 2px 6px; border-radius: 6px;
+}
+#shortcut-cheatsheet .sc-close:hover { background: color-mix(in srgb, var(--text) 8%, transparent); color: var(--text); }
+#shortcut-cheatsheet .sc-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+#shortcut-cheatsheet .sc-rows { padding: 8px 8px 12px; }
+#shortcut-cheatsheet .sc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 7px 8px;
+  border-radius: 6px;
+  font-size: 0.92rem;
+}
+#shortcut-cheatsheet .sc-row + .sc-row { border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent); }
+#shortcut-cheatsheet .sc-label { color: var(--text); }
+#shortcut-cheatsheet .sc-key {
+  flex: 0 0 auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 2px 7px;
+}
 
 /* ── In-situ peek popover (redesign 06) ───────────────────────────────
    Anchored, viewport-clamped (clampToolbarBox), internally scrollable.

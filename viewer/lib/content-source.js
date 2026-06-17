@@ -20,6 +20,22 @@ const {
 } = require('./highlight-shared');
 
 // ---------------------------------------------------------------------------
+// Built-in default ignore patterns (prepended to every matcher).
+// These cover the dirs that were previously hard-coded in the legacy walker
+// plus additional noise dirs that should never be served as content.
+// ---------------------------------------------------------------------------
+const BUILTIN_DEFAULTS = [
+  'node_modules/',
+  'archive/',
+  '.viewer-highlights/',
+  'dist/',
+  'download/',
+  'temp/',
+  '.git/',
+  'viewer/',
+];
+
+// ---------------------------------------------------------------------------
 // Pure helpers (parameterized on targetDir)
 // ---------------------------------------------------------------------------
 
@@ -192,18 +208,89 @@ function parseRemoteUrl(url) {
 // ---------------------------------------------------------------------------
 
 /**
+ * Build a gitignore-compatible include/exclude matcher.
+ *
+ * The `ignore` npm package is loaded lazily so that code paths that do NOT use
+ * the matcher (legacy bare calls, publisher default path) stay free of the dep.
+ *
+ * @param {object} [opts]
+ * @param {string} [opts.projectIgnorePath]  Absolute path to a project-level .viewerignore.
+ * @param {string} [opts.perRootIgnorePath]  Absolute path to a per-root .viewerignore.
+ * @returns {{ ignores(relPath: string): boolean }}
+ */
+function buildIgnoreMatcher(opts) {
+  // eslint-disable-next-line global-require
+  const ignore = require('ignore');
+  const ig = ignore();
+
+  // 1. Built-in defaults (always prepended).
+  ig.add(BUILTIN_DEFAULTS);
+
+  // 2. Project-level .viewerignore (if it exists).
+  const projectPath = opts && opts.projectIgnorePath;
+  if (projectPath) {
+    try {
+      const content = fs.readFileSync(projectPath, 'utf8');
+      const lines = content.split(/\r?\n/).filter((l) => l.trim() !== '' && !l.startsWith('#'));
+      if (lines.length) ig.add(lines);
+    } catch {
+      // File absent or unreadable — silently skip.
+    }
+  }
+
+  // 3. Per-root .viewerignore (if provided and exists).
+  const rootPath = opts && opts.perRootIgnorePath;
+  if (rootPath) {
+    try {
+      const content = fs.readFileSync(rootPath, 'utf8');
+      const lines = content.split(/\r?\n/).filter((l) => l.trim() !== '' && !l.startsWith('#'));
+      if (lines.length) ig.add(lines);
+    } catch {
+      // File absent or unreadable — silently skip.
+    }
+  }
+
+  return ig;
+}
+
+/**
  * List markdown files under targetDir, respecting order.json files.
+ *
  * @param {string} targetDir  Absolute path to the survey/content root.
+ * @param {object} [opts]
+ * @param {object} [opts.ignore]              Matcher from buildIgnoreMatcher; when absent the
+ *                                            three legacy literal skips (node_modules/archive/
+ *                                            .viewer-highlights) are used instead — keeping a
+ *                                            bare call byte-identical to the pre-opts behaviour.
+ * @param {boolean} [opts.honorRootOrderJson] When true the root-level order.json short-circuit
+ *                                            is taken (single-root compat path). Default false.
  * @returns {string[]}  Relative paths, forward-slash separated.
  */
-function listMarkdownFiles(targetDir) {
-  const orderFile = path.join(targetDir, 'order.json');
-  if (fs.existsSync(orderFile)) {
-    try {
-      const ordered = JSON.parse(fs.readFileSync(orderFile, 'utf8'));
-      return ordered.filter((f) => fs.existsSync(path.join(targetDir, f)));
-    } catch {
-      // fall through
+function listMarkdownFiles(targetDir, opts) {
+  // Compat lock: a bare call (opts === undefined) is 100 % byte-identical to the
+  // pre-opts code.  When opts is explicitly provided, opt.honorRootOrderJson
+  // controls the root short-circuit (default false so multi-root / generator
+  // paths never take it); opts.ignore replaces the three legacy literal skips.
+  const noOpts = opts === undefined;
+  const ignore = opts && opts.ignore ? opts.ignore : null;
+  // Root short-circuit is taken when: (a) no opts at all (bare legacy call), OR
+  // (b) opts.honorRootOrderJson is explicitly true.
+  const honorRootOrderJson = noOpts || (opts && opts.honorRootOrderJson === true);
+
+  // Root short-circuit: only when explicitly requested (single-root compat).
+  if (honorRootOrderJson) {
+    const orderFile = path.join(targetDir, 'order.json');
+    if (fs.existsSync(orderFile)) {
+      try {
+        const ordered = JSON.parse(fs.readFileSync(orderFile, 'utf8'));
+        return ordered.filter((f) => {
+          if (!fs.existsSync(path.join(targetDir, f))) return false;
+          if (ignore && ignore.ignores(f)) return false;
+          return true;
+        });
+      } catch {
+        // fall through to walker
+      }
     }
   }
 
@@ -212,7 +299,11 @@ function listMarkdownFiles(targetDir) {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
 
     let folderOrder = null;
-    if (prefix) {
+    {
+      // Honor a per-folder order.json at EVERY level, INCLUDING the walk root:
+      // a content root served with honorRootOrderJson:false (multi-root) must
+      // still order its own top-level files. The root short-circuit, when
+      // enabled, returns before the walk, so there is no double-consultation.
       const orderPath = path.join(dir, 'order.json');
       if (fs.existsSync(orderPath)) {
         try {
@@ -228,7 +319,14 @@ function listMarkdownFiles(targetDir) {
       const subdirs = [];
       const mdFiles = [];
       for (const entry of entries) {
-        if (entry.name === 'node_modules' || entry.name === 'archive' || entry.name === '.viewer-highlights') continue;
+        // Skip logic: use ignore matcher when provided, else legacy literals.
+        if (ignore) {
+          const relEntry = prefix ? `${prefix}/${entry.name}` : entry.name;
+          const testRel = entry.isDirectory() ? `${relEntry}/` : relEntry;
+          if (ignore.ignores(testRel)) continue;
+        } else {
+          if (entry.name === 'node_modules' || entry.name === 'archive' || entry.name === '.viewer-highlights') continue;
+        }
         if (entry.isDirectory()) subdirs.push(entry.name);
         else if (entry.name.endsWith('.md')) mdFiles.push(entry.name);
       }
@@ -237,17 +335,27 @@ function listMarkdownFiles(targetDir) {
         const ib = folderOrder.has(b) ? folderOrder.get(b) : Number.MAX_SAFE_INTEGER;
         return ia !== ib ? ia - ib : a.localeCompare(b);
       });
+      // Drop order.json entries that are ignored or missing.
       for (const name of mdFiles) {
-        results.push(`${prefix}/${name}`);
+        const relFile = prefix ? `${prefix}/${name}` : name;
+        if (ignore && ignore.ignores(relFile)) continue;
+        if (!fs.existsSync(path.join(dir, name))) continue;
+        results.push(relFile);
       }
       for (const name of subdirs) {
-        walk(path.join(dir, name), `${prefix}/${name}`);
+        walk(path.join(dir, name), prefix ? `${prefix}/${name}` : name);
       }
     } else {
       // No order.json — DFS-alphabetical (readdirSync returns alphabetical).
       for (const entry of entries) {
-        if (entry.name === 'node_modules' || entry.name === 'archive' || entry.name === '.viewer-highlights') continue;
         const rel = prefix ? `${prefix}/${entry.name}` : entry.name;
+        // Skip logic: use ignore matcher when provided, else legacy literals.
+        if (ignore) {
+          const testRel = entry.isDirectory() ? `${rel}/` : rel;
+          if (ignore.ignores(testRel)) continue;
+        } else {
+          if (entry.name === 'node_modules' || entry.name === 'archive' || entry.name === '.viewer-highlights') continue;
+        }
         if (entry.isDirectory()) {
           walk(path.join(dir, entry.name), rel);
         } else if (entry.name.endsWith('.md')) {
@@ -261,14 +369,95 @@ function listMarkdownFiles(targetDir) {
 }
 
 /**
+ * List markdown files across multiple roots, returning namespaced ids.
+ *
+ * For each `{id, absPath}` in order: walks `absPath` with
+ * `listMarkdownFiles(absPath, { ignore, honorRootOrderJson: false })`, then
+ * maps each relative path to `id==='' ? rel : id+'/'+rel`. Results are
+ * concatenated in `roots` order.
+ *
+ * @param {Array<{id:string, absPath:string, label:string}>} roots
+ * @param {object} [opts]
+ * @param {object} [opts.ignore]  Shared matcher from buildIgnoreMatcher.
+ * @returns {string[]}
+ */
+function listMarkdownFilesMultiRoot(roots, opts) {
+  const ignore = opts && opts.ignore ? opts.ignore : null;
+  // A sole compat root (id='') reproduces the legacy single-root short-circuit
+  // exactly (invariant 1). Genuine roots use the walk (honorRootOrderJson:false)
+  // — a root's own top-level order.json is still honored, now via the per-folder
+  // logic, which includes unlisted files instead of dropping them.
+  const soleCompat = roots.length === 1 && roots[0].id === '';
+  const result = [];
+  for (const root of roots) {
+    const files = listMarkdownFiles(root.absPath, { ignore, honorRootOrderJson: soleCompat });
+    for (const rel of files) {
+      result.push(root.id === '' ? rel : `${root.id}/${rel}`);
+    }
+  }
+  return result;
+}
+
+/**
+ * Resolve a namespaced file id to its owning root + root-relative path.
+ * Longest matching id prefix wins. An `id===''` root (single-root compat)
+ * matches anything but only as the sole fallback when no namespaced root
+ * claims the file.
+ * @param {Array<{id:string, absPath:string, label:string}>} roots
+ * @param {string} file  namespaced id (`id/rel`, or `rel` when the only root id==='')
+ * @returns {{root:object, rel:string}|null}
+ */
+function rootForFile(roots, file) {
+  let best = null;
+  let emptyRoot = null;
+  for (const root of roots) {
+    if (root.id === '') { emptyRoot = root; continue; }
+    const prefix = `${root.id}/`;
+    if (file === root.id || file.startsWith(prefix)) {
+      const rel = file === root.id ? '' : file.slice(prefix.length);
+      if (!best || root.id.length > best.root.id.length) best = { root, rel };
+    }
+  }
+  if (best) return best;
+  if (emptyRoot) return { root: emptyRoot, rel: file };
+  return null;
+}
+
+/**
+ * Inverse of rootForFile: find the root whose absPath contains absPath.
+ * Longest-absPath ancestor wins (roots may nest). Used by the watcher to map
+ * a filesystem event back to its namespaced file id.
+ * @param {Array<{id:string, absPath:string, label:string}>} roots
+ * @param {string} absPath
+ * @returns {{root:object, rel:string}|null}
+ */
+function rootForAbsPath(roots, absPath) {
+  let best = null;
+  for (const root of roots) {
+    if (ensureWithin(root.absPath, absPath)) {
+      if (!best || root.absPath.length > best.root.absPath.length) {
+        const rel = path.relative(root.absPath, absPath).split(path.sep).join('/');
+        best = { root, rel };
+      }
+    }
+  }
+  return best;
+}
+
+/**
  * Build the highlights manifest for one file (fileFilter = relative path)
- * or all files (fileFilter = null).
+ * or all files (fileFilter = null). When listing all files, an optional
+ * `opts.ignore` matcher restricts the set to the SAME files the content bake /
+ * server serve — without it the manifest can list ignore-excluded files,
+ * yielding 404-pointing entries.
  * @param {string} targetDir
  * @param {string|null} fileFilter
+ * @param {object} [opts]
  * @returns {{ entries: object[] }}
  */
-function buildManifest(targetDir, fileFilter) {
-  const files = fileFilter ? [fileFilter] : listMarkdownFiles(targetDir);
+function buildManifest(targetDir, fileFilter, opts) {
+  const ignore = opts && opts.ignore ? opts.ignore : undefined;
+  const files = fileFilter ? [fileFilter] : listMarkdownFiles(targetDir, ignore ? { ignore } : undefined);
   const entries = [];
   for (const file of files) {
     const inline = loadInlineManifest(targetDir, file);
@@ -342,7 +531,11 @@ function computeGitInfo(targetDir) {
 }
 
 module.exports = {
+  buildIgnoreMatcher,
   listMarkdownFiles,
+  listMarkdownFilesMultiRoot,
+  rootForFile,
+  rootForAbsPath,
   buildManifest,
   computeGitInfo,
   etagOf,

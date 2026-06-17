@@ -1,0 +1,7 @@
+name = "data-channel-viewer"
+compatibility_date = "2025-01-01"
+pages_build_output_dir = "dist"
+
+[[kv_namespaces]]
+binding = "ANNOTATIONS"
+id = "b5b78de31e7540c4a667186422a313ed"

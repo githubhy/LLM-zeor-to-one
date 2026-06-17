@@ -14,65 +14,126 @@ const contentSource = require('./lib/content-source');
 // ---------------------------------------------------------------------------
 // Argument parsing
 // ---------------------------------------------------------------------------
+const viewerDir = __dirname;
+// The repo root is the parent of the viewer/ directory (serve.js always lives
+// at <repo>/viewer/serve.js). It is an implicit read-only asset fallback so
+// markdown anywhere can embed images that escape its own dir (the browser
+// normalises "../sim/…/*.png" to "/sim/…/*.png"). Markdown file access stays
+// sandboxed per-root via markdownPathFor(); repoRoot is only an assetPathFor root.
+const repoRoot = path.dirname(viewerDir);
+
 const args = process.argv.slice(2);
-let targetDir = null;
 let port = 3000;
 const allowFlagRoots = []; // Extra read-only roots for asset lookups (--allow).
+const rootFlags = [];      // --root <path[:label]> (repeatable).
+let configFlag = null;     // --config <viewer.content.json>.
+let positional = null;     // a lone dir-or-file.md positional (compat).
 
 for (let i = 0; i < args.length; i++) {
   const a = args[i];
-  if ((a === '-p' || a === '--port') && args[i + 1]) {
-    port = parseInt(args[i + 1], 10);
-    i += 1;
-  } else if (a === '--allow' && args[i + 1]) {
-    allowFlagRoots.push(args[i + 1]);
-    i += 1;
-  } else if (!targetDir) {
-    targetDir = a;
+  if ((a === '-p' || a === '--port') && args[i + 1]) { port = parseInt(args[i + 1], 10); i += 1; }
+  else if (a === '--allow' && args[i + 1]) { allowFlagRoots.push(args[i + 1]); i += 1; }
+  else if (a === '--root' && args[i + 1]) { rootFlags.push(args[i + 1]); i += 1; }
+  else if (a === '--config' && args[i + 1]) { configFlag = args[i + 1]; i += 1; }
+  else if (!positional) { positional = a; }
+}
+
+function usageExit(msg) {
+  if (msg) console.error(`Error: ${msg}`);
+  console.error('Usage: node serve.js <dir-or-file.md> [-p port] [--allow <path>]...');
+  console.error('       node serve.js --root <path>[:label] [--root ...] [-p port]');
+  console.error('       node serve.js --config <viewer.content.json> [-p port]');
+  console.error('       node serve.js          # discovers viewer.content.json upward from cwd');
+  process.exit(1);
+}
+
+// Parse a --root spec "path" or "path:Label". A ':' only separates a label when
+// the suffix has no path separator (so a Windows "C:\dir" drive colon is safe).
+function makeRoot(spec) {
+  let p = spec, label = null;
+  const ci = spec.lastIndexOf(':');
+  if (ci > 1 && !/[\\/]/.test(spec.slice(ci + 1))) { p = spec.slice(0, ci); label = spec.slice(ci + 1); }
+  const absPath = path.resolve(p);
+  if (!fs.existsSync(absPath) || !fs.statSync(absPath).isDirectory()) usageExit(`root not found or not a directory: ${absPath}`);
+  const id = path.basename(absPath);
+  return { id, absPath, label: label || id };
+}
+
+// Discover viewer.content.json (explicit --config or upward walk from cwd).
+function loadContentConfig(explicit) {
+  let file = null;
+  if (explicit) { file = path.resolve(explicit); if (!fs.existsSync(file)) usageExit(`--config not found: ${file}`); }
+  else {
+    let d = process.cwd();
+    for (;;) {
+      const cand = path.join(d, 'viewer.content.json');
+      if (fs.existsSync(cand)) { file = cand; break; }
+      const parent = path.dirname(d);
+      if (parent === d) break;
+      d = parent;
+    }
   }
+  if (!file) return null;
+  try { const cfg = JSON.parse(fs.readFileSync(file, 'utf8')); cfg.baseDir = path.dirname(file); return cfg; }
+  catch (e) { usageExit(`invalid config ${file}: ${e.message}`); return null; }
 }
 
-if (!targetDir) {
-  console.error('Usage: node serve.js <target-dir-or-file> [-p port] [--allow <path>]...');
-  console.error('  e.g. node viewer/serve.js surveys/5g-nr-ldpc');
-  console.error('       node viewer/serve.js surveys/my-survey.md');
-  console.error('       node viewer/serve.js reports/ --allow sim/ --allow temp/');
-  console.error('');
-  console.error('  --allow <path> extends the READ-ONLY asset sandbox with the given');
-  console.error('  directory, so markdown in <target-dir> can embed images from outside');
-  console.error('  it (e.g. a review doc in reports/ referencing figures under sim/).');
-  console.error('  Markdown file access remains strictly sandboxed to <target-dir>.');
-  process.exit(1);
-}
-
-targetDir = path.resolve(targetDir);
-if (!fs.existsSync(targetDir)) {
-  console.error(`Target not found: ${targetDir}`);
-  process.exit(1);
-}
-
+// Resolve the content roots. Precedence: single-file mode (exclusive) >
+// --root flags > lone positional dir (compat, id='') > config file.
 let singleFile = null;
-if (fs.statSync(targetDir).isFile() && targetDir.endsWith('.md')) {
-  singleFile = path.basename(targetDir);
-  targetDir = path.dirname(targetDir);
+let targetDir = null; // representative dir (roots[0].absPath) — favicon, repoRel base.
+let roots = [];
+
+const posAbs = positional ? path.resolve(positional) : null;
+if (posAbs && positional.endsWith('.md') && fs.existsSync(posAbs) && fs.statSync(posAbs).isFile()) {
+  if (rootFlags.length || configFlag) usageExit('single-file mode cannot be combined with --root/--config');
+  singleFile = path.basename(posAbs);
+  targetDir = path.dirname(posAbs);
+  roots = [{ id: '', absPath: targetDir, label: '' }];
+} else if (rootFlags.length) {
+  if (configFlag) console.error('Note: --root given; ignoring --config.');
+  roots = rootFlags.map(makeRoot);
+} else if (positional) {
+  if (!posAbs || !fs.existsSync(posAbs)) usageExit(`Target not found: ${posAbs}`);
+  if (!fs.statSync(posAbs).isDirectory()) usageExit(`Not a directory: ${posAbs}`);
+  targetDir = posAbs;
+  roots = [{ id: '', absPath: posAbs, label: '' }];
+} else {
+  const cfg = loadContentConfig(configFlag);
+  if (!cfg || !Array.isArray(cfg.roots) || !cfg.roots.length) {
+    usageExit('no content roots — pass a dir, --root <path>, or provide a viewer.content.json');
+  }
+  roots = cfg.roots.map((r) => {
+    const absPath = path.resolve(cfg.baseDir, r.path);
+    if (!fs.existsSync(absPath)) usageExit(`config root not found: ${absPath}`);
+    const id = r.id || path.basename(absPath);
+    return { id, absPath, label: r.label || id };
+  });
 }
 
-const viewerDir = __dirname;
-// The repo root is the parent of the viewer/ directory (serve.js always lives
-// at <repo>/viewer/serve.js).  It is added as an implicit read-only fallback
-// for image / asset lookups so that markdown files in any subdirectory (e.g.
-// wikis/) can embed images with relative paths that escape their own directory
-// (e.g. "../sim/…/*.png") — the browser normalises those to repo-rooted paths
-// like "/sim/…/*.png" before the HTTP request reaches the server.
-// Markdown file access remains strictly sandboxed to targetDir via
-// markdownPathFor(); the repo root is only used by assetPathFor().
-const repoRoot = path.dirname(viewerDir);
-const annotationsRoot = path.join(targetDir, '.viewer-highlights');
+// Reject duplicate ids (collisions would make namespaced paths ambiguous).
+const seenIds = new Set();
+for (const r of roots) {
+  if (r.id !== '' && seenIds.has(r.id)) usageExit(`duplicate root id "${r.id}" — give distinct --root path:label ids`);
+  seenIds.add(r.id);
+}
+if (!targetDir) targetDir = roots[0].absPath;
+
+const isMultiRoot = !(roots.length === 1 && roots[0].id === '');
+// .viewerignore matcher — built-in defaults plus a repo-root .viewerignore if
+// present. Built once and shared by the file walk AND the watcher so the served
+// set and the watched set cannot diverge (Plan Phase 1). Sidecar annotation
+// dirs are resolved per-root inline (rootForFile / rootForAbsPath), so no
+// global annotationsRoot is needed in multi-root mode.
+const ignoreMatcher = contentSource.buildIgnoreMatcher({
+  projectIgnorePath: path.join(repoRoot, '.viewerignore'),
+});
 
 // Favicon: a round colored badge with the first letter of the target's
 // last folder-name component. Hue derived from the folder name so each
 // viewer instance gets a visually distinct tab favicon.
-const targetFolderName = path.basename(targetDir) || '?';
+// Multi-root has no single basename — identify the window as "Workspace".
+const targetFolderName = isMultiRoot ? 'Workspace' : (path.basename(targetDir) || '?');
 const faviconLetter = (targetFolderName[0] || '?').toUpperCase();
 function hashHueFor(str) {
   let h = 0;
@@ -98,8 +159,9 @@ function generateFaviconSVG() {
 }
 
 // Extra asset roots — resolved absolute, deduped, existence-checked.
-// targetDir is always an allowed root; extras come from --allow <path>.
-const assetRoots = [targetDir];
+// Every content root is an allowed asset root; extras come from --allow <path>.
+const assetRoots = [];
+for (const r of roots) if (!assetRoots.includes(r.absPath)) assetRoots.push(r.absPath);
 for (const raw of allowFlagRoots) {
   const resolved = path.resolve(raw);
   if (!fs.existsSync(resolved)) {
@@ -152,9 +214,15 @@ function ensureWithin(root, filePath) {
   return filePath.startsWith(root + path.sep) || filePath === root;
 }
 
-function targetPathFor(relativePath) {
-  const resolved = path.resolve(targetDir, relativePath);
-  if (!ensureWithin(targetDir, resolved)) return null;
+// Resolve a namespaced file id (id/rel, or rel in single-root mode) to an
+// absolute path WITHIN its owning root. Returns null on an unknown namespace
+// or a `..` escape out of that root — each root is its own sandbox, so a path
+// in root A can never resolve into root B.
+function targetPathFor(file) {
+  const m = contentSource.rootForFile(roots, file);
+  if (!m) return null;
+  const resolved = path.resolve(m.root.absPath, m.rel);
+  if (!ensureWithin(m.root.absPath, resolved)) return null;
   return resolved;
 }
 
@@ -180,17 +248,22 @@ function assetPathFor(relativePath) {
 // annotations directory. The /api/md/ route must not double as a backdoor
 // for reading or overwriting sidecar JSON files — those have their own
 // validated route and format.
-function markdownPathFor(relativePath) {
-  const resolved = targetPathFor(relativePath);
-  if (!resolved) return null;
-  if (ensureWithin(annotationsRoot, resolved)) return null;
+function markdownPathFor(file) {
+  const m = contentSource.rootForFile(roots, file);
+  if (!m) return null;
+  const resolved = path.resolve(m.root.absPath, m.rel);
+  if (!ensureWithin(m.root.absPath, resolved)) return null;
+  // Reject the owning root's sidecar dir — /api/md/ must not read/write sidecars.
+  if (ensureWithin(path.join(m.root.absPath, '.viewer-highlights'), resolved)) return null;
   return resolved;
 }
 
 function annotationPathFor(file) {
-  const relativeJson = `${file}.json`;
-  const resolved = path.resolve(annotationsRoot, relativeJson);
-  if (!ensureWithin(annotationsRoot, resolved)) return null;
+  const m = contentSource.rootForFile(roots, file);
+  if (!m) return null;
+  const annRoot = path.join(m.root.absPath, '.viewer-highlights');
+  const resolved = path.resolve(annRoot, `${m.rel}.json`);
+  if (!ensureWithin(annRoot, resolved)) return null;
   return resolved;
 }
 
@@ -282,17 +355,51 @@ function readAnnotationDoc(file, docRevision) {
 }
 
 function listMarkdownFiles() {
-  return contentSource.listMarkdownFiles(targetDir);
+  if (!isMultiRoot) {
+    // Single-root compat is STRICTLY byte-identical to the legacy `serve.js
+    // <dir>`: NO ignore matcher (so the walk uses the exact legacy skip set —
+    // node_modules/archive/.viewer-highlights — and serves dist/temp/etc.
+    // markdown the user explicitly pointed at). The expanded .viewerignore /
+    // noise-pruning is a MULTI-ROOT capability only (decision 2026-06-14-03).
+    // honorRootOrderJson:true keeps a leaf survey dir's own order.json short-circuit.
+    return contentSource.listMarkdownFiles(roots[0].absPath, { honorRootOrderJson: true });
+  }
+  return contentSource.listMarkdownFilesMultiRoot(roots, { ignore: ignoreMatcher });
 }
 
+// Map a sidecar .json absolute path back to its NAMESPACED file id (which root
+// owns it, plus the root-relative path), so watcher broadcasts match the keys
+// the frontend uses.
 function sidecarFileFromAnnotationPath(absPath) {
-  const relative = path.relative(annotationsRoot, absPath).replace(/\\/g, '/');
-  if (!relative.endsWith('.json')) return null;
-  return relative.slice(0, -'.json'.length);
+  for (const r of roots) {
+    const annRoot = path.join(r.absPath, '.viewer-highlights');
+    if (!ensureWithin(annRoot, absPath)) continue;
+    const relative = path.relative(annRoot, absPath).replace(/\\/g, '/');
+    if (!relative.endsWith('.json')) return null;
+    const rel = relative.slice(0, -'.json'.length);
+    return r.id === '' ? rel : `${r.id}/${rel}`;
+  }
+  return null;
 }
 
 function buildManifest(fileFilter) {
-  return contentSource.buildManifest(targetDir, fileFilter);
+  if (!isMultiRoot) return contentSource.buildManifest(roots[0].absPath, fileFilter);
+  if (fileFilter) {
+    const m = contentSource.rootForFile(roots, fileFilter);
+    if (!m) return { entries: [] };
+    const inner = contentSource.buildManifest(m.root.absPath, m.rel);
+    for (const e of inner.entries) e.file = fileFilter; // re-namespace
+    return inner;
+  }
+  const entries = [];
+  for (const r of roots) {
+    const inner = contentSource.buildManifest(r.absPath, null, { ignore: ignoreMatcher });
+    for (const e of inner.entries) {
+      e.file = r.id === '' ? e.file : `${r.id}/${e.file}`;
+      entries.push(e);
+    }
+  }
+  return { entries };
 }
 
 function invalidateManifestForFile(file) {
@@ -305,7 +412,15 @@ function invalidateManifestForFile(file) {
 // ---------------------------------------------------------------------------
 
 function computeGitInfo() {
-  return contentSource.computeGitInfo(targetDir);
+  if (!isMultiRoot) {
+    // Single-root: return the schema-2 per-root map AND spread the flat fields
+    // so a not-yet-updated client still reads top-level repoRelDir (back-compat).
+    const info = contentSource.computeGitInfo(roots[0].absPath);
+    return { schema: 2, roots: { '': info }, ...info };
+  }
+  const out = { schema: 2, roots: {} };
+  for (const r of roots) out.roots[r.id] = contentSource.computeGitInfo(r.absPath);
+  return out;
 }
 
 // ---------------------------------------------------------------------------
@@ -317,7 +432,12 @@ const server = http.createServer((req, res) => {
 
   if (pathname === '/api/files') {
     const files = listMarkdownFiles();
-    const payload = { files, defaultFile: singleFile || null };
+    const payload = {
+      schema: 2,
+      files,
+      roots: roots.map((r) => ({ id: r.id, label: r.label })),
+      defaultFile: singleFile || null,
+    };
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
     res.end(JSON.stringify(payload));
     return;
@@ -590,17 +710,34 @@ try {
 }
 
 if (chokidar) {
-  const watcher = chokidar.watch(targetDir, {
-    ignored: [/node_modules/, /archive/],
+  const watcher = chokidar.watch(roots.map((r) => r.absPath), {
+    // chokidar v4 removed glob support; `ignored` is a whole-path function.
+    // Derive it from the SAME .viewerignore matcher as the walk (resolved per
+    // owning root) so served/watched sets cannot drift — EXCEPT the sidecar
+    // dirs: the walk skips .viewer-highlights, but the watcher MUST see sidecar
+    // edits for annotation live-reload, so those are never ignored here.
+    // Single-root uses the legacy ignored set (strict byte-compat with main —
+    // the served set isn't matcher-pruned, so the watcher must not be either).
+    // Multi-root derives `ignored` from the shared matcher (per owning root),
+    // never ignoring sidecar dirs (annotation live-reload must still fire).
+    ignored: !isMultiRoot ? [/node_modules/, /archive/] : (p) => {
+      const m = contentSource.rootForAbsPath(roots, p);
+      if (!m || m.rel === '') return false;
+      if (m.rel === '.viewer-highlights' || m.rel.startsWith('.viewer-highlights/')) return false;
+      return ignoreMatcher.ignores(m.rel) || ignoreMatcher.ignores(`${m.rel}/`);
+    },
     ignoreInitial: true,
     awaitWriteFinish: { stabilityThreshold: 150, pollInterval: 50 },
   });
 
   const ASSET_EXTS = new Set(['.svg', '.json', '.png', '.jpg', '.jpeg']);
 
+  // Namespaced id of a changed .md (owning root id + root-relative path).
   function relMd(absPath) {
     if (!absPath.endsWith('.md')) return null;
-    return path.relative(targetDir, absPath).replace(/\\/g, '/');
+    const m = contentSource.rootForAbsPath(roots, absPath);
+    if (!m) return null;
+    return m.root.id === '' ? m.rel : `${m.root.id}/${m.rel}`;
   }
 
   function assetToMd(absPath) {
@@ -609,11 +746,14 @@ if (chokidar) {
     const dir = path.dirname(absPath);
     if (path.basename(dir) !== 'figures') return null;
     const parentDir = path.dirname(dir);
-    const rel = path.relative(targetDir, parentDir).replace(/\\/g, '/');
+    const m = contentSource.rootForAbsPath(roots, parentDir);
+    if (!m) return null;
+    const base = m.rel ? `${m.rel}/` : '';
+    const prefix = m.root.id === '' ? base : `${m.root.id}/${base}`;
     try {
       return fs.readdirSync(parentDir)
         .filter((file) => file.endsWith('.md'))
-        .map((file) => (rel ? `${rel}/${file}` : file));
+        .map((file) => `${prefix}${file}`);
     } catch {
       return null;
     }
@@ -629,13 +769,12 @@ if (chokidar) {
     broadcast({ type, target: 'annotations', file });
   }
 
+  // A sidecar .json under any root's .viewer-highlights resolves to a non-null
+  // namespaced id; a normal content file resolves to null here and falls through.
   watcher.on('change', (absPath) => {
     const normalized = path.resolve(absPath);
-    if (ensureWithin(annotationsRoot, normalized)) {
-      const file = sidecarFileFromAnnotationPath(normalized);
-      if (file) notifyAnnotationChange(file, 'change');
-      return;
-    }
+    const sc = sidecarFileFromAnnotationPath(normalized);
+    if (sc) { notifyAnnotationChange(sc, 'change'); return; }
     const file = relMd(normalized);
     if (file) {
       console.log(`  changed: ${file}`);
@@ -644,19 +783,15 @@ if (chokidar) {
     }
     const mdFiles = assetToMd(normalized);
     if (mdFiles) {
-      const asset = path.relative(targetDir, normalized).replace(/\\/g, '/');
-      console.log(`  asset changed: ${asset} -> reload ${mdFiles.join(', ')}`);
+      console.log(`  asset changed -> reload ${mdFiles.join(', ')}`);
       for (const fileName of mdFiles) notifyMarkdownChange(fileName, 'change');
     }
   });
 
   watcher.on('add', (absPath) => {
     const normalized = path.resolve(absPath);
-    if (ensureWithin(annotationsRoot, normalized)) {
-      const file = sidecarFileFromAnnotationPath(normalized);
-      if (file) notifyAnnotationChange(file, 'change');
-      return;
-    }
+    const sc = sidecarFileFromAnnotationPath(normalized);
+    if (sc) { notifyAnnotationChange(sc, 'change'); return; }
     const file = relMd(normalized);
     if (!file) return;
     console.log(`  added: ${file}`);
@@ -666,11 +801,8 @@ if (chokidar) {
 
   watcher.on('unlink', (absPath) => {
     const normalized = path.resolve(absPath);
-    if (ensureWithin(annotationsRoot, normalized)) {
-      const file = sidecarFileFromAnnotationPath(normalized);
-      if (file) notifyAnnotationChange(file, 'change');
-      return;
-    }
+    const sc = sidecarFileFromAnnotationPath(normalized);
+    if (sc) { notifyAnnotationChange(sc, 'change'); return; }
     const file = relMd(normalized);
     if (!file) return;
     console.log(`  removed: ${file}`);
@@ -684,9 +816,13 @@ if (chokidar) {
 // ---------------------------------------------------------------------------
 server.listen(port, () => {
   console.log('\n  Markdown viewer ready');
-  console.log(`  Serving: ${targetDir}`);
-  for (const extra of assetRoots.slice(1)) {
-    console.log(`  +assets: ${extra}`);
+  if (isMultiRoot) {
+    console.log(`  Serving ${roots.length} roots:`);
+    for (const r of roots) console.log(`    ${r.id}  ->  ${r.absPath}`);
+  } else {
+    console.log(`  Serving: ${roots[0].absPath}`);
   }
+  const contentSet = new Set(roots.map((r) => r.absPath));
+  for (const a of assetRoots) if (!contentSet.has(a)) console.log(`  +assets: ${a}`);
   console.log(`  URL:     http://localhost:${port}\n`);
 });

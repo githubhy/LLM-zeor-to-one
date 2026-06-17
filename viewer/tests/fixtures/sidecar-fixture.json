@@ -1,0 +1,17 @@
+{
+  "file": "sidecar-fixture.md",
+  "documentRevision": null,
+  "highlights": [
+    {
+      "id": "sidecar:test-1",
+      "color": "yellow",
+      "excerpt": "sidecar painted text only.",
+      "segments": [
+        {
+          "blockLine": 2,
+          "text": "sidecar painted text only."
+        }
+      ]
+    }
+  ]
+}
