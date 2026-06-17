@@ -11,4 +11,19 @@
 - **Actions**: Filed `todos/2026-06-17-fix-serve-api-md-eisdir-crash.md` (+ `todos/INDEX.md`): fix upstream `serve.js` (isFile() guard + regression test), then re-sync to keep byte-convergence. Marked the bug record as deferred with a pointer to the todo. No code patched (preserves serve.js↔upstream parity).
 - **Result**: Viewer sync turn fully closed; one open follow-up tracked. Still not committed — awaiting user go-ahead to commit/push.
 
+## Conversation 3
+- **Request**: Verify surveys/llms-for-coding appendix-a renders correctly and passes the full validation gate (render-gate check).
+- **Actions**: Ran lint-math/renumber-equations/renumber-paragraphs per file, renumber-sections/link-references/validate-refs/bare-refs at survey scope; mechanically scanned appendix-a-qkv-first-principles.md for the five math-authoring hazards; boot-rendered the viewer on :4607 and curled the appendix API endpoint.
+- **Result**: Gate fully GREEN (0 errors/warnings across all checks); appendix has 12 equations, 39 eligible paragraphs, all anchors/refs in sync. No rendering hazards found. HTTP 200 from /api/md/appendix-a-qkv-first-principles.md. PASS.
+- **Findings**: File contains zero ordered-list markers, so the list/display-math failure modes are not applicable. Fraction text 1/16 and 1/24 sits inside `$...$` spans, so no digit-abut on the close delimiter.
+## Conversation 4
+- **Request**: "commit all and push" (the viewer sync), then "How do I understand the trained Q,K,V with first-principle math derivations".
+- **Actions**: Committed the viewer sync (`04f2556`) — staged everything except the vestigial root `package*.json` — and pushed `0507245..04f2556 main`. Answered the Q/K/V question from first principles: the raw `W_Q,W_K,W_V` are gauge, not signal; only the QK circuit `M=W_QW_Kᵀ` (routing) and OV circuit `W_VW_O` (content) are observable, with kernel-regression + matched-filter intuitions, the `√d_k` variance argument, SVD reading, and induction heads. Flagged the circuit/induction source pointers as from-memory pending verification.
+- **Result**: Viewer sync on `main`. Explanation delivered; user then asked to fold it into the survey (Conv 5).
+
+## Conversation 5
+- **Request**: Fold the Q/K/V derivation into the `llms-for-coding` survey appendix — no skipped steps, add diagrams, intuitions important.
+- **Actions**: Verified sources (Vaswani PDF pp.3–5; WebFetched Elhage 2021 + Olsson 2022, verbatim quotes). Wrote **Appendix A** (`appendix-a-qkv-first-principles.md`, 12 sections A.1–A.12) cross-linked to section 3.3; built 4 numerical matplotlib figures (`qkv-sqrt-dk-scaling`, `qkv-gauge-invariance`, `qkv-lowrank-routing`, `qkv-induction-head` → SVG+JSON); added refs [59]/[60] (web, non-load-bearing); wired `order.json` + index Contents; ran the renumber/link/validate toolchain. Ran a 5-arm adversarial review workflow (`wf_7fba1273-8b7`); fixed every finding (Fig A.2 `1/16`→~0.25 caption; Eq 12 chain-rule bridge + intermediate steps; Eq 7 variance cancellation; Eq 8 wording; A.8 commit to SVD; A.5 kernel≠RBF; A.10 block-matrix identity; A.11 retitle + scope clarification).
+- **Result**: Appendix complete and gate GREEN (lint 0, all `--check` clean, validate-refs 0/0, citation-sources 60/0). NOT committed — awaiting go-ahead. Decision `2026-06-17-02` (citation scoping) and field-note `2026-06-17-qkv-appendix` filed.
+- **Findings**: Equations are numbered per-file (appendix restarts at tag 1). The figure-consistency reviewer caught a wrong caption value (`1/16`≈0.0625 vs the actual flat ~0.25) — a near-miss; the peak weight of a near-uniform softmax over 16 keys is ~0.25, not the uniform floor.
 <!-- LOG-END -->

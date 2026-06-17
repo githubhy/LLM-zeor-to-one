@@ -173,3 +173,9 @@
 
 <a id="p-references-58"></a><!-- para:references-58 --> <a id="ref-58"></a><!-- bib:58 -->
 [58] W. Fedus, B. Zoph, N. Shazeer, "Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity." *JMLR 2022.* arXiv:2101.03961. (local: download/fedus-switch-transformer-2021.pdf)
+
+<a id="p-references-59"></a><!-- para:references-59 --> <a id="ref-59"></a><!-- bib:59 -->
+[59] N. Elhage, N. Nanda, C. Olsson, T. Henighan, et al., "A Mathematical Framework for Transformer Circuits." *Transformer Circuits Thread (Anthropic)*, 2021. [link](https://transformer-circuits.pub/2021/framework/index.html) (web)
+
+<a id="p-references-60"></a><!-- para:references-60 --> <a id="ref-60"></a><!-- bib:60 -->
+[60] C. Olsson, N. Elhage, N. Nanda, N. Joseph, et al., "In-context Learning and Induction Heads." *Transformer Circuits Thread (Anthropic)*, 2022. [link](https://transformer-circuits.pub/2022/in-context-learning-and-induction-heads/index.html) (web)
