@@ -12,13 +12,16 @@ one-hot blocks: its own token  e(tok_j)  and its predecessor  e(tok_{j-1})
 layer earlier).  Then:
 
   * QK circuit  M  matches the query's OWN-token block against the key's
-    PREDECESSOR block:  M = sum_a e_own(a) e_prev(a)^T.  So score(t,j) is high
-    exactly when tok_t == tok_{j-1}, i.e. j follows an earlier copy of the
-    current token -- prefix matching.
+    PREDECESSOR block:  M = sum_a e_own(a) e_prev(a)^T, with score
+    x_i^T M x_j high exactly when tok_i == tok_{j-1}, i.e. j follows an earlier
+    copy of the current token -- prefix matching.
 
   * OV circuit  W_OV  reads the attended position's OWN-token block and writes
-    it to the vocab-logit space:  W_OV = sum_a e_own(a) e_logit(a)^T.  So the
+    it to the vocab-logit space:  W_OV = sum_a e_logit(a) e_own(a)^T.  So the
     head copies whatever token it attended to into the next-token logits.
+
+(Column-vector convention; the code packs features as rows for convenience, an
+equivalent transposed packing that yields the identical demonstration.)
 
 Run on a random token stream with one planted repeat, the head at the final
 occurrence of the trigger attends to the token that followed the FIRST

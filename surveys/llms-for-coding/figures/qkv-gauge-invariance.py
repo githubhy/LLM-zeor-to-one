@@ -1,12 +1,12 @@
-"""The query/key matrices are not observable: only M = W_Q W_K^T is.
+"""The query/key matrices are not observable: only M = W_Q^T W_K is.
 
-Appendix A, section A.4 (gauge freedom).  The attention pattern depends on
-W_Q and W_K ONLY through the product M = W_Q W_K^T.  For any invertible
-R in GL(d_k), the reparametrization
+Appendix A, section A.4 (gauge freedom).  Column-vector convention.  The
+attention pattern depends on W_Q and W_K ONLY through the product
+M = W_Q^T W_K.  For any invertible R in GL(d_k), the reparametrization
 
-    W_Q -> W_Q R ,   W_K -> W_K R^{-T}
+    W_Q -> R W_Q ,   W_K -> R^{-T} W_K
 
-leaves M unchanged (W_Q R)(W_K R^{-T})^T = W_Q R R^{-1} W_K^T = W_Q W_K^T,
+leaves M unchanged: (R W_Q)^T (R^{-T} W_K) = W_Q^T R^T R^{-T} W_K = W_Q^T W_K,
 hence leaves the entire causal attention matrix A unchanged.  We demonstrate
 this numerically: a random GL(d_k) gauge transform moves the raw matrices by a
 large relative amount, yet the attention matrix is identical to machine
@@ -36,9 +36,11 @@ np.seterr(divide="ignore", over="ignore", invalid="ignore")
 d, dk, T = 24, 4, 9
 rng = np.random.default_rng(7)
 
-X = rng.standard_normal((T, d))
-WQ = rng.standard_normal((d, dk))
-WK = rng.standard_normal((d, dk))
+# Column-vector convention: X holds the T token vectors as columns (d x T);
+# the projections map R^d -> R^{d_k}, so W_Q, W_K are d_k x d.
+X = rng.standard_normal((d, T))
+WQ = rng.standard_normal((dk, d))
+WK = rng.standard_normal((dk, d))
 
 # A well-conditioned random gauge R in GL(d_k).
 while True:
@@ -47,12 +49,13 @@ while True:
         break
 Rinv = np.linalg.inv(R)
 
-WQ2 = WQ @ R
-WK2 = WK @ Rinv.T          # so WK2^T = R^{-1} WK^T  =>  WQ2 WK2^T = WQ WK^T
+WQ2 = R @ WQ              # gauge:  W_Q -> R W_Q
+WK2 = Rinv.T @ WK         #         W_K -> R^{-T} W_K   =>  W_Q^T W_K unchanged
 
 
 def causal_attention(Wq, Wk):
-    S = (X @ Wq) @ (X @ Wk).T / np.sqrt(dk)
+    # S_ij = x_i^T (W_Q^T W_K) x_j / sqrt(d_k)
+    S = (X.T @ (Wq.T @ Wk) @ X) / np.sqrt(dk)
     mask = np.tril(np.ones((T, T), dtype=bool))
     S = np.where(mask, S, -np.inf)
     S = S - S.max(axis=1, keepdims=True)
@@ -63,8 +66,8 @@ def causal_attention(Wq, Wk):
 A = causal_attention(WQ, WK)
 A2 = causal_attention(WQ2, WK2)
 
-M = WQ @ WK.T
-M2 = WQ2 @ WK2.T
+M = WQ.T @ WK
+M2 = WQ2.T @ WK2
 
 rel_change_WQ = float(np.linalg.norm(WQ2 - WQ) / np.linalg.norm(WQ))
 rel_change_WK = float(np.linalg.norm(WK2 - WK) / np.linalg.norm(WK))
@@ -86,7 +89,7 @@ common = dict(cmap="viridis", vmin=0, vmax=1, aspect="auto")
 im0 = axes[0].imshow(A, **common)
 axes[0].set_title(r"$A$ from $(W_Q, W_K)$", fontsize=10.5)
 im1 = axes[1].imshow(A2, **common)
-axes[1].set_title(r"$A'$ from $(W_Q R,\ W_K R^{-\top})$", fontsize=10.5)
+axes[1].set_title(r"$A'$ from $(R W_Q,\ R^{-\top} W_K)$", fontsize=10.5)
 for ax in axes[:2]:
     ax.set_xlabel("key position $j$")
 axes[0].set_ylabel("query position $i$")

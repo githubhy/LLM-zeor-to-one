@@ -2,13 +2,15 @@
 
 Appendix A, section A.8 (reading a trained head).  Two facts, made numerical.
 
-(left) M = W_Q W_K^T is d x d but has rank at most d_k (it is a product through
+Column-vector convention throughout.
+
+(left) M = W_Q^T W_K is d x d but has rank at most d_k (it is a product through
 a d_k-dimensional bottleneck).  Its singular-value spectrum therefore shows a
 hard cliff: exactly d_k non-negligible values, the rest at machine zero.  The
 head compares tokens in a d_k-dimensional subspace, not the full residual space.
 
 (right) Each singular triple (sigma_r, u_r, w_r) of M is a routing rule:
-score(i,j) = x_i M x_j^T = sum_r sigma_r (x_i . u_r)(x_j . w_r), so the head
+score(i,j) = x_i^T M x_j = sum_r sigma_r (u_r . x_i)(w_r . x_j), so the head
 sends attention FROM positions whose residual has mass on u_r TO positions with
 mass on w_r.  We build a rank-1 routing circuit M = c * u w^T with orthonormal
 u, w, give each of L key tokens a controlled alignment g_j = x_j . w, point the
@@ -39,10 +41,10 @@ np.seterr(divide="ignore", over="ignore", invalid="ignore")
 d, dk = 64, 8
 rng = np.random.default_rng(3)
 
-# --- left panel: rank cliff of M = W_Q W_K^T ---
-WQ = rng.standard_normal((d, dk))
-WK = rng.standard_normal((d, dk))
-M = WQ @ WK.T
+# --- left panel: rank cliff of M = W_Q^T W_K (column-vector convention) ---
+WQ = rng.standard_normal((dk, d))
+WK = rng.standard_normal((dk, d))
+M = WQ.T @ WK
 sv = np.linalg.svd(M, compute_uv=False)
 
 # --- right panel: a rank-1 routing circuit M = c u w^T ---
