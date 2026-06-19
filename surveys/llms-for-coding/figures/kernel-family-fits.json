@@ -1,0 +1,24 @@
+{
+ "n": 40,
+ "noise_std": 0.25,
+ "nw": {
+  "bandwidth_h": 0.45,
+  "rmse": 0.20805378027624635
+ },
+ "knn": {
+  "k": 5,
+  "rmse": 0.19174701735173963
+ },
+ "gp": {
+  "lengthscale": 0.6,
+  "signal_std": 1.0,
+  "noise_std": 0.25,
+  "rmse": 0.1975388627730989,
+  "mean_band_halfwidth_95": 0.27548042628919417
+ },
+ "rbf": {
+  "m_centers": 8,
+  "basis_width": 0.6,
+  "rmse": 0.16472256481831396
+ }
+}

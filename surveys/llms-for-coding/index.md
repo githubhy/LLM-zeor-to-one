@@ -23,4 +23,5 @@
 17. [Design Guidance](design-guidance.md)
 18. [Open Problems and Roadmap](open-problems-and-roadmap.md)
 19. [Appendix A — Query, Key, and Value from First Principles](appendix-a-qkv-first-principles.md)
-20. [References](references.md)
+20. [Appendix B — The Kernel-Regression Family](appendix-b-kernel-regression-family.md)
+21. [References](references.md)
