@@ -25,6 +25,16 @@ $$
 
 <a id="p-a1-setup-and-notation-3"></a><!-- para:a1-setup-and-notation-3 --> where $j \le i$ encodes the causal mask (a decoder position attends only to the past, the masking of Section <!-- secxref:3.3 -->[§3.3](language-models-from-first-principles.md#sec-3.3)). The head's contribution to the residual stream is the output passed through $W_O$, written additively: $\Delta\mathbf{x}_i = W_O\mathbf{o}_i$. These are the only objects in play; the rest of the appendix rewrites them.
 
+> <a id="p-a1-setup-and-notation-4"></a><!-- para:a1-setup-and-notation-4 --> **Note — How large are $d$, $T$, $d_k$, and $d_v$ in real models?** Across the
+> acquired code-LLM sources the three symbols scale very differently. The
+> *residual width* $d$ runs from $512$ in the original Transformer to about
+> $7000$ in a 33B code model, growth bought mostly by adding layers and heads
+> rather than widening each head. The *per-head dimension* $d_k = d_v$ is nearly
+> frozen at $64$ to $128$ across a 500-fold parameter range. The *context length*
+> $T$ is the one that exploded — from roughly $2000$ tokens in early models to
+> $128{,}000$ in the latest, almost entirely through positional-encoding
+> extension. A full sourced table, smallest to largest, is in <!-- secref:A.13 -->[§A.13](#sec-A.13).
+
 <!-- sec:A.2 -->
 ### <a id="sec-A.2"></a>A.2 The Query–Key Collapse: Only $M = W_Q^{\top} W_K$ Governs the Pattern
 
@@ -210,3 +220,44 @@ $$
 ### <a id="sec-A.12"></a>A.12 Summary
 
 <a id="p-a12-summary-1"></a><!-- para:a12-summary-1 --> Understanding the trained $W_Q$, $W_K$, $W_V$ does not mean inspecting them. By Equations <!-- ref:A-3 -->[(3)](#eq-3) and <!-- ref:A-4 -->[(4)](#eq-4) a head is two operators: the **QK circuit** $M = W_Q^{\top} W_K$, a learned, asymmetric, low-rank bilinear form that *routes* attention — equivalently the metric of a Nadaraya–Watson kernel smoother (A.5) and the cross-correlation operator of a learned matched filter (A.6) — and the **OV circuit** $W_{OV} = W_O W_V$, the low-rank map of *what content moves*. The raw projection matrices carry $d_k^2 + d_v^2$ degrees of unobservable gauge (A.4), so the well-posed reading of a trained head is the SVD of its two circuits (A.8), which exposes routing rules and copy/transform maps directly — as the hand-built induction head of A.9 shows in miniature. The $1/\sqrt{d_k}$ factor is the noise-floor normalization that keeps the softmax detector sensitive at any head width (A.7), and a layer is just a sum of $h$ such low-rank circuit pairs (A.10), co-adapted by the gradient of Equation <!-- ref:A-12 -->[(12)](#eq-12).
+
+<!-- sec:A.13 -->
+### <a id="sec-A.13"></a>A.13 Concrete Dimensions in Real-World Models
+
+<a id="p-a13-concrete-dimensions-in-real-world-models-1"></a><!-- para:a13-concrete-dimensions-in-real-world-models-1 --> Section <!-- secref:A.1 -->[§A.1](#sec-A.1) introduced a head's dimensions — the residual width $d$, the context length $T$, the per-head key and value widths $d_k$ and $d_v$, and (in <!-- secref:A.10 -->[§A.10](#sec-A.10)) the head count $h$ — as abstract symbols. Here are their concrete magnitudes, read directly from the architecture tables of the code-LLM papers this survey already cites, ordered from smallest to largest $d$. Every entry is a value its source prints; a dagger (†) marks a value the paper does *not* print, derived from the ones it does via the standard multi-head relation $d = h\,d_k$. Three widely used models report only parameter counts and context lengths and inherit their remaining dimensions from a base model without restating them — Codex <!-- cite:1 --> [[1]](references.md#ref-1), Code Llama <!-- cite:6 --> [[6]](references.md#ref-6), and DeepSeek-Coder-V2 <!-- cite:43 --> [[43]](references.md#ref-43) — so those dimensions are left out here rather than imported from another paper.
+
+| Model (size) | params | $d$ | $L$ | $h$ (heads) | $d_k\!=\!d_v$ | $T$ trained |
+|---|---|---|---|---|---|---|
+| Transformer (base) | 65M | 512 | 6 | 8 | 64 | — |
+| Transformer (big) | 213M | 1024 | 6 | 16 | 64 | — |
+| phi-1 | 1.3B | 2048 | 24 | 32 | 64 | 2,048 |
+| InCoder | 1.3B | 2048 | 24 | 32 | 64† | 2,048 |
+| DeepSeek-Coder | 1.3B | 2048 | 24 | 16 | 128† | 16,384 |
+| CodeGen | 2.7B | 2,560† | 32 | 32 | 80 | 2,048 |
+| StarCoder2 | 3B | 3072 | 30 | 24 (2 KV) | 128† | 4,096 → 16,384 |
+| Qwen2.5-Coder | 7B | 3,584 | 28 | 28 (4 KV) | 128 | 8,192 → 131,072 |
+| DeepSeek-Coder | 6.7B | 4096 | 32 | 32 | 128† | 16,384 |
+| Qwen2.5-Coder | 14B / 32B | 5120 | 48 / 64 | 40 (8 KV) | 128 | 8,192 → 131,072 |
+| StarCoder | 15.5B | 6144 | 40 | 48 (1 KV, MQA) | 128† | 8,192 |
+| DeepSeek-Coder | 33B | 7168 | 62 | 56 (7 KV, GQA) | 128† | 16,384 |
+
+<a id="p-a13-concrete-dimensions-in-real-world-models-2"></a><!-- para:a13-concrete-dimensions-in-real-world-models-2 --> Here $L$ is the layer count and $h$ the number of query heads, with the shared key/value head count noted for the multi-query (MQA) and grouped-query (GQA) models; "$a \rightarrow b$" in the $T$ column means trained at length $a$ and extended to $b$ by rescaling the rotary positional encoding (RoPE / YaRN); "—" means the paper reports no fixed context window. Sources, in table order: Transformer <!-- cite:54 --> [[54]](references.md#ref-54); phi-1 <!-- cite:12 --> [[12]](references.md#ref-12); InCoder <!-- cite:4 --> [[4]](references.md#ref-4); DeepSeek-Coder, all sizes <!-- cite:10 --> [[10]](references.md#ref-10); CodeGen <!-- cite:3 --> [[3]](references.md#ref-3); StarCoder2 <!-- cite:9 --> [[9]](references.md#ref-9); Qwen2.5-Coder <!-- cite:11 --> [[11]](references.md#ref-11); StarCoder <!-- cite:8 --> [[8]](references.md#ref-8).
+
+<a id="p-a13-concrete-dimensions-in-real-world-models-3"></a><!-- para:a13-concrete-dimensions-in-real-world-models-3 --> **Reading the table.**
+
+<a id="p-a13-concrete-dimensions-in-real-world-models-4"></a><!-- para:a13-concrete-dimensions-in-real-world-models-4 --> **The residual width $d$** spans about an order of magnitude here — from $512$ in the original Transformer <!-- cite:54 --> [[54]](references.md#ref-54) to $7168$ in the 33B DeepSeek-Coder <!-- cite:10 --> [[10]](references.md#ref-10) — while the parameter count grows roughly 500-fold over the same span. Width is not where most of the scaling goes.
+
+<a id="p-a13-concrete-dimensions-in-real-world-models-5"></a><!-- para:a13-concrete-dimensions-in-real-world-models-5 --> **The per-head width $d_k = d_v$** is the symbol that barely moves. It is $64$ in the 2017 Transformer <!-- cite:54 --> [[54]](references.md#ref-54) and still $64$ or $128$ in nearly every model since. Qwen2.5-Coder states the principle outright, printing a *head size* of $128$ for every size from 0.5B to 32B <!-- cite:11 --> [[11]](references.md#ref-11); at its smallest size that $128$ even exceeds $d/h = 896/14 \approx 64$, so the head width is held fixed by design rather than tracking $d/h$. The lone outlier is CodeGen, whose larger variants widen the head to $256$ <!-- cite:3 --> [[3]](references.md#ref-3).
+
+<a id="p-a13-concrete-dimensions-in-real-world-models-6"></a><!-- para:a13-concrete-dimensions-in-real-world-models-6 --> **The head count $h$** carries the width that $d_k$ does not. It rises from $8$ in the base Transformer <!-- cite:54 --> [[54]](references.md#ref-54) to $48$–$56$ in the 15–33B code models <!-- cite:8 --> [[8]](references.md#ref-8), <!-- cite:10 --> [[10]](references.md#ref-10), and modern models decouple the *key/value* heads from the query heads: StarCoder's multi-query attention shares a single key/value head across all $48$ query heads <!-- cite:8 --> [[8]](references.md#ref-8), while the grouped-query attention of StarCoder2, the 33B DeepSeek-Coder, and Qwen2.5-Coder gives a handful of key/value groups to dozens of query heads <!-- cite:9 --> [[9]](references.md#ref-9), <!-- cite:10 --> [[10]](references.md#ref-10), <!-- cite:11 --> [[11]](references.md#ref-11). The $h$-fold sum of <!-- secref:A.10 -->[§A.10](#sec-A.10) counts query heads; the keys and values they read may be shared.
+
+<a id="p-a13-concrete-dimensions-in-real-world-models-7"></a><!-- para:a13-concrete-dimensions-in-real-world-models-7 --> **The context length $T$** is where the real growth lives. The original Transformer fixes no context window at all — it batches by sentence length <!-- cite:54 --> [[54]](references.md#ref-54); the GPT-era code models train at $2{,}048$ <!-- cite:12 --> [[12]](references.md#ref-12), <!-- cite:4 --> [[4]](references.md#ref-4), <!-- cite:3 --> [[3]](references.md#ref-3); StarCoder reaches $8{,}192$ <!-- cite:8 --> [[8]](references.md#ref-8); the DeepSeek-Coder models and long-context StarCoder2 train to $16{,}384$ <!-- cite:10 --> [[10]](references.md#ref-10), <!-- cite:9 --> [[9]](references.md#ref-9); and the newest models reach $131{,}072$ tokens (128K) — Qwen2.5-Coder by YaRN extension from an $8{,}192$ file-level window <!-- cite:11 --> [[11]](references.md#ref-11), and DeepSeek-Coder-V2 to the same 128K on a 236B-total / 21B-active Mixture-of-Experts backbone <!-- cite:43 --> [[43]](references.md#ref-43). Code Llama sits between, trained at $16{,}384$ and shown stable to about $100{,}000$ tokens at inference <!-- cite:6 --> [[6]](references.md#ref-6). That is a roughly $64$-fold growth in $T$, almost all of it bought by rescaling the positional encoding rather than by enlarging the model.
+
+<a id="p-a13-concrete-dimensions-in-real-world-models-8"></a><!-- para:a13-concrete-dimensions-in-real-world-models-8 --> **What to take away.**
+
+- <a id="p-a13-concrete-dimensions-in-real-world-models-9"></a><!-- para:a13-concrete-dimensions-in-real-world-models-9 --> **Two of the three symbols barely scale.** The per-head width $d_k = d_v$ has stayed within a factor of two — $64$ to $128$ — for the architecture's entire history, and the residual width $d$ grew only about 14-fold (from $512$ to $7{,}168$) while the parameter count grew about 500-fold. Depth $L$ and head count $h$ do most of the scaling work.
+- **The $1/\sqrt{d_k}$ normalization of <!-- secref:A.7 -->[§A.7](#sec-A.7) is evaluated at an almost-constant $d_k$.** Because $d_k$ is pinned near $64$–$128$, the noise-floor temperature $1/\sqrt{d_k}$ ranges only from $1/8$ (at $d_k = 64$) to about $1/11$ (at $d_k = 128$) across models that differ in size by orders of magnitude — the width-invariance that derivation promised is realized in practice by *holding $d_k$ fixed*.
+- **The $h$-head sum of <!-- secref:A.10 -->[§A.10](#sec-A.10) is now asymmetric in keys and values.** Multi-query and grouped-query attention keep the query-head count $h$ large while sharing a few key/value heads, so the per-head circuits $M^{(\ell)}$ and $W_{OV}^{(\ell)}$ of <!-- secref:A.10 -->[§A.10](#sec-A.10) need not each own a private key/value projection — a serving-cost optimization (a smaller key/value cache) layered on the same circuit algebra.
+- **$T$ is the runaway dimension, and it scales outside the head.** Context grows by rescaling the positional encoding, not by changing the linear algebra of <!-- secref:A.2 -->[§A.2](#sec-A.2)–<!-- secref:A.4 -->[§A.4](#sec-A.4) — which is why the gauge, circuit, and kernel-regression readings of this appendix are untouched by the 64-fold growth in context.
+
+<a id="p-a13-concrete-dimensions-in-real-world-models-10"></a><!-- para:a13-concrete-dimensions-in-real-world-models-10 --> **Intuition.** In the kernel-regression picture of <!-- secref:A.5 -->[§A.5](#sec-A.5), a head is a smoother that averages over $T$ stored points using a comparison geometry of width $d_k$. Real models have grown the *number of stored points* $T$ some 64-fold while leaving the *width of each comparison* $d_k$ essentially unchanged — they read over far longer sequences without making any single query–key comparison wider. The residual stream $d$ widens only modestly, mostly to carry more parallel heads; the atom of attention — one $d_k$-dimensional matched filter, <!-- secref:A.6 -->[§A.6](#sec-A.6) — is almost the same size today as it was in 2017.
