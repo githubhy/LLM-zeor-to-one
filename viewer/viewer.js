@@ -4398,8 +4398,16 @@ async function applyHighlight(action) {
       const _fragM = range.cloneContents();
       const _nKatexM = _fragM.querySelectorAll('.katex:not(.katex .katex)').length;
       if (_nKatexM > 1) {
-        type = 'SIDECAR';
-        endBlock = startBlock;   // single-block selection; sidecar needs both ends
+        // Start is inside the first inline-math span and the selection covers
+        // additional inline-math span(s) before its plain-text end. Step 5M
+        // (MIXED_MATH_TEXT) handles only the single start span, but Step 5P
+        // (PLAIN_SPANNING_MATH) reconstructs across every spanned math; when
+        // the range starts inside the first katex its `plainHead` collapses to
+        // '' so `selStart` anchors at that math's source offset. Route there
+        // for a precise source-marker highlight instead of the whole-block
+        // sidecar fallback (which highlighted the entire paragraph).
+        type = 'PLAIN_SPANNING_MATH';
+        blockEl = startBlock;
       } else {
         type = 'MIXED_MATH_TEXT';   // math-then-text (one math at start)
         mathEl  = startKatex;

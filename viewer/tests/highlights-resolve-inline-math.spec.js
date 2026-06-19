@@ -127,14 +127,18 @@ test('PLAIN_SPANNING_MATH on a 7-math-span paragraph with ref-links resolves to 
   }
 });
 
-// Regression for bugs/2026-06-02-04: a selection that STARTS INSIDE one inline
-// math span and ends in plain text after a SECOND span (the MIXED_MATH_TEXT
-// multi-span case, e.g. the §5 positivity bullet `$\lvert d_a\rvert \le f_a$,
-// $\lvert D_k\rvert \le S_k$ term-by-term`). The inline reconstruction only
-// processed the single startKatex and missed the intermediate span → "Could not
-// locate highlight in source" toast. Fix: route multi-span MIXED_MATH_TEXT to
-// the robust sidecar backend (block line-range, no source text-matching).
-test('MIXED_MATH_TEXT spanning two inline-math spans falls back to sidecar (bug 2026-06-02-04)', async ({ page, request }) => {
+// Regression for bugs/2026-06-19-01: a selection that STARTS INSIDE one inline
+// math span and ends in plain text after a SECOND span (e.g. the §A.11 lead-in
+// "$\delta_{jm}$ the Kronecker delta (1 when $j=m$, else 0)", or the §5
+// positivity bullet `$\lvert d_a\rvert \le f_a$, $\lvert D_k\rvert \le S_k$
+// term-by-term`). It was classified as the MIXED_MATH_TEXT multi-span case and
+// routed to the whole-block sidecar backend (bug 2026-06-02-04's workaround),
+// which highlighted the ENTIRE paragraph. But the multi-span PLAIN_SPANNING_MATH
+// handler (Step 5P) reconstructs across every spanned math AND collapses
+// `plainHead` to '' when the range starts inside the first katex, so routing
+// there yields a PRECISE inline highlight. This supersedes the sidecar fallback
+// for this case (the earlier fallback only avoided a "Could not locate" toast).
+test('multi-span selection starting inside an inline-math span resolves to a precise inline highlight (bug 2026-06-19-01)', async ({ page, request }) => {
   const port = nextPort();
   const dir = createFixtureDir({
     'multimath.md': '# Multi\n\nEdge-wise $\\lvert d_a\\rvert \\le f_a$, $\\lvert D_k\\rvert \\le S_k$ term-by-term gives the bound.\n',
@@ -191,20 +195,25 @@ test('MIXED_MATH_TEXT spanning two inline-math spans falls back to sidecar (bug 
     await page.locator('#hl-toolbar .hl-swatch[data-action="blue"]').click();
     await page.waitForTimeout(200);
 
-    // Bug symptom gone.
+    // No "Could not locate" toast, no page errors.
     expect(toasts.find(t => /Could not locate/i.test(t)),
       `unexpected toast: ${toasts.join(' | ')}`).toBeUndefined();
     expect(pageErrors, `page errors: ${pageErrors.join(' | ')}`).toHaveLength(0);
 
-    // Routed to the robust sidecar backend — one sidecar highlight, no inline source edit.
-    const annRes = await request.get(`http://localhost:${port}/api/highlights/multimath.md`);
-    expect(annRes.ok()).toBe(true);
-    const ann = await annRes.json();
-    expect(ann.highlights.length).toBe(1);
-    expect(ann.highlights[0].backend).toBe('sidecar');
-
+    // A PRECISE inline highlight is written to source: the wrap begins at the
+    // first inline-math span and closes after "term-by-term", spanning the
+    // second math span and the inter-math text — NOT the whole paragraph.
+    // "Edge-wise " (before) and " gives the bound." (after) stay OUTSIDE the wrap.
     const src = await (await request.get(`http://localhost:${port}/api/md/multimath.md`)).text();
-    expect(src).not.toContain('==blue:');
+    expect(src).toContain('==blue:');
+    expect(src).toMatch(/Edge-wise\s+==blue:/);                 // pre-text outside the wrap
+    expect(src).toMatch(/term-by-term==\s+gives the bound\./);  // wrap closes before the trailing text
+    // The whole-block sidecar fallback is no longer used for this case.
+    const annRes = await request.get(`http://localhost:${port}/api/highlights/multimath.md`);
+    if (annRes.ok()) {
+      const ann = await annRes.json();
+      expect((ann.highlights || []).filter(h => h.backend === 'sidecar')).toHaveLength(0);
+    }
   } finally {
     stopServer(server, dir);
   }
