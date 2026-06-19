@@ -1,0 +1,35 @@
+{
+ "panel_a": {
+  "d_model": 512,
+  "h": 8,
+  "d_v": 64,
+  "additivity_maxabsdiff": 1.4210854715202004e-14,
+  "budget": {
+   "h": 8,
+   "d_k": 64,
+   "h_times_dk": 512,
+   "d_model": 512
+  }
+ },
+ "panel_b": {
+  "demo_d": 64,
+  "demo_d_k": 8,
+  "h": 8,
+  "T": 9,
+  "X_scale": 0.22,
+  "circuit_ranks": [
+   8,
+   8,
+   8,
+   8,
+   8,
+   8,
+   8,
+   8
+  ],
+  "dissim_diag_maxabs": 0.0,
+  "dissim_offdiag_mean": 0.6377403006857828,
+  "dissim_offdiag_min": 0.37482348412603633,
+  "dissim_offdiag_max": 0.7580128690323117
+ }
+}

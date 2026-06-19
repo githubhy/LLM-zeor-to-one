@@ -176,8 +176,8 @@ $$
 
 <a id="p-a9-an-induction-head-built-by-hand-4"></a><!-- para:a9-an-induction-head-built-by-hand-4 --> ![Two panels: the left is a bar chart of the attention from the second occurrence of the trigger token, peaking sharply on the position that follows the first occurrence; the right is a bar chart of next-token probabilities peaking on the answer token](figures/qkv-induction-head.svg)
 
-<!-- sec:A.10-figure-a -->
-<a id="p-a9-an-induction-head-built-by-hand-5"></a><!-- para:a9-an-induction-head-built-by-hand-5 --> <a id="sec-A.10-figure-a"></a>**Figure A.6.** A hand-built induction head running on the stream `C A D B E F C ?`. *Left:* the attention from the second `C` (the trigger) concentrates with weight 0.91 on position 1 — the token `A` that followed the *first* `C` — exactly the prefix match of Equation <!-- ref:A-9 -->[(9)](#eq-9). *Right:* the OV circuit copies that attended token into the logits, so the head predicts `A` with probability 0.88 against roughly 0.025 for every other token. The whole head is the pair $(M, W_{OV})$; no optimization was run. Regenerate via `surveys/llms-for-coding/figures/qkv-induction-head.py`.
+<!-- sec:A.9-figure-a -->
+<a id="p-a9-an-induction-head-built-by-hand-5"></a><!-- para:a9-an-induction-head-built-by-hand-5 --> <a id="sec-A.9-figure-a"></a>**Figure A.6.** A hand-built induction head running on the stream `C A D B E F C ?`. *Left:* the attention from the second `C` (the trigger) concentrates with weight 0.91 on position 1 — the token `A` that followed the *first* `C` — exactly the prefix match of Equation <!-- ref:A-9 -->[(9)](#eq-9). *Right:* the OV circuit copies that attended token into the logits, so the head predicts `A` with probability 0.88 against roughly 0.025 for every other token. The whole head is the pair $(M, W_{OV})$; no optimization was run. Regenerate via `surveys/llms-for-coding/figures/qkv-induction-head.py`.
 
 <!-- sec:A.10 -->
 ### <a id="sec-A.10"></a>A.10 Multiple Heads: a Sum of Low-Rank Circuits
@@ -193,17 +193,36 @@ $$
 
 <a id="p-a10-multiple-heads-a-sum-of-low-rank-circuits-2"></a><!-- para:a10-multiple-heads-a-sum-of-low-rank-circuits-2 --> with one query–key operator $M^{(\ell)} = W_Q^{(\ell)\top} W_K^{(\ell)}$ and one output–value operator $W_{OV}^{(\ell)} = W_O^{(\ell)} W_V^{(\ell)}$ per head, each of rank at most $d_k$ or $d_v$. The original Transformer uses $h = 8$ heads with $d_k = d_v = d_{\text{model}}/h = 64$, so the total compute matches a single full-width head while the layer gets eight independent low-rank comparison subspaces — "different representation subspaces at different positions" <!-- cite:54 --> [[54]](references.md#ref-54). Understanding a layer therefore means understanding the *set* of circuit pairs $\{(M^{(\ell)}, W_{OV}^{(\ell)})\}$, each read by its SVD as in A.8 — not the raw projection matrices, which by A.4 are gauge.
 
+<a id="p-a10-multiple-heads-a-sum-of-low-rank-circuits-3"></a><!-- para:a10-multiple-heads-a-sum-of-low-rank-circuits-3 --> ![Two panels. Left: a schematic dataflow of one layer — a single residual-stream box fans out into eight head pipelines, each a QK-circuit box feeding a causal softmax pattern into an OV-circuit box, and all eight per-head writes converge on one summation node that writes back a single update; an inset states the concatenate-then-project identity is exact to machine precision. Right: an eight-by-eight heatmap of pairwise routing dissimilarity between heads, with a zero (black) diagonal and large off-diagonal entries, above which a strip of eight equal colored segments tiles one total budget.](figures/qkv-multihead-sum.svg)
+
+<!-- sec:A.10-figure-a -->
+<a id="p-a10-multiple-heads-a-sum-of-low-rank-circuits-4"></a><!-- para:a10-multiple-heads-a-sum-of-low-rank-circuits-4 --> <a id="sec-A.10-figure-a"></a>**Figure A.7.** A layer is a sum of $h$ low-rank circuit pairs. *Left:* the dataflow of Equation <!-- ref:A-10 -->[(10)](#eq-10). One shared residual-stream vector $\mathbf{x}_i$ fans out to $h = 8$ head-pipelines; each head $\ell$ is the circuit pair $(M^{(\ell)}, W_{OV}^{(\ell)})$ — a QK routing operator of rank $\le d_k$ (the head's learned matched filter of A.6) feeding a causal softmax pattern $a^{(\ell)}$, which weights an OV content map of rank $\le d_v$ — and the $h$ per-head writes sum into one update $\Delta\mathbf{x}_i$. Concatenate-then-project is *exactly* this sum of per-head slices, not an approximation: for a random output projection $W^O$ at $d = 512$, $h = 8$, $d_v = 64$ the two sides differ by at most $1.4\times 10^{-14}$ — a check of the algebraic identity, which holds for any $W^O$, not a property measured on trained weights. In the kernel-regression and matched-filter readings of A.5–A.6, the layer is a bank of $h$ smoothers / matched filters, summed. *Right:* the plurality made numerical, and the conserved budget. Eight independent QK circuits $M^{(\ell)} = W_Q^{(\ell)\top} W_K^{(\ell)}$, each genuinely of rank $\le d_k = 8$, read one shared token stream $X$ ($T = 9$, a reduced demo scale) and produce eight distinct causal attention patterns. The $8\times 8$ matrix reports the pairwise routing dissimilarity (total-variation distance between heads' attention rows, a metric chosen here): exactly $0$ on the diagonal and large off-diagonal (mean $\approx 0.64$, max $\approx 0.76$), so the heads route the same tokens through different comparison subspaces — "different representation subspaces at different positions" <!-- cite:54 --> [[54]](references.md#ref-54) — yet are neither orthogonal by construction nor disjoint (no entry reaches $1$). The top strip shows the conserved budget $h\,d_k = 8\times 64 = 512 = d_{\text{model}}$: the eight heads tile one full-width head's budget. Understanding a layer therefore means understanding the set $\{(M^{(\ell)}, W_{OV}^{(\ell)})\}$, each read by its SVD as in A.8 — not the raw projections, which by A.4 are gauge. Regenerate via `surveys/llms-for-coding/figures/qkv-multihead-sum.py`.
+
 <!-- sec:A.11 -->
 ### <a id="sec-A.11"></a>A.11 Why the QK and OV Circuits Co-Adapt
 
-<a id="p-a11-why-the-qk-and-ov-circuits-co-adapt-1"></a><!-- para:a11-why-the-qk-and-ov-circuits-co-adapt-1 --> A last derivation explains why $M$ and $W_{OV}$ co-adapt rather than being meaningful in isolation. Differentiate a weight $a_{ij}$ of Equation <!-- ref:A-2 -->[(2)](#eq-2) with respect to a score $s_{im}$; the softmax Jacobian is
+<a id="p-a11-why-the-qk-and-ov-circuits-co-adapt-1"></a><!-- para:a11-why-the-qk-and-ov-circuits-co-adapt-1 --> A last derivation explains why $M$ and $W_{OV}$ co-adapt rather than being meaningful in isolation. Differentiate a weight $a_{ij}$ of Equation <!-- ref:A-2 -->[(2)](#eq-2) with respect to a score $s_{im}$ at an unmasked key ($m \le i$). Abbreviate the row normalizer as $Z_i \equiv \sum_{j'\le i} e^{s_{ij'}}$, so that $a_{ij} = e^{s_{ij}}/Z_i$. Two elementary derivatives feed the quotient rule: $\partial e^{s_{ij}}/\partial s_{im} = \delta_{jm}\,e^{s_{ij}}$, with $\delta_{jm}$ the Kronecker delta (1 when $j=m$, else 0), because $e^{s_{ij}}$ varies with $s_{im}$ only when $j=m$; and $\partial Z_i/\partial s_{im} = e^{s_{im}}$, because only the $j'=m$ term of the sum carries $s_{im}$. Applying the quotient rule and simplifying term by term gives the softmax Jacobian, with no step skipped:
 
 <a id="eq-11"></a><!-- eq:A-11 -->
 $$
-\frac{\partial a_{ij}}{\partial s_{im}} = a_{ij}\,(\delta_{jm} - a_{im}), \tag{11}
+\begin{aligned}
+\frac{\partial a_{ij}}{\partial s_{im}}
+&= \frac{\partial}{\partial s_{im}}\!\left(\frac{e^{s_{ij}}}{Z_i}\right)
+&&\text{(softmax definition)}\\
+&= \frac{\left(\partial_{s_{im}} e^{s_{ij}}\right) Z_i \;-\; e^{s_{ij}}\left(\partial_{s_{im}} Z_i\right)}{Z_i^{2}}
+&&\text{(quotient rule)}\\
+&= \frac{\delta_{jm}\,e^{s_{ij}}\,Z_i \;-\; e^{s_{ij}}\,e^{s_{im}}}{Z_i^{2}}
+&&\text{(insert the two derivatives)}\\
+&= \delta_{jm}\,\frac{e^{s_{ij}}}{Z_i} \;-\; \frac{e^{s_{ij}}}{Z_i}\cdot\frac{e^{s_{im}}}{Z_i}
+&&\text{(split; cancel one }Z_i\text{)}\\
+&= \delta_{jm}\,a_{ij} \;-\; a_{ij}\,a_{im}
+&&\text{(recognize the softmax weights)}\\
+&= a_{ij}\,(\delta_{jm} - a_{im}).
+&&\text{(factor out }a_{ij}\text{)}
+\end{aligned} \tag{11}
 $$
 
-<a id="p-a11-why-the-qk-and-ov-circuits-co-adapt-2"></a><!-- para:a11-why-the-qk-and-ov-circuits-co-adapt-2 --> with $\delta_{jm}$ the Kronecker delta. Let $\boldsymbol{\delta}_i = \partial L/\partial \mathbf{o}_i$ be the loss gradient arriving at the head output. Because a weight $a_{ij}$ influences the loss only through $\mathbf{o}_i = \sum_j a_{ij} \mathbf{v}_j$, the chain rule gives $\partial L/\partial a_{ij} = \boldsymbol{\delta}_i^{\top}\mathbf{v}_j$. Assembling this with Equation <!-- ref:A-11 -->[(11)](#eq-11) through $\partial L/\partial s_{im} = \sum_j (\partial L/\partial a_{ij})(\partial a_{ij}/\partial s_{im})$ gives the gradient on a score:
+<a id="p-a11-why-the-qk-and-ov-circuits-co-adapt-2"></a><!-- para:a11-why-the-qk-and-ov-circuits-co-adapt-2 --> Let $\boldsymbol{\delta}_i = \partial L/\partial \mathbf{o}_i$ be the loss gradient arriving at the head output. Because a weight $a_{ij}$ influences the loss only through $\mathbf{o}_i = \sum_j a_{ij} \mathbf{v}_j$, the chain rule gives $\partial L/\partial a_{ij} = \boldsymbol{\delta}_i^{\top}\mathbf{v}_j$. Assembling this with Equation <!-- ref:A-11 -->[(11)](#eq-11) through $\partial L/\partial s_{im} = \sum_j (\partial L/\partial a_{ij})(\partial a_{ij}/\partial s_{im})$ gives the gradient on a score:
 
 <a id="eq-12"></a><!-- eq:A-12 -->
 $$
