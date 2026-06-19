@@ -1,0 +1,28 @@
+{
+ "config": {
+  "V": 3,
+  "d": 4,
+  "T": 3,
+  "d_k": 4,
+  "d_ff": 8,
+  "input_x": [
+   0,
+   1,
+   2
+  ],
+  "target_y": [
+   1,
+   2,
+   0
+  ],
+  "block": "pre-LayerNorm, 1 head, ReLU MLP, learned pos, untied unembedding"
+ },
+ "n_params": 203,
+ "gradient_check_max_rel_error": 1.6144647240276503e-09,
+ "adam_lr": 0.02,
+ "adam_steps": 60,
+ "loss_initial": 1.0575018865162524,
+ "loss_after_1_adam_step": 0.7802475031675149,
+ "loss_final": 0.00562704501323669,
+ "uniform_guess_loss_lnV": 1.0986122886681098
+}
