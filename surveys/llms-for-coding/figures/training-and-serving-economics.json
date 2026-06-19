@@ -1,0 +1,21 @@
+{
+ "panel_a_tokens": {
+  "DeepSeek-Coder_pretraining": 2000000000000.0,
+  "DeepSeek-Coder_SFT": 2000000000.0,
+  "pretrain_over_SFT_ratio": 1000.0,
+  "Qwen2.5-Coder_pretraining": 5500000000000.0,
+  "StarCoder2_pretraining_range": [
+   3300000000000.0,
+   4300000000000.0
+  ],
+  "CodeLlama_SFT": 5000000000.0,
+  "alignment_note": "CodeRL RL over 10000 APPS problems (problems, not tokens); DeepSeek-Coder has no RL stage; Qwen DPO data not reported"
+ },
+ "panel_b_blockpasses": {
+  "T_mark": 8192,
+  "uncached_total": 33558528.0,
+  "cached_total": 8192.0,
+  "ratio": 4096.5,
+  "ratio_formula": "(T+1)/2"
+ }
+}

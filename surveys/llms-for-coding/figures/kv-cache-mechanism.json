@@ -1,0 +1,34 @@
+{
+ "panel_a": {
+  "T": 8,
+  "no_cache_blockpasses": 36,
+  "cache_blockpasses": 8,
+  "no_cache_formula": "T(T+1)/2",
+  "cache_formula": "T"
+ },
+ "panel_b": {
+  "layers": 2,
+  "d": 16,
+  "d_k": 8,
+  "prefix_len": 6,
+  "appended_len": 7,
+  "max_prefix_key_change": 0.0,
+  "key_norms_len6": [
+   110.892,
+   100.081,
+   109.2,
+   76.68,
+   42.045,
+   36.694
+  ],
+  "key_norms_len7": [
+   110.892,
+   100.081,
+   109.2,
+   76.68,
+   42.045,
+   36.694,
+   68.454
+  ]
+ }
+}
