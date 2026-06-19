@@ -222,23 +222,50 @@ $$
 \end{aligned} \tag{11}
 $$
 
-<a id="p-a11-why-the-qk-and-ov-circuits-co-adapt-2"></a><!-- para:a11-why-the-qk-and-ov-circuits-co-adapt-2 --> Let $\boldsymbol{\delta}_i = \partial L/\partial \mathbf{o}_i$ be the loss gradient arriving at the head output. Because a weight $a_{ij}$ influences the loss only through $\mathbf{o}_i = \sum_j a_{ij} \mathbf{v}_j$, the chain rule gives $\partial L/\partial a_{ij} = \boldsymbol{\delta}_i^{\top}\mathbf{v}_j$. Assembling this with Equation <!-- ref:A-11 -->[(11)](#eq-11) through $\partial L/\partial s_{im} = \sum_j (\partial L/\partial a_{ij})(\partial a_{ij}/\partial s_{im})$ gives the gradient on a score:
+<a id="p-a11-why-the-qk-and-ov-circuits-co-adapt-2"></a><!-- para:a11-why-the-qk-and-ov-circuits-co-adapt-2 --> Let $\boldsymbol{\delta}_i = \partial L/\partial \mathbf{o}_i$ be the loss gradient arriving at the head output. Two ingredients drive the calculation. The first is a single weight's effect on the loss. Because $a_{ij}$ enters the loss only through the head output $\mathbf{o}_i = \sum_{j'} a_{ij'} \mathbf{v}_{j'}$ (Equation <!-- ref:A-2 -->[(2)](#eq-2)), the chain rule through the $d_v$ components $o_{ik}$ of $\mathbf{o}_i$ gives:
 
 <a id="eq-12"></a><!-- eq:A-12 -->
 $$
-\frac{\partial L}{\partial s_{im}}
-= \sum_{j} (\boldsymbol{\delta}_i^{\top}\mathbf{v}_j)\, a_{ij}\,(\delta_{jm}-a_{im})
-= a_{im}\,\boldsymbol{\delta}_i^{\top}\mathbf{v}_m - a_{im}\sum_{j} a_{ij}\,(\boldsymbol{\delta}_i^{\top}\mathbf{v}_j)
-= a_{im}\,\boldsymbol{\delta}_i^{\top}\Big(\mathbf{v}_m - \textstyle\sum_{j} a_{ij}\mathbf{v}_j\Big)
-= a_{im}\,\boldsymbol{\delta}_i^{\top}(\mathbf{v}_m - \mathbf{o}_i). \tag{12}
+\begin{aligned}
+\frac{\partial L}{\partial a_{ij}}
+&= \sum_{k} \frac{\partial L}{\partial o_{ik}}\,\frac{\partial o_{ik}}{\partial a_{ij}}
+&&\text{(chain rule through }\mathbf{o}_i\text{)}\\
+&= \sum_{k} \frac{\partial L}{\partial o_{ik}}\, v_{jk}
+&&\text{(}\partial o_{ik}/\partial a_{ij}=v_{jk}\text{, the }k\text{th entry of }\mathbf{v}_j\text{)}\\
+&= \left(\frac{\partial L}{\partial \mathbf{o}_i}\right)^{\!\top}\mathbf{v}_j
+&&\text{(reassemble the inner product over }k\text{)}\\
+&= \boldsymbol{\delta}_i^{\top}\mathbf{v}_j.
+&&\text{(}\boldsymbol{\delta}_i\equiv\partial L/\partial\mathbf{o}_i\text{)}
+\end{aligned} \tag{12}
 $$
 
-<a id="p-a11-why-the-qk-and-ov-circuits-co-adapt-3"></a><!-- para:a11-why-the-qk-and-ov-circuits-co-adapt-3 --> The middle steps are the Kronecker $\delta_{jm}$ selecting $j = m$ in the first term, factoring $a_{im}$ out of the second, and collapsing $\sum_j a_{ij} \mathbf{v}_j = \mathbf{o}_i$. Gradient descent therefore *raises* the score $s_{im}$ — attends more to key $m$ — exactly when $\boldsymbol{\delta}_i^{\top}(\mathbf{v}_m - \mathbf{o}_i) < 0$, i.e. when pulling the output toward $\mathbf{v}_m$ reduces the loss. The attention pattern is thus trained, key by key, to read from positions whose fetched value (delivered through the OV circuit) helps; and symmetrically $W_{OV}$ is trained to make the fetched content helpful under the current pattern. The QK circuit learns *where to look* and the OV circuit learns *what to bring*, each conditioned on the other — which is the structural reason they are meaningful only as the paired circuits $M$ and $W_{OV}$, never as the six raw matrices. This descent argument shows the two circuits *co-adapt*; it does not by itself prove training converges to the specific low-rank routing or copy circuits of A.8–A.9 — those are what such a head can *implement*, and, for induction heads, are *observed* empirically in trained models (A.9), not a structure this single gradient identity guarantees.
+<a id="p-a11-why-the-qk-and-ov-circuits-co-adapt-3"></a><!-- para:a11-why-the-qk-and-ov-circuits-co-adapt-3 --> The second ingredient is the softmax Jacobian $\partial a_{ij}/\partial s_{im} = a_{ij}\,(\delta_{jm}-a_{im})$ of Equation <!-- ref:A-11 -->[(11)](#eq-11). Since $s_{im}$ reaches the loss only through the weights $\{a_{ij}\}_{j}$, composing the two ingredients gives the gradient on a score:
+
+<a id="eq-13"></a><!-- eq:A-13 -->
+$$
+\begin{aligned}
+\frac{\partial L}{\partial s_{im}}
+&= \sum_{j} \frac{\partial L}{\partial a_{ij}}\,\frac{\partial a_{ij}}{\partial s_{im}}
+&&\text{(chain rule via the weights)}\\
+&= \sum_{j} (\boldsymbol{\delta}_i^{\top}\mathbf{v}_j)\,a_{ij}\,(\delta_{jm}-a_{im})
+&&\text{(insert both ingredients)}\\
+&= \sum_{j} (\boldsymbol{\delta}_i^{\top}\mathbf{v}_j)\,a_{ij}\,\delta_{jm} \;-\; \sum_{j} (\boldsymbol{\delta}_i^{\top}\mathbf{v}_j)\,a_{ij}\,a_{im}
+&&\text{(distribute the product)}\\
+&= a_{im}\,\boldsymbol{\delta}_i^{\top}\mathbf{v}_m \;-\; a_{im}\sum_{j} a_{ij}\,(\boldsymbol{\delta}_i^{\top}\mathbf{v}_j)
+&&\text{(}\delta_{jm}\text{ picks } j=m\text{; pull } a_{im}\text{)}\\
+&= a_{im}\,\boldsymbol{\delta}_i^{\top}\!\left(\mathbf{v}_m - \sum_{j} a_{ij}\mathbf{v}_j\right)
+&&\text{(factor out } a_{im}\boldsymbol{\delta}_i^{\top}\text{)}\\
+&= a_{im}\,\boldsymbol{\delta}_i^{\top}(\mathbf{v}_m - \mathbf{o}_i).
+&&\text{(collapse } \textstyle\sum_{j} a_{ij}\mathbf{v}_j=\mathbf{o}_i\text{)}
+\end{aligned} \tag{13}
+$$
+
+<a id="p-a11-why-the-qk-and-ov-circuits-co-adapt-4"></a><!-- para:a11-why-the-qk-and-ov-circuits-co-adapt-4 --> Gradient descent therefore *raises* the score $s_{im}$ — attends more to key $m$ — exactly when $\boldsymbol{\delta}_i^{\top}(\mathbf{v}_m - \mathbf{o}_i) < 0$, i.e. when pulling the output toward $\mathbf{v}_m$ reduces the loss. The attention pattern is thus trained, key by key, to read from positions whose fetched value (delivered through the OV circuit) helps; and symmetrically $W_{OV}$ is trained to make the fetched content helpful under the current pattern. The QK circuit learns *where to look* and the OV circuit learns *what to bring*, each conditioned on the other — which is the structural reason they are meaningful only as the paired circuits $M$ and $W_{OV}$, never as the six raw matrices. This descent argument shows the two circuits *co-adapt*; it does not by itself prove training converges to the specific low-rank routing or copy circuits of A.8–A.9 — those are what such a head can *implement*, and, for induction heads, are *observed* empirically in trained models (A.9), not a structure this single gradient identity guarantees.
 
 <!-- sec:A.12 -->
 ### <a id="sec-A.12"></a>A.12 Summary
 
-<a id="p-a12-summary-1"></a><!-- para:a12-summary-1 --> Understanding the trained $W_Q$, $W_K$, $W_V$ does not mean inspecting them. By Equations <!-- ref:A-3 -->[(3)](#eq-3) and <!-- ref:A-4 -->[(4)](#eq-4) a head is two operators: the **QK circuit** $M = W_Q^{\top} W_K$, a learned, asymmetric, low-rank bilinear form that *routes* attention — equivalently the metric of a Nadaraya–Watson kernel smoother (A.5) and the cross-correlation operator of a learned matched filter (A.6) — and the **OV circuit** $W_{OV} = W_O W_V$, the low-rank map of *what content moves*. The raw projection matrices carry $d_k^2 + d_v^2$ degrees of unobservable gauge (A.4), so the well-posed reading of a trained head is the SVD of its two circuits (A.8), which exposes routing rules and copy/transform maps directly — as the hand-built induction head of A.9 shows in miniature. The $1/\sqrt{d_k}$ factor is the noise-floor normalization that keeps the softmax detector sensitive at any head width (A.7), and a layer is just a sum of $h$ such low-rank circuit pairs (A.10), co-adapted by the gradient of Equation <!-- ref:A-12 -->[(12)](#eq-12).
+<a id="p-a12-summary-1"></a><!-- para:a12-summary-1 --> Understanding the trained $W_Q$, $W_K$, $W_V$ does not mean inspecting them. By Equations <!-- ref:A-3 -->[(3)](#eq-3) and <!-- ref:A-4 -->[(4)](#eq-4) a head is two operators: the **QK circuit** $M = W_Q^{\top} W_K$, a learned, asymmetric, low-rank bilinear form that *routes* attention — equivalently the metric of a Nadaraya–Watson kernel smoother (A.5) and the cross-correlation operator of a learned matched filter (A.6) — and the **OV circuit** $W_{OV} = W_O W_V$, the low-rank map of *what content moves*. The raw projection matrices carry $d_k^2 + d_v^2$ degrees of unobservable gauge (A.4), so the well-posed reading of a trained head is the SVD of its two circuits (A.8), which exposes routing rules and copy/transform maps directly — as the hand-built induction head of A.9 shows in miniature. The $1/\sqrt{d_k}$ factor is the noise-floor normalization that keeps the softmax detector sensitive at any head width (A.7), and a layer is just a sum of $h$ such low-rank circuit pairs (A.10), co-adapted by the gradient of Equation <!-- ref:A-13 -->[(13)](#eq-13).
 
 <!-- sec:A.13 -->
 ### <a id="sec-A.13"></a>A.13 Concrete Dimensions in Real-World Models
