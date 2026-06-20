@@ -25,4 +25,5 @@
 19. [Appendix A — Query, Key, and Value from First Principles](appendix-a-qkv-first-principles.md)
 20. [Appendix B — The Kernel-Regression Family](appendix-b-kernel-regression-family.md)
 21. [Appendix C — A Transformer Top-to-Neuron: a Worked Toy Model](appendix-c-toy-transformer.md)
-22. [References](references.md)
+22. [Appendix D — GPT-2 Scale: the Toy, Grown Up](appendix-d-gpt2.md)
+23. [References](references.md)
