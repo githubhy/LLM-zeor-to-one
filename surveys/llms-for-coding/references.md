@@ -191,3 +191,9 @@
 
 <a id="ref-64"></a><!-- bib:64 -->
 [64] DeepSeek-AI, "DeepSeek-V3 Technical Report." 2024. arXiv:2412.19437. (local: download/deepseek-v3-2024.pdf)
+
+<a id="ref-65"></a><!-- bib:65 -->
+[65] H. Touvron, T. Lavril, G. Izacard, et al., "LLaMA: Open and Efficient Foundation Language Models." 2023. arXiv:2302.13971. (local: download/llama1-2023.pdf)
+
+<a id="ref-66"></a><!-- bib:66 -->
+[66] J. Su, Y. Lu, S. Pan, A. Murtadha, B. Wen, Y. Liu, "RoFormer: Enhanced Transformer with Rotary Position Embedding." *Neurocomputing* 2024. arXiv:2104.09864. (local: download/su-rope-2021.pdf)
