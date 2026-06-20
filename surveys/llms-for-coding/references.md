@@ -179,3 +179,15 @@
 
 <a id="p-references-60"></a><!-- para:references-60 --> <a id="ref-60"></a><!-- bib:60 -->
 [60] C. Olsson, N. Elhage, N. Nanda, N. Joseph, et al., "In-context Learning and Induction Heads." *Transformer Circuits Thread (Anthropic)*, 2022. [link](https://transformer-circuits.pub/2022/in-context-learning-and-induction-heads/index.html) (web)
+
+<a id="ref-61"></a><!-- bib:61 -->
+[61] A. Radford, J. Wu, R. Child, D. Luan, D. Amodei, I. Sutskever, "Language Models are Unsupervised Multitask Learners." OpenAI technical report, 2019. (local: download/gpt2-2019.pdf)
+
+<a id="ref-62"></a><!-- bib:62 -->
+[62] T. B. Brown, B. Mann, N. Ryder, et al., "Language Models are Few-Shot Learners." 2020. arXiv:2005.14165. (local: download/gpt3-2020.pdf)
+
+<a id="ref-63"></a><!-- bib:63 -->
+[63] H. Touvron, L. Martin, K. Stone, et al., "Llama 2: Open Foundation and Fine-Tuned Chat Models." 2023. arXiv:2307.09288. (local: download/llama2-2023.pdf)
+
+<a id="ref-64"></a><!-- bib:64 -->
+[64] DeepSeek-AI, "DeepSeek-V3 Technical Report." 2024. arXiv:2412.19437. (local: download/deepseek-v3-2024.pdf)
