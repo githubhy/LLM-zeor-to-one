@@ -1,0 +1,12 @@
+{
+ "bytes_per_param_train": 16,
+ "train_GB": {
+  "7B": 107,
+  "70B": 1120
+ },
+ "infer_GB": {
+  "7B": 13,
+  "70B": 140
+ },
+ "gpu_GB": 80.0
+}

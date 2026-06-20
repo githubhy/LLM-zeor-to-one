@@ -27,4 +27,5 @@
 21. [Appendix C — A Transformer Top-to-Neuron: a Worked Toy Model](appendix-c-toy-transformer.md)
 22. [Appendix D — GPT-2 Scale: the Toy, Grown Up](appendix-d-gpt2.md)
 23. [Appendix E — The Modern Dense Block: a 7B Llama-Family Model](appendix-e-modern-dense.md)
-24. [References](references.md)
+24. [Appendix F — Scaling the Dense Block: 33B–70B](appendix-f-scaling.md)
+25. [References](references.md)
