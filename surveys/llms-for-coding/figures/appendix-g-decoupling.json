@@ -1,0 +1,26 @@
+{
+ "models": [
+  "Dense\n7B",
+  "Dense\n70B",
+  "DS-Coder-V2\n236B (MoE)",
+  "DeepSeek-V3\n671B (MoE)"
+ ],
+ "total_B": [
+  7.0,
+  70.0,
+  236.0,
+  671.0
+ ],
+ "active_B": [
+  7.0,
+  70.0,
+  21.0,
+  37.0
+ ],
+ "active_fraction": [
+  1.0,
+  1.0,
+  0.089,
+  0.055
+ ]
+}

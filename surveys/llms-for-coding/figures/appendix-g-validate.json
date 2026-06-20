@@ -1,0 +1,14 @@
+{
+ "du_relerr": 1.6402663360455963e-09,
+ "dE_router_relerr": 2.171329525440142e-08,
+ "dWr1_relerr": 3.893723855580963e-09,
+ "dWr2_relerr": 7.483615695870847e-10,
+ "dWs1_shared_relerr": 3.642618286378275e-09,
+ "dWs2_shared_relerr": 4.175736419881443e-10,
+ "deepseek_v3_total_B": 671,
+ "deepseek_v3_active_B": 37,
+ "deepseek_v3_active_fraction": 0.0551,
+ "routed_experts": 256,
+ "shared_experts": 1,
+ "activated_routed": 8
+}
