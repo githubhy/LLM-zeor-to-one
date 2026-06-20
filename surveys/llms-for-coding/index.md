@@ -29,4 +29,5 @@
 23. [Appendix E — The Modern Dense Block: a 7B Llama-Family Model](appendix-e-modern-dense.md)
 24. [Appendix F — Scaling the Dense Block: 33B–70B](appendix-f-scaling.md)
 25. [Appendix G — Frontier Mixture-of-Experts: DeepSeek-V3](appendix-g-moe.md)
-26. [References](references.md)
+26. [Appendix H — Synthesis: One Architecture, Nine Orders of Magnitude](appendix-h-synthesis.md)
+27. [References](references.md)
