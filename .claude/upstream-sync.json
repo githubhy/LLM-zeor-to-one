@@ -1,0 +1,7 @@
+{
+  "upstream_path": "../data-channel-receiver",
+  "upstream_url": "git@github-fen:FenLinger/data-channel-receiver.git",
+  "last_synced_commit": "7c3a3bf87c8a53b09fd4e122969ce1303099028d",
+  "last_synced_date": "2026-06-13",
+  "note": "High-water mark for /sync-upstream. This repo's .claude harness was bootstrapped on 2026-06-13 by porting from the upstream template repo (telecom/3GPP) and retargeting it to LLM/AI surveys; this SHA is the upstream HEAD as of that bootstrap (last upstream commit on/before 2026-06-13). The next /sync-upstream diffs <last_synced_commit>..HEAD for config paths only, re-adapts each delta to the LLM/AI domain, then advances this marker. See the claude-infra-ported-from-data-channel-receiver memory."
+}

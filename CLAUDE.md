@@ -128,6 +128,7 @@ Prefer repo-local skills under `.claude/skills/` when they exist.
 - `/check-survey <survey-slug>` — Run full validation on the specified survey (the survey delivery / sign-off gate). Defined in `.claude/commands/check-survey.md`.
 - `/keep-cache-warm` — Keep the Anthropic prompt cache warm via self-paced `/loop` wake-ups. Defined in `.claude/commands/keep-cache-warm.md`.
 - `/enrich-equation <file> (<equation-number>)` — Expand one numbered equation into a multi-line, first-principles derivation with no intermediate step missing (same `\tag`, no cascade), then run the validation sweep. Defined in `.claude/commands/enrich-equation.md`.
+- `/sync-upstream [--dry-run | <range>]` — Sync harness-config deltas from the upstream template repo (`../data-channel-receiver`) since the high-water mark in `.claude/upstream-sync.json`, re-adapting each change telecom/3GPP → LLM/AI surveys (never research content), then advance the mark. Defined in `.claude/commands/sync-upstream.md`.
 
 ### Skill Usage Rules
 
