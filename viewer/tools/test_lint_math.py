@@ -93,7 +93,7 @@ def _dollar_flag(md_text, tmp_path):
 
 
 def test_single_line_display_then_prose_flagged(tmp_path):
-    # The wikis/ldpc-signed-minsum-...md:8 headline shape (bug 2026-06-01-03).
+    # Single-line $$...$$ headline immediately followed by prose (bug-class 2026-06-01-03).
     md = "# H\n\nThe result is\n$$f(\pm m) = g(m),$$\nwhere $f$ is a density.\n"
     assert _dollar_flag(md, tmp_path)
 

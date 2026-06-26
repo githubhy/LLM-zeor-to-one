@@ -8,6 +8,11 @@ status line to stdout.  Implemented in Python so it works without jq on Windows
 
 Displayed fields
 ----------------
+  repo/branch  — git repo name + current branch, shown first.  On the default
+                   branch ("main") only a branch symbol (⎇, green) is shown;
+                   on any other branch the name is shown (yellow), e.g.
+                   "repo ⎇ feat/x".  Omitted when the working directory is
+                   not a git repo or git is unavailable.
   model        — display name of the active model
   effort       — effortLevel from settings.json (project then global);
                    falls back to output_style.name from payload, then "default"
@@ -40,6 +45,7 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 import sys
 import time
 
@@ -49,7 +55,11 @@ import time
 _GREEN  = "\033[32m"
 _YELLOW = "\033[33m"
 _RED    = "\033[31m"
+_CYAN   = "\033[36m"
 _RESET  = "\033[0m"
+
+# Shown in place of the branch name when on the default branch ("main").
+_BRANCH_SYMBOL = "⎇"
 
 
 def _color_ctx(pct: float) -> str:
@@ -98,10 +108,76 @@ def _read_effort_from_settings() -> str:
     return ""
 
 
+def _git_repo_and_branch(cwd: str) -> tuple[str, str]:
+    """Return ``(repo_name, branch)`` for the git repo containing *cwd*.
+
+    *repo_name* is the basename of the repository top level; *branch* is the
+    current branch, or the short commit SHA when HEAD is detached.  Returns
+    ``("", "")`` when *cwd* is not inside a git work tree or git is
+    unavailable — the caller then omits the segment so the status line
+    degrades silently (same philosophy as the rest of this script).
+    """
+    if not cwd:
+        cwd = os.environ.get("CLAUDE_PROJECT_DIR", "") or os.getcwd()
+    try:
+        res = subprocess.run(
+            ["git", "-C", cwd, "rev-parse", "--show-toplevel", "--abbrev-ref", "HEAD"],
+            capture_output=True, text=True, timeout=1,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return "", ""
+    if res.returncode != 0:
+        return "", ""
+    lines = res.stdout.splitlines()
+    toplevel = lines[0].strip() if lines else ""
+    branch = lines[1].strip() if len(lines) > 1 else ""
+    if not toplevel:
+        return "", ""
+    repo = os.path.basename(toplevel)
+    if branch == "HEAD":  # detached HEAD — fall back to the short SHA
+        try:
+            sha = subprocess.run(
+                ["git", "-C", cwd, "rev-parse", "--short", "HEAD"],
+                capture_output=True, text=True, timeout=1,
+            )
+            branch = sha.stdout.strip() or "HEAD"
+        except (OSError, subprocess.SubprocessError):
+            branch = "HEAD"
+    return repo, branch
+
+
+def _format_git(repo: str, branch: str) -> str:
+    """Render the leading ``<repo> <branch>`` segment.
+
+    On the default branch ("main") only the branch symbol is shown (green);
+    on any other branch the name is shown (yellow).  Returns "" when *repo*
+    is empty so the caller can omit the whole segment.
+    """
+    if not repo:
+        return ""
+    out = f"{_CYAN}{repo}{_RESET}"
+    if not branch:
+        return out
+    if branch == "main":
+        return f"{out} {_GREEN}{_BRANCH_SYMBOL}{_RESET}"
+    return f"{out} {_YELLOW}{_BRANCH_SYMBOL} {branch}{_RESET}"
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 def main() -> None:
+    # On Windows the status line is spawned with stdout as a pipe, so Python
+    # encodes it with the locale code page (e.g. GBK/CP936) rather than UTF-8.
+    # That code page cannot encode the branch glyph U+2387 (or other non-ASCII
+    # output), so print() raises UnicodeEncodeError and the status line renders
+    # blank on every refresh. Force UTF-8 (replace-on-error) so the line always
+    # emits regardless of the system code page.
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError, OSError):
+        pass
+
     raw = sys.stdin.read()
     try:
         data: dict = json.loads(raw)
@@ -205,8 +281,21 @@ def main() -> None:
     five_str = _render_window("5h", rate_limits.get("five_hour"))
     week_str = _render_window("7d", rate_limits.get("seven_day"))
 
+    # --- git repo / branch (shown first) ------------------------------------
+    cwd = (
+        data.get("cwd")
+        or (data.get("workspace") or {}).get("current_dir")
+        or (data.get("workspace") or {}).get("project_dir")
+        or os.environ.get("CLAUDE_PROJECT_DIR", "")
+    )
+    repo, branch = _git_repo_and_branch(cwd)
+    git_str = _format_git(repo, branch)
+
     # --- assemble -----------------------------------------------------------
-    parts: list[str] = [model]
+    parts: list[str] = []
+    if git_str:
+        parts.append(git_str)
+    parts.append(model)
     parts.append(effort)
     parts.append(ctx_str)
     if cache_str:

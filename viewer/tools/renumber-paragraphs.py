@@ -37,6 +37,15 @@ EQ_MARKER = re.compile(r'<!--\s*eq:')
 DISPLAY_MATH = re.compile(r'^\s*\$\$')
 LIST_PREFIX = re.compile(r'^(\s*(?:[-*+]|\d+[.)])\s+)')
 BQ_PREFIX = re.compile(r'^(\s*>\s?)')
+# Footnote definition line (`[^id]: body`, ≤3 leading spaces per CommonMark).
+# markdown-it-py's plain commonmark parser has no footnote plugin, so a
+# multi-word footnote body tokenises as an ordinary paragraph and would be
+# anchored by --init (prefixing the line and breaking both markdown-it-footnote
+# and the viewer's resolveFootnoteDefs, which require `[^id]:` at column 0).
+# A short single-token body parses as a link-reference definition and is
+# already skipped; this makes the long-body case consistent. Mirrors the
+# viewer regex viewer/lib/highlight-shared.js::resolveFootnoteDefs.
+FOOTNOTE_DEF = re.compile(r'^\s{0,3}\[\^[^\]\s]+\]:')
 
 MD = MarkdownIt('commonmark').enable('table')
 
@@ -234,6 +243,8 @@ def renumber(path: Path, check_only=False, init=False):
         if DISPLAY_MATH.match(line_text):
             continue
         if EQ_MARKER.search(line_text):
+            continue
+        if FOOTNOTE_DEF.match(line_text):
             continue
         n = section_counter.get(current_slug, 0) + 1
         section_counter[current_slug] = n

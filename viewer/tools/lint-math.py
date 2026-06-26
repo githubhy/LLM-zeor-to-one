@@ -78,7 +78,7 @@ Orphaned equation / citation markers are covered by renumber-equations.py
 and link-references.py respectively.
 
 Usage:
-  python viewer/tools/lint-math.py surveys/ntn-initial-sync-tracking/
+  python viewer/tools/lint-math.py surveys/attention-demo/
   python viewer/tools/lint-math.py surveys/
   python viewer/tools/lint-math.py surveys/ --errors-only
 """
@@ -145,6 +145,24 @@ def lint_file(path, errors_only=False, check_11_enabled=True):
 
     for i, line in enumerate(lines, 1):
         stripped = line.strip()
+
+        # ── U+FFFD replacement character ────────────────────────────
+        # The Unicode REPLACEMENT CHARACTER (U+FFFD, rendered as a black
+        # diamond "\ufffd") is never legitimate in source markdown: it marks
+        # bytes that failed to decode, typically an em-dash or "§" lost
+        # during a non-UTF-8 (GBK / CP1252) file write — the same crash
+        # class as the Windows code-page write bug.  Such corruptions have
+        # reached committed survey corpora before (a silently-replaced
+        # em-dash).  Flag every
+        # occurrence so the corruption cannot re-enter the corpus.  Runs
+        # before the fence/display `continue`s because the byte
+        # corruption is context-independent.
+        if '\ufffd' in line:
+            col = line.index('\ufffd') + 1
+            issues.append((i, 'error',
+                           f'U+FFFD replacement character at col {col} - '
+                           'decoding corruption (a lost em-dash/symbol from a '
+                           'non-UTF-8 write); restore the intended character'))
 
         # ── Fenced code blocks ──────────────────────────────────────
         if not in_display and FENCE_RE.match(stripped):

@@ -1,6 +1,6 @@
 # Clean residual wireless example-strings in viewer/tools/ docstrings
 
-status: open
+status: closed
 
 ## Context
 
@@ -25,6 +25,8 @@ Replace the upstream domain examples with LLM-survey equivalents:
 `grep -rniE 'ldpc|3gpp|\birc\b|harq|\bofdm\b|otfs|\bntn\b|\b5g\b|wireless|\bfll\b|\bpll\b|beamform|zadoff|\bisac\b|\bbler\b' CLAUDE.md .claude/ viewer/tools/`
 returns only the two by-design provenance files (`.claude/commands/sync-upstream.md`,
 `.claude/upstream-sync.json`). The four `viewer/tools/` hits are gone. `viewer/tools/test_*.py` still pass.
+
+**Resolution.** Fixed during the upstream-sync batch 2 (viewer/tools port): `lint-math.py:81` `ntn-initial-sync-tracking/` → `attention-demo/`; `build-index.py` `ntn-survey.md` → `attention-survey.md` (×2); `test_lint_math.py:96` comment genericized (dropped `wikis/ldpc-signed-minsum` + bug ID). Full-harness leakage grep now CLEAN (only the two by-design provenance files remain). Tests 17/17 pass.
 
 ## Refs
 

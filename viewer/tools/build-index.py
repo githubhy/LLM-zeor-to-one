@@ -5,10 +5,10 @@ Scans ## and ### headings (skipping code blocks) and writes a companion
 <filename>.index.md mapping section headings to line ranges.
 
 Usage:
-  python viewer/tools/build-index.py surveys/ntn-survey.md
+  python viewer/tools/build-index.py surveys/attention-survey.md
   python viewer/tools/build-index.py surveys/              # all .md in dir
   python viewer/tools/build-index.py surveys/ --min-lines 500
-  python viewer/tools/build-index.py surveys/ntn-survey.md --dry-run
+  python viewer/tools/build-index.py surveys/attention-survey.md --dry-run
 """
 import argparse
 import re
