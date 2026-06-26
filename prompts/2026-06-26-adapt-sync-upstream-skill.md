@@ -23,4 +23,10 @@
 - **Result**: Batch 2 green — full-harness leakage CLEAN, py_compile OK, smoke-tested both new behaviors, tests 21/21 + 17/17. Committed. Next: batch 3 (cross-link subsystem).
 - **Findings**: Copying an upstream HEAD file wholesale (valid when local==BASE) reintroduces the upstream's *own* wireless docstring examples — always leakage-scrub after a wholesale copy, not just after a hand-splice. Also: "Added upstream" files can already be at HEAD locally (init-doc/check-report-completeness/gen-root-manifest) — verify byte-identity before porting to avoid redundant work.
 
+## Conversation 5
+- **Request**: Commit batch 2, proceed to batch 3 (cross-link subsystem).
+- **Actions**: Ported the cross-link subsystem (9 files). Mechanical (me): `crosslink.py` (copied HEAD + scrubbed the LDPC docstring/anecdote + dead field-note path + wireless usage example), `test_crosslink.py` (remapped LDPC test fixtures → LLM vocab keeping input↔assertion in sync), `crosslink-severity` (`warn`), `crosslink-scope` (rewritten to `surveys/llms-for-coding` — no `wikis/` here), `validate-refs-on-dirty.sh` (spliced the deferred crosslink-advisory block). Prose remap (subagent): `crosslink.README.md`, `rules/cross-linking.md`, `cross-link/SKILL.md`, + added the `## Cross-link sign-off` section to `survey-explainer-fold` (one section, rest untouched).
+- **Result**: Green — full-harness leakage CLEAN, 28 viewer/tools tests pass, hook `bash -n` OK, and `crosslink.py check surveys/llms-for-coding` runs and emits sensible LLM candidates (e.g. `appendix-a-qkv A.5 → appendix-b-kernel-regression B.7`). Committed. Next: batch 4 (new skills + rules + commands).
+- **Findings**: Copied TEST files smuggle domain vocabulary in fixtures AND assertions — the doc-oriented leakage net (no `min-sum`/`density-evolution`/`sign-bit`) missed `test_crosslink.py` entirely on first pass. Scan tests with an expanded term set and remap input+assertion together. Carry-forward: `cross-linking.md` references `.githooks/pre-push`, which lands with its policy decision in the final batch.
+
 <!-- LOG-END -->

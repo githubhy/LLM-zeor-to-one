@@ -234,3 +234,11 @@ if the user asks.
   `appendix-a-qkv-first-principles.md` A.1 compact Note + the `A.13` dedicated
   "Concrete Dimensions in Real-World Models" section, session
   `prompts/2026-06-17-viewer-sync.md`.
+
+## Cross-link sign-off
+
+The dedicated section this skill creates is a prime cross-link target (and
+source). Before sign-off, run the `cross-link` skill (or
+`crosslink.py check $SCOPE --changed`) over the new section and clear the
+reported high-value gaps, or file a `todos/` entry for any left out of scope —
+per `.claude/rules/cross-linking.md`.

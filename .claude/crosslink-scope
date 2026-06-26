@@ -1,0 +1,9 @@
+# Cross-link corpus scope — ONE corpus group the crosslink gate scans.
+# Lines are paths (files or dirs); '#' comments and blanks ignored.
+# Cross-linking is opt-in per corpus: to extend coverage to another survey,
+# add its directory (+ any related wikis) here. Keeping unrelated surveys out
+# avoids cross-survey false-positive candidates. (Multi-group support is a
+# future extension.)
+# Governs: .claude/hooks/validate-refs-on-dirty.sh (Stop-gate) and
+# .githooks/pre-push. Severity toggle: .claude/crosslink-severity.
+surveys/llms-for-coding

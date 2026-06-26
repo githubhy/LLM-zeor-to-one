@@ -21,4 +21,25 @@ else
 fi
 rc=$?
 [ "$rc" -eq 0 ] && rm -f "$FLAG"
+
+# Advisory cross-link gap check (Tier-1 detection — NEVER blocks the Stop gate;
+# clearing a gap needs judgment, so it is on-demand via /cross-link). Severity
+# 'off' silences it; the scope file lists the corpus group. See
+# .claude/rules/cross-linking.md.
+SEVERITY=$(cat "$PROJ/.claude/crosslink-severity" 2>/dev/null || echo warn)
+SCOPE_FILE="$PROJ/.claude/crosslink-scope"
+if [ "$SEVERITY" != "off" ] && [ -f "$SCOPE_FILE" ]; then
+  SCOPE=$(grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$SCOPE_FILE" | tr '\n' ' ')
+  (
+    cd "$PROJ" || exit 0
+    if [ -f "$HOOKS_DIR/py-launcher.sh" ]; then
+      bash "$HOOKS_DIR/py-launcher.sh" "$PROJ/viewer/tools/crosslink.py" \
+        check $SCOPE --changed --severity=warn || true
+    else
+      python "$PROJ/viewer/tools/crosslink.py" \
+        check $SCOPE --changed --severity=warn || true
+    fi
+  )
+fi
+
 exit "$rc"
