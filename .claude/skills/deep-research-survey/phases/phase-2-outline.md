@@ -16,7 +16,7 @@ Build a section outline with explicit research questions before deep expansion.
 4. System architecture and decomposition (e.g. tokenizer → embedding → transformer stack → decoding; or training → alignment → serving pipeline)
 5. Complete method and variant inventory
 6. Derivations or governing equations for important methods
-7. Performance, quality, compute, and cost tradeoffs (params, FLOPs/token, latency, throughput, memory, $/1M tokens)
+7. Performance, quality, compute, and cost tradeoffs (params, FLOPs/token, latency, throughput, memory, \$/1M tokens)
 8. State of the art and what is actually used in practice (frontier vs open-weight; research vs production)
 9. Design guidance or decision framework
 10. Open problems and future roadmap
@@ -39,3 +39,7 @@ Most LLM surveys draw their method inventory (section 5) from these axes — use
 
 ## Deliverable
 A section outline where every section has a research question and must-have/nice-to-have classification, checked against the taxonomy above for omitted axes.
+
+## Proposed-mode addendum
+
+Loaded on demand (token discipline). If `proposed` / `richness` is active, or any of `flags: R-GOV, R-CARD, R-SURVEY` is set, read `addenda/phase-2.md` (R-GOV depth-tier governor — read FIRST; R-CARD per-method method-card template; R-SURVEY survey-level richness artifacts) and apply the active blocks. These are the Part-2 richness/depth items. In `original` mode, skip — do not read it.

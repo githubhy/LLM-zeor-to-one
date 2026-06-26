@@ -1,0 +1,80 @@
+{
+  "id": "DRS-OPERATIONAL-SCALE-v1.0",
+  "purpose": "Configurable operational throughput caps for the deep-research-survey skill. The `scale` axis (SKILL.md, Modes and flags) selects a profile; `scale: <knobs>` overrides individual values per run. EDIT THE `wide` VALUES HERE to retune without touching SKILL.md or the phase files. This file is the single source of truth the skill reads at Phase-3 launch and Phase-5 verify.",
+  "spec": "DRS wide-mode operational-scaling proposal (upstream provenance) (DRS-WIDE-v1.0)",
+  "default_scale": "standard",
+  "status": "The `wide` values are OPERATOR-SET PROVISIONAL (2026-06-20) — NOT yet calibrated. The calibration sweep (proposal section 6) validates-or-trims them; until it runs, wide mode relies on the safety-net invariants below to make any overrun recoverable. See the wide-mode calibration-sweep todo (upstream provenance).",
+  "knobs": {
+    "searches_per_agent": {
+      "standard": 15,
+      "wide": 40,
+      "kind": "soft",
+      "note": "wide=40 is ABOVE the only measured death boundary (~28 searches, the 2026-03 unbounded-query agent-death incident). Highest-risk knob; the calibration sweep must clear or trim it. Until then it leans entirely on the safety nets."
+    },
+    "questions_per_agent": {
+      "standard": 5,
+      "wide": 7,
+      "kind": "hard",
+      "note": "wide=7 was the 2026-03 'borderline' value (survivors carried 7). The breadth-vs-focus dimension stays bounded by the coverage gate (R-COVER / R-RUBRIC), not by this throughput knob."
+    },
+    "verify_fanout": {
+      "standard": 6,
+      "wide": 12,
+      "kind": "throttle",
+      "note": "Phase-5 citation-verify concurrency. Real ceiling is `tool-unavailable` rate, not an agent-count sweet spot — verify agents are embarrassingly parallel (one source per agent)."
+    },
+    "downloads_per_day": {
+      "standard": 50,
+      "wide": 200,
+      "holdback": [10, 15],
+      "kind": "external-quota",
+      "note": "SELF-IMPOSED budget only. The external Anna's-Archive service quota is the hard ceiling and is NOT documented in-repo — if the real limit is below this value, fetches beyond it fail regardless. A ceiling on intent, not a guarantee; a flag cannot lift the physical limit."
+    },
+    "file_split_kb": {
+      "standard": 100,
+      "wide": 200,
+      "kind": "structural",
+      "note": "Multi-file-architecture trigger. wide=200 KB accepts ~2x per-read token cost (~30-66K vs ~15-33K tokens/read)."
+    }
+  },
+  "safety_net_invariants": [
+    "checkpoint-write to survey/_scratch/ after each sub-task (bounded loss on death)",
+    "event-driven death detection via the Workflow runtime, with the 15-minute poll as fallback",
+    "structured-output schemas on evidence/verify agents (a malformed return is caught)",
+    "synthesis stays on the main thread; agents collect raw evidence only",
+    "citation-integrity gate unchanged; downloads stay quota-bounded",
+    "bounded escalating retry on detected death (<=2 relaunches/agent, 2nd attempt trimmed, resume-from-checkpoint) runs BEFORE the main-thread fallback — see retry_policy",
+    "restart-intensity ceiling: if an agent class dies more than twice (i.e. retries exhausted), stop respawning, fall back to main-thread research, AND emit a visible coverage-gap marker into the report for that subtopic"
+  ],
+  "invariant_rule": "`scale: wide` is INVALID if any safety_net_invariant is disabled. Wide mode raises throughput; it never removes a safety net. The residual it does NOT close is 'alive but byzantine' (a confident-but-shallow return) — surfaced, not eliminated, by the coverage gate + a thin-return flag.",
+  "retry_policy": {
+    "spec": "DRS agent retry-policy proposal (upstream provenance) (DRS-RETRY-v1.0)",
+    "default": "ON whenever evidence/verify agents are used (a safety net, not a toggleable quality flag); applies at ANY scale, most needed at wide.",
+    "max_retries_per_agent": 2,
+    "escalation": [
+      "attempt 1 (relaunch): SAME brief — rescues TRANSIENT deaths (flaky API/tool call, heavy-cluster context timeout).",
+      "attempt 2 (TRIMMED): rescues SYSTEMATIC deaths (brief above the death cliff). If at `wide`, drop to the `standard` search/question budget; if already at `standard`, split the cluster's questions or move the excess to the main thread."
+    ],
+    "resume_from_checkpoint": "a relaunched agent reads its existing survey/_scratch/<agent>.md FIRST and continues from the last answered question — never redo answered questions (idempotent resume off the incremental checkpoint).",
+    "ceiling_composition": "retry is BOUNDED BY the restart-intensity ceiling: after max_retries_per_agent (or >2 deaths in the class), STOP, fall back to main-thread research for that subtopic, and emit a visible coverage-gap marker. Retry NEVER overrides the ceiling (it is the circuit breaker that prevents a retry storm on a poison brief).",
+    "telemetry": "record per-agent {deaths, retries, trimmed?, recovered-at-attempt} in the Phase-5 report footer; this is the death-rate field data the calibration sweep (items.json DRS-WIDE) consumes.",
+    "recovery_not_calibration": "retry makes a `searches=40` overrun RECOVERABLE; it does NOT make searches=40 correct. The 2026-06 wide-mode evidence run measured ~29% silent death at searches=40 (2 of 4 dead clusters recovered only after the attempt-2 trim = systematic, not transient). Retry is recovery, NOT a substitute for the calibration sweep (the wide-mode calibration-sweep todo, upstream provenance); the telemetry above feeds that sweep."
+  },
+  "evidence_agent_policy": {
+    "spec": "DRS evidence-agent-hardening proposal (upstream provenance) (DRS-HARDEN-v1.0)",
+    "switch": "agent_hardening = on | off (DEFAULT on)",
+    "default": "ON — a default-on safety net (like retry_policy). It rewrites the broken schema-first / 5-question evidence-agent path; the legacy path is demoted to the `agent_hardening: off` fallback (gotcha-#9 broken-original case, not an additive enhancement).",
+    "rationale": "Three 2026-06-25 evidence runs lost ~90% of clusters. Transcript-measured root cause: the per-agent ITERATION/STEP cap (~36-40 tool calls), NOT context size (a dead agent used ~58K of a 200K window) and NOT model tier (Sonnet survivors produced gold output). Agents spent the step budget on research — including 18 wasted Glob calls and full-page WebFetch — and were cut off mid-loop (final message stop_reason=tool_use, empty text) before the write step.",
+    "rules": {
+      "deliverable_file_first": "The incrementally-written survey/_scratch/<agent>.md file IS the graded deliverable; the agent writes it after EACH question (its chat return is a 2-line confirmation only). A structured-output schema is OPTIONAL; if one is used inside a Workflow parallel()/pipeline(), the agent() call MUST be try/catch-wrapped, because a missing StructuredOutput call THROWS (it does not return null) and a bare null-check retry is jumped over.",
+      "no_glob_exact_paths": "Give the agent EXACT file paths (local papers/model-cards/specs in download/ or docs/specs/, the exemplar file) in the brief. Forbid Glob / filesystem exploration — wasted Glob calls were the single largest step sink.",
+      "webfetch_limited": "Prefer WebSearch result snippets + targeted local-source grep/Read of line ranges; cap full-page WebFetch at <=2 per agent (each fetch is a step AND a context-bulk sink).",
+      "empty_return_is_death": "The orchestrator treats an empty-string agent return as a DEATH signal (if (!r || String(r).trim() === '')), not success — a step-capped agent COMPLETES with an empty final message, which a !!r check misreads.",
+      "step_budget_headroom": "Size each agent so every question keeps >= ~10 tool calls of headroom under the ~36-40-call step cap: with the waste removed, ~3-4 questions/agent (not the legacy 5). `knobs.questions_per_agent` is the UPPER bound; this is the effective working size. Splitting the same total questions across more agents raises per-question depth and breadth — it does NOT narrow or shallow the research (coverage is unchanged; synthesis still sees all files; R-COVER gates completeness)."
+    },
+    "off_restores": "agent_hardening: off restores the legacy schema-first deliverable + 5-question sizing + unrestricted Glob/WebFetch (pre-2026-06-25 behavior). Provided for A/B and backward-compat; NOT recommended — it is the broken path.",
+    "status": "SHIPPED default-ON 2026-06-25 (gotcha-#9 broken-original rewrite). Structural-checked. The death-RATE A/B is owed but deferred: it would re-run the exact expensive failure, and the mechanism is already transcript-measured. Refs (upstream provenance): the evidence-agent-hardening bug, the hardening decision, and the phase-3 file-first-deliverable todo."
+  },
+  "override_syntax": "scale: searches=40,questions=7,verify_fanout=12,downloads=200,file_split_kb=200",
+  "report_footer_rule": "Record the active scale (and any per-knob override) in the Phase-5 report footer next to mode/flags."
+}

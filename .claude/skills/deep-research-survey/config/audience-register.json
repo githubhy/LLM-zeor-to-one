@@ -1,0 +1,62 @@
+{
+  "id": "DRS-AUDIENCE-REGISTER-v1.0",
+  "purpose": "Configurable EXPOSITION register for the deep-research-survey skill. The `audience` axis (SKILL.md, Modes and flags) selects a register; `audience: <value>` overrides per run. EDIT THE PER-KNOB VALUES HERE to retune without touching SKILL.md or the phase files. Phase-1 resolves the register; R-GOV (addenda/phase-2.md) reads it for the fundamentals floor; R-DEPTH (addenda/phase-4.md) reads it for exposition. This file is the single source of truth.",
+  "spec": "DRS audience-register axis proposal (upstream provenance) (DRS-AUDIENCE-v1.0)",
+  "default_audience": "practitioner",
+  "axis_note": "Register modulates EXPOSITION (how prose is written for a reader) and is orthogonal to BOTH the throughput axis (config/operational-scale.json) AND the depth-tier axis (R-GOV headline/load-bearing/catalog). Register decides HOW a concept is written; R-GOV decides WHICH concepts get deep treatment; scale decides evidence throughput. A headline concept can be written learner- or expert-style — so register is independent of depth tier.",
+  "default_note": "`practitioner` reproduces the skill's current Staff-level register exactly — shipping default-on for it is a no-op. Pass `audience: learner` or `audience: expert` only when the reader differs.",
+  "knobs": {
+    "prerequisite_floor": {
+      "learner": "derive/define prerequisites from first principles before using them (e.g., what a softmax or a KL divergence is)",
+      "practitioner": "assume working domain ML / deep-learning math; cite or forward-reference prerequisites",
+      "expert": "assume fluency; relegate prerequisites to the notation contract / glossary",
+      "note": "what the reader is assumed to already know."
+    },
+    "routine_algebra": {
+      "learner": "show every algebra step with a one-line justification",
+      "practitioner": "show the key steps; name (not expand) standard manipulations",
+      "expert": "compress routine manipulation ('standard manipulation gives ...'); keep only the load-bearing moves",
+      "note": "GOVERNED BY THE INVARIANT: compression touches ROUTINE algebra only, never a load-bearing logical step (see register_invariants)."
+    },
+    "intuition_density": {
+      "learner": "intuition + analogy before AND after each non-obvious result",
+      "practitioner": "one intuition box per load-bearing result",
+      "expert": "one tight intuition line per result",
+      "note": "the intuition itself is the same; only how much surrounds the math changes."
+    },
+    "worked_example_role": {
+      "learner": "the worked example LEADS — motivate the formula with a concrete instance first",
+      "practitioner": "the worked example FOLLOWS the derivation as a self-checking oracle",
+      "expert": "the worked example is a terse numeric sanity check / oracle",
+      "note": "the example's numbers are IDENTICAL across registers (register_invariants); only its placement/framing changes."
+    },
+    "term_definitions": {
+      "learner": "define every non-trivial term on first use, inline",
+      "practitioner": "define non-standard terms; standard terms assumed",
+      "expert": "notation-contract / glossary only; no inline definitions",
+      "note": "definition placement, not definition content."
+    },
+    "fundamentals_depth": {
+      "learner": "treat fundamentals / prerequisite concepts at FULL pedagogical depth (pin to `headline` tier)",
+      "practitioner": "tier the fundamentals on merit, per R-GOV as usual",
+      "expert": "fundamentals at catalog/recap depth — assume known; concentrate the depth budget on advanced material",
+      "note": "the R-GOV interaction: register sets the fundamentals FLOOR. It changes which tier the basics get, never the depth-coverage-fraction SCORING (R-RUBRIC stays register-blind)."
+    }
+  },
+  "register_invariants": [
+    "every boxed / load-bearing result is identical across registers (same equation, same boxed form)",
+    "every worked-example / oracle number is identical across registers (the WORKED-EXAMPLE [C3] values do not move)",
+    "every epistemic-status and prediction tag is identical across registers",
+    "the no-load-bearing-step-dropped floor holds in EVERY register: `expert` compresses ROUTINE connective algebra only, never a load-bearing logical step (math-authoring.md 'do not skip steps' applies to load-bearing steps always)",
+    "the citation-integrity gate and the mechanical gate (lint-math / validate-refs / check-citation-sources) are register-blind",
+    "R-MATHREV, R-COVER, and R-RUBRIC scoring are register-blind — coverage-fraction over load-bearing items, not prose volume"
+  ],
+  "invariant_rule": "An `audience` register is INVALID if it would change any boxed result, any worked-oracle number, any epistemic/prediction tag, or drop a load-bearing derivation step. Register changes EXPOSITION, never correctness. `expert` adds nothing false by compressing routine algebra; `learner` adds connective tissue and basics, never a new claim. A register that fails an invariant is a bug, not a style.",
+  "resolution_precedence": [
+    "1. an explicit `audience: <value>` invocation argument",
+    "2. else explicit register language in the request ('for someone learning the field' -> learner; 'expert-terse' / 'for specialists' -> expert)",
+    "3. else default to `practitioner` (current behavior); ask only if the audience would materially change the fundamentals depth and the request is silent"
+  ],
+  "override_syntax": "audience: learner   |   audience: practitioner   |   audience: expert",
+  "report_footer_rule": "Record the active audience register in the Phase-5 report footer next to mode/flags/scale."
+}

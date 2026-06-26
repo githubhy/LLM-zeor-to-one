@@ -6,8 +6,8 @@ bounds.
 
 ## Hard Limits
 
-- [ ] Each agent has **≤5 questions**
-- [ ] Each agent's estimated total searches is **≤15**
+- [ ] Each agent within the active scale's question limit (`config/operational-scale.json`: standard **≤5**, wide **≤7**)
+- [ ] Each agent's estimated searches within the active scale's limit (standard **≤15**, wide **≤40**; wide is provisional, above the empirical ~28-search death boundary)
 - [ ] Every agent brief includes a **checkpoint write instruction**
 - [ ] Every agent brief includes a **stop condition** per question
 

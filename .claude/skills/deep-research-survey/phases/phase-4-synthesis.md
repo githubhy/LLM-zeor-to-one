@@ -20,4 +20,4 @@ Complete section drafts with inline citations, clearly separated facts/inference
 
 ## Proposed-mode addendum
 
-Loaded on demand (token discipline). If `proposed` or `flags: P2-3` is active, read `addenda/phase-4.md` (P2-3 mid-generation steering checkpoint) and apply the active blocks. **P1-2 (memory-guided synthesis) was promoted to baseline — see Constraints above and decision 2026-06-03-01; its flag is now a retained no-op alias.** In `original` mode, skip — do not read it.
+Loaded on demand (token discipline). If `proposed` / `richness` or `flags: P2-3, R-DEPTH` is active, read `addenda/phase-4.md` (P2-3 mid-generation steering checkpoint; **R-DEPTH per-card depth gates** — derivation / intuition / limiting-cases+asymptotics / worked-example / complexity+finite-precision / failure-modes+robustness / prediction+epistemic tags / eq-to-code+spec / second-route cross-check / unifying-framework, tiered by R-GOV) and apply the active blocks. **P1-2 (memory-guided synthesis) was promoted to baseline — see Constraints above and decision 2026-06-03-01; its flag is now a retained no-op alias.** In `original` mode, skip — do not read it.
