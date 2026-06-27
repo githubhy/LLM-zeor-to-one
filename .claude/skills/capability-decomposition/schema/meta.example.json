@@ -1,0 +1,21 @@
+{
+  "$comment": "Per-module render meta consumed by assets/render_module.py. 'cite_sentence' carries <!-- cite:N -->[[N]](#ref-N) markers wired to the References; 'references' are full one-line bib entries each ending in a source tag (local:/spec:/web/abstract-only) per .claude/rules/citation-integrity.md. 'order' lists unit keys (filtered to those present); 'titles' maps key -> display label. Optional 'survey' adds a 'Part of the <survey>' note to the module header. This is an illustrative example — the skill decomposes ANY codebase.",
+  "title": "Text generation — decoding-layer capability tree (`acme.generate`)",
+  "slug": "generate",
+  "survey": "acme-capability-tree",
+  "coverage": "a transformer inference library's public text-generation layer (`acme.generate`)",
+  "cite_sentence": "Nucleus (top-p) sampling follows Holtzman et al. <!-- cite:1 -->[[1]](#ref-1); top-k truncation follows Fan et al. <!-- cite:2 -->[[2]](#ref-2).",
+  "order": ["sampling", "search", "logits", "cache", "stopping", "streaming"],
+  "titles": {
+    "sampling": "Sampling (temperature / top-k / top-p)",
+    "search": "Greedy & beam search",
+    "logits": "Logit processors & constraints",
+    "cache": "KV-cache management",
+    "stopping": "Stopping criteria",
+    "streaming": "Token streaming"
+  },
+  "references": [
+    "[1] Holtzman et al., \"The Curious Case of Neural Text Degeneration,\" ICLR (2020). [link] (web)",
+    "[2] Fan et al., \"Hierarchical Neural Story Generation,\" ACL (2018). [link] (web)"
+  ]
+}

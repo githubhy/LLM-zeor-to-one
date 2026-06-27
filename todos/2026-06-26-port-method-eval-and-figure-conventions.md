@@ -18,11 +18,27 @@ To avoid dangling references, both were **genericized** in the port ("a dedicate
 method-evaluation pass", "the figure operating-conditions conventions"). The
 methodology still reads correctly, but the richer upstream capability is absent.
 
+**Batch 4 update (2026-06-26).** Two more newly-ported files reference the same
+un-ported siblings and were genericized the same way:
+- `.claude/skills/sim-audit/SKILL.md` — named `method-eval` twice (Overview +
+  cross-refs) as the single-method-scoring sibling → replaced with "single-method
+  evaluation" prose.
+- `.claude/rules/sim-report-completeness.md` — cross-ref bullet to
+  `figure-operating-conditions.md` → replaced with an inline description of the
+  caption + operating-conditions disclosure conventions.
+
+So `method-eval` + `figure-operating-conditions.md` are now referenced (and
+genericized) across **three** ported components: `deep-research-survey`
+(addenda/phase-2), `sim-audit`, and `sim-report-completeness`. The recurring
+cross-reference strengthens the case for porting them.
+
 ## What is left
 
 Decide whether to port (re-adapt telecom→LLM) the `method-eval` skill and
 `figure-operating-conditions.md` from `../data-channel-receiver`, then restore the
-specific references in `addenda/phase-2.md` (lines ~16, ~64, ~82).
+specific references in `addenda/phase-2.md` (lines ~16, ~64, ~82),
+`sim-audit/SKILL.md` (Overview + Cross-references), and
+`sim-report-completeness.md` (Cross-references).
 
 ## Acceptance
 

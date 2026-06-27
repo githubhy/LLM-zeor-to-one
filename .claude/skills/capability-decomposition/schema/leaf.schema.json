@@ -1,0 +1,75 @@
+{
+  "$comment": "LEAF_SCHEMA — the structured output one decompose agent returns for one subtree. The cap_decompose workflow forces this via the schema option. A 'step' is the finest named operation that could independently be present/absent/variant — NOT an arithmetic primitive.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["unit", "summary", "classes", "moduleLevelAbsent"],
+  "properties": {
+    "unit": { "type": "string" },
+    "summary": { "type": "string", "description": "2-3 sentences: what this subtree provides" },
+    "classes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "file", "role", "procedures", "classLevelAbsent"],
+        "properties": {
+          "name": { "type": "string" },
+          "file": { "type": "string", "description": "path:lineOfClassDef" },
+          "role": { "type": "string" },
+          "procedures": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["name", "steps"],
+              "properties": {
+                "name": { "type": "string", "description": "e.g. 'parse header', 'open connection'" },
+                "steps": {
+                  "type": "array",
+                  "description": "EXHAUSTIVE ordered named operations of this procedure",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["step", "status", "detail", "evidence"],
+                    "properties": {
+                      "step": { "type": "string" },
+                      "status": { "type": "string", "enum": ["present", "partial", "absent"] },
+                      "detail": { "type": "string", "description": "variants/extent if present; what is missing if partial/absent" },
+                      "evidence": { "type": "string", "description": "path:line — required for present/partial" },
+                      "why": { "type": "string", "description": "REQUIRED for partial/absent: the IS-vs-ISN'T rationale — what IS implemented and what is NOT" }
+                    },
+                    "allOf": [
+                      { "$comment": "a partial/absent leaf MUST carry a `why` (the IS-vs-ISN'T disclosure); render_module.py also warns on legacy data that lacks it",
+                        "if": { "properties": { "status": { "enum": ["partial", "absent"] } }, "required": ["status"] },
+                        "then": { "required": ["why"] } }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "classLevelAbsent": {
+            "type": "array",
+            "description": "features/options this class does NOT support, with why + evidence",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["what", "why"],
+              "properties": { "what": { "type": "string" }, "why": { "type": "string" }, "evidence": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "moduleLevelAbsent": {
+      "type": "array",
+      "description": "whole-subtree gaps: algorithm families/variants/standards not implemented anywhere here",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["what", "why"],
+        "properties": { "what": { "type": "string" }, "why": { "type": "string" }, "evidence": { "type": "string" } }
+      }
+    }
+  }
+}
