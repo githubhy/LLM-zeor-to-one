@@ -6,6 +6,29 @@ These rules apply to all work in this repository.
 
 Act as a Staff LLM/AI Research Engineer. Maintain that level of technical rigor in analysis, design, and implementation.
 
+## Agent Fan-Out — Model Selection
+
+When you fan out subagents (via the `Agent` tool's `model` option, a `Workflow` `agent()` call's `opts.model`, or any parallel dispatch), **make a deliberate per-fan-out decision: drop the workers to Sonnet, or keep them on Opus.** Do not blindly inherit Opus for every worker just because the main loop runs on it — that is the expensive default, and most fan-outs do not need it.
+
+- **Sonnet** — mechanical, well-scoped, high-volume breadth where the rubric is explicit and verification is cheap: bulk search / extraction, formatting and renumber passes, applying a known transform across many files, evidence-gathering against a fixed schema. Cheaper and faster; lean here when the win is parallel breadth, not reasoning depth.
+- **Opus** — work that needs reasoning depth, judgment, or correctness under ambiguity: math derivations, adversarial verification, design / judge / synthesis stages, anything where a wrong-but-plausible result would survive a casual read (the exact failure mode the `citation-integrity` and `sim-audit` rules guard against).
+
+State the choice when you dispatch (e.g. "fanning out 6 Sonnet extractors", "keeping the verify stage on Opus"). When unsure, split it: Sonnet for the breadth, Opus for the stages that gate correctness.
+
+## Agent Fan-Out — Sizing and Failure Diagnosis
+
+When a fan-out agent (a `Workflow` `agent()` call or an `Agent` dispatch) returns empty or "dies" silently, the binding limit is almost always the **per-agent iteration / tool-call cap (~36–40 tool calls)** — **not** context-window exhaustion and **not** model tier. "Context window" and "wrong model tier" are the seductive default hypotheses; resist them. **Diagnose by reading the dead agent's transcript and counting its tool calls + token use**, never by pattern-matching to a plausible cause.
+
+Measured precedent (a deep-research-survey evidence round): the dead agent had used only ~58K of its 200K-token context (not context-bound) while its Sonnet siblings returned gold-grade evidence (not tier-bound). The loss was step budget spent on ~18 `Glob` calls + a `WebFetch` firehose *before* the write step, so the agent was cut off (`stop_reason=tool_use`, empty text) with nothing written.
+
+Mitigations — size and shape research agents so a step-cap death is survivable:
+
+- **Size small.** ~3–4 questions per research agent, with tool-call headroom under the cap. Fewer-Q/agent is conservative step-budget headroom, not a depth or breadth cut (it *raises* per-question budget; coverage gates own completeness).
+- **No exploration spend.** Give exact paths (no `Glob` discovery) and forbid the `WebFetch` firehose in favor of `WebSearch` snippets + local-source grep.
+- **File-first deliverable.** Make an incrementally-written `_scratch/<id>.md` file the deliverable, so a step-cap death still leaves evidence on disk. Never rely on a terminal structured-output call as the only output — its throw silently nulls inside `parallel()`, jumping a null-only retry.
+
+This is encoded as the `deep-research-survey` `DRS-HARDEN` default; the diagnosis discipline above applies to any agent fan-out, not just that skill.
+
 ## Survey Workflow
 
 This repo's primary purpose is producing rigorous, fully-cited deep-research surveys of LLM/AI topics. The end-to-end flow is owned by the `deep-research-survey` skill (see Skills below); read it before starting or substantially expanding a survey.
@@ -41,13 +64,13 @@ Each conversation entry should capture (compact format):
 
 ## Todo Capture
 
-When an item is deferred, marked out of current scope, interrupted mid-task, or otherwise not completed in the current session, persist it under `./todos/` (created on demand) so any future session can pick it up.
+**Every deferred, downstream, or out-of-scope item gets a `todos/` entry — no exceptions.** When an item is deferred, marked out of current scope, identified as downstream / follow-on work (a handoff, a `reference-implementation-study` target, a survey open problem or roadmap gap, a "recommended next step"), interrupted mid-task, or otherwise not completed in the current session, persist it under `./todos/` (created on demand) so any future session can pick it up. A handoff or "next step" named only in a report, survey, plan, or chat — but not filed under `todos/` — does **not** count as tracked; if you mention follow-on work, you file the todo in the same turn.
 
 - **One file per todo.** File name pattern: `todos/YYYY-MM-DD-<short-slug>.md`. The date is when the todo was filed, not when it is expected to complete.
 - **Master index.** Maintain `todos/INDEX.md` as the append-only index. One row per todo file: `date | slug | title | status (open / in-progress / closed) | one-line hook`. No frontmatter.
 - **Body of each todo file.** Self-contained: *Context* (why this is deferred, what was done around it), *What is left* (concrete actions), *Acceptance* (how to know it's done), *Refs* (plan section, commit SHA, report path).
 - **Status transitions.** When a todo is picked up, edit its file to `status: in-progress` and update `INDEX.md`. When resolved, set `status: closed`, append a `**Resolution.**` line, and update `INDEX.md`. Closed todos stay on disk (audit trail), they are not deleted.
-- **When to file.** User says "defer" / "later" / "skip" / "not now" / "out of scope"; a review surfaces items the user explicitly does not land; work is interrupted mid-task; a plan amendment defers work to a follow-on plan.
+- **When to file.** User says "defer" / "later" / "skip" / "not now" / "out of scope"; a review surfaces items the user explicitly does not land; work is interrupted mid-task; a plan amendment defers work to a follow-on plan; **a deliverable names any downstream / follow-on item — a `reference-implementation-study` target, a survey open problem or roadmap gap, a "recommended next step", a future-study handoff, an open question left for later — file it even if no one said "defer".**
 - **When NOT to file.** Items resolved in the current turn (those go in the commit message / report / `prompts/` log per Conversation Logging); items that will complete before the final response lands.
 
 ## Decision Capture
@@ -90,18 +113,20 @@ Issues found *and resolved within the same session* — that didn't warrant a `t
 
 ## Validation Hooks
 
-Validation is wired through `.claude/settings.json` (and `.claude/settings.local.json`); hook scripts live under `$CLAUDE_PROJECT_DIR/.claude/hooks/`. Nothing to install. No git hooks are installed — this repo is not git-initialized.
+Validation is wired through `.claude/settings.json` (and `.claude/settings.local.json`); hook scripts live under `$CLAUDE_PROJECT_DIR/.claude/hooks/`. The `PostToolUse` / `Stop` Claude hooks need nothing installed. A git **pre-push** gate is also active, wired via `git config core.hooksPath .githooks` (the tracked hook is `.githooks/pre-push`).
 
 | Hook | Trigger | Runs |
 |---|---|---|
 | `.claude/hooks/post-edit-lint.sh` | Auto-wired via `.claude/settings.json` `PostToolUse`; runs on every `Edit`/`Write` of a `.md` file. | `lint-math.py` (blocking) + `validate-refs.py --bare-refs-only` (severity per `.claude/bare-refs-severity`) + `renumber-equations.py` + `link-references.py`. |
-| `.claude/hooks/validate-refs-on-dirty.sh` | Auto-wired via `.claude/settings.json` `Stop`. | Re-validates references across any dirty survey files at the end of a turn. |
+| `.claude/hooks/validate-refs-on-dirty.sh` | Auto-wired via `.claude/settings.json` `Stop`. | Re-validates references across any dirty survey files at the end of a turn, plus an **advisory** `crosslink.py check --changed` gap detector (Tier-1 detection only — never blocks). |
 
 Other wired hooks, for reference: `statusLine` → `.claude/hooks/status-line.sh` (`.claude/settings.json`); `UserPromptSubmit` → `.claude/hooks/cache-warmer-extend.sh` (the prompt-cache keep-warm loop, `.claude/settings.local.json`; see the `/keep-cache-warm` command).
 
 **Bare-refs severity toggle.** `.claude/bare-refs-severity` controls whether the `PostToolUse` hook treats bare-ref findings as blocking errors or non-blocking warnings. Values: `warn` or `error`. The current value is `error` (after cleanup), so bare-ref findings are blocking.
 
-**Pre-push gate (optional / not yet installed).** There is no git pre-push hook in this repo, and no installer is provided. The equivalent survey-wide validation — `validate-refs.py`, the `--check` modes of the renumber scripts, and bare-refs at `error` severity — is what `/check-survey <survey-slug>` runs on demand; run it before any delivery or sign-off. If git is initialized later, a pre-push hook running the same checks can be added, but treat `/check-survey` as the authoritative gate today.
+**Cross-link gate toggle + scope.** `.claude/crosslink-severity` (`off | warn | error`, default `warn`; currently `warn`) controls the `crosslink.py check` gap detector: `off` silences it; `warn` lists gaps advisory; `error` lets the pre-push gate block on an obvious missing link. `.claude/crosslink-scope` lists the paths forming the cross-link corpus group — currently `surveys/llms-for-coding` (cross-linking is opt-in per corpus; add a survey's dir to extend coverage). Detection is deterministic and lives in the gates; **insertion needs judgment and is on-demand** via `/cross-link`. Full rule: `.claude/rules/cross-linking.md`.
+
+**Pre-push gate (active).** `.githooks/pre-push`, activated via `git config core.hooksPath .githooks`, runs the full survey-wide validation on every `git push`: `validate-refs.py`, the `--check` modes of the renumber scripts (equations / paragraphs / sections), bare-refs at `--severity=error`, and `crosslink.py check` (advisory at `warn`, blocks only at `error`). `/check-survey <survey-slug>` runs the same survey-wide checks on demand — run it before any delivery or sign-off. Bypass the push gate for an explicit reason with `git push --no-verify`.
 
 ## Rules Loaded on Demand
 
@@ -109,6 +134,9 @@ The following files hold detailed rules that are **not** eagerly inlined. Read t
 
 - `.claude/rules/math-authoring.md` — Inline/display math delimiter rules, equation numbering with stable-ID markers, reference cross-linking, paragraph anchors. This file is the source of record for the math-formatting conventions the `lint-math.py` linter enforces. **Read before:** editing any `surveys/**/*.md` or any other markdown file that contains display-math blocks, inline math, numbered equations, numbered references, or paragraph anchors; authoring a new section body or template that will hold math; or dispatching a subagent to write math-bearing content. The `PostToolUse` `lint-math.py` hook enforces these rules (no multi-line inline math; no display-math line starting with `> * + - # _` or a backtick at column 1; `ref`/`cite`/`xref`/`secref`/`secxref` comment markers not at column 1; no bare pipe in inline math inside table rows; an inline-math `$` delimiter must not abut a decimal digit; tight ordered-list / prose display-math spacing) and will block edits that violate them.
 - `.claude/rules/citation-integrity.md` — Citation integrity rule: never write an external citation from memory; every cited claim and value must be traceable to a source acquired in `download/`, and the reference list must satisfy the `references.md` ↔ `download/` invariant. **Read before:** writing or expanding any document that carries external citations (surveys, appendices, reports, proposals); adding or editing entries in a `references.md`; resolving or reconciling citations during a `citation-audit`; and before dispatching a subagent to author or expand any externally-cited content.
+- `.claude/rules/cross-linking.md` — Cross-linking rule: detection is deterministic and runs in the lint / Stop / pre-push gates (`crosslink.py check`, advisory, severity-toggleable); insertion needs judgment and is on-demand and batched (`/cross-link`) — never an agent in a per-edit hook. Defines the directional syntax convention (survey-section target → `secxref` + `§`; out-of-manifest doc → plain link) and the mandatory cross-link sign-off step for authoring tasks. **Read before:** authoring or substantially expanding any survey document or section, signing off such a task, or changing the cross-link tooling / gates.
+- `.claude/rules/sim-report-completeness.md` — Completeness rule for reproduction / evaluation-study reports: the section spine and the load-bearing `[M]` artifacts (executive summary, protocol-vs-eval conformance matrix, theory-as-predictor overlays, CI on every result, quantization section, reproduce block, audit trail). Mechanically gated by `viewer/tools/check-report-completeness.py` (the `REPORT` gate). **Read before:** writing or signing off any reproduction / benchmark-evaluation report under `docs/` or `reports/` (e.g. a `reference-implementation-study` Phase-6 deliverable).
+- `.claude/rules/deferred-tracking.md` — Deferred-item tracking: when a task defers a batch of actionable items, open a `todos/YYYY-MM-DD-<slug>.md` tracking file (indexed in `todos/INDEX.md`) before sign-off — the durable, cross-session record of "what did we say we'd come back to?". Generalises the `todos/` convention from `## Todo Capture` to every deferring task and defines the file format. **Read before:** signing off any task — plan, report, review, audit, survey, or implementation — that defers work.
 
 ## Skills
 
@@ -122,6 +150,11 @@ Prefer repo-local skills under `.claude/skills/` when they exist.
 - `source-fetch`: Acquire full-text papers and books as PDFs from open-access sources — Semantic Scholar, OpenAlex, arXiv, Crossref, and (optional) Unpaywall — via the keyless `oa_fetch.py` resolver, with keyless LibGen+ and an optional Anna's Archive as shadow-library fallbacks. Use when deep-research-survey Phase 3 needs full-text acquisition, or standalone when the user asks to download a specific paper or book. File: `.claude/skills/source-fetch/SKILL.md`
 - `citation-audit`: Verify every external citation in a document against its actual source, then trace whether wrong citations affect the derivations. Use after a survey, appendix, report, or proposal with external citations is drafted or substantially expanded — especially subagent-authored or memory-sourced content — and before any delivery or sign-off gate. File: `.claude/skills/citation-audit/SKILL.md`
 - `survey-explainer-fold`: Fold a just-answered conceptual "why/how is X like this?" or "how large is X in real models?" Q&A into a survey as two linked artifacts — a compact inline `> **Note —**` blockquote at the host equation/paragraph, plus a dedicated anchored subsection (appended at the end of its block, cascade-free) holding the full answer in answer-format — then run the mandatory renumber/validate sweep. Use when the user says "fold this in" / "put this in the survey" while reading a survey or appendix. Adapted from the `data-channel-receiver` original. File: `.claude/skills/survey-explainer-fold/SKILL.md`
+- `cross-link`: Add high-value cross-links across the survey corpus cheaply — a deterministic TF-IDF pre-filter proposes candidates, a small batched agent judges only keep/where, and a deterministic idempotent applier inserts them with the correct directional syntax. Use to clear the gaps the crosslink gate (`crosslink.py check`) reports, or as the sign-off step after authoring / expanding a survey. Tier-2 of `.claude/rules/cross-linking.md`; replaces the all-agent sweep at far lower cost. File: `.claude/skills/cross-link/SKILL.md`
+- `capability-decomposition`: Exhaustively map what a codebase implements vs does NOT — drilled module → class → procedure → STEP, every leaf tagged ✅ in / ⚠️ partial / ❌ out with `path:line` evidence and adversarially verified against source, rendered as a conformant multi-file survey under `surveys/`. Use when you need a source-grounded, step-granular "what's in / out of the box, and why" map of a library or subsystem. NOT for a high-level narrative or literature/SOTA landscape (use `deep-research-survey`), evaluating a single candidate method, or auditing an experiment/eval. Token-heavy (~2 agents × every subtree); invoke explicitly. File: `.claude/skills/capability-decomposition/SKILL.md`
+- `reference-implementation-study`: Drive a topic from survey findings through reference implementation, comparative evaluation, sensitivity analysis, reduced-precision / quantized realization, and a final engineering recommendation. Use after a `deep-research-survey` has produced a completed survey with method inventory, math derivations, and SOTA assessment. Applicable to any LLM / AI method, ML-systems, or algorithm-engineering domain. File: `.claude/skills/reference-implementation-study/SKILL.md`
+- `sim-audit`: Verify an experiment's correctness through an untrusting, multi-lens audit — independent re-derivation, property/invariant tests, statistical validity (seeds / CIs / contamination), published-baseline anchors, edge-case robustness, and determinism / software-quality. Use after a `reference-implementation-study` reproduction/eval experiment is drafted or substantially changed (especially after a shared-API rewrite or subagent-authored kernels), and before any Phase-6 / sign-off gate. Runs standalone on any experiment. File: `.claude/skills/sim-audit/SKILL.md`
+- `ui-review-loop`: Full-coverage screenshot review of the running markdown viewer (`viewer/`): capture each representative doc across the viewer STATE MATRIX (chrome × theme × density × width) with Playwright, fan out a multi-agent vision review, VERIFY each finding against code/DOM (high false-alarm rate — do not trust raw agent output), then loop fix → recapture → re-review until it converges. Plus a Layer-2 assertion-backed interaction driver for the viewer surfaces (immersive toggle, command palette, settings sheet, right-pane segments, in-situ peeks, split view, margin sidenotes, drawer, mobile bar, highlight gesture). Use during a viewer UI redesign / large front-end change; token-heavy, invoke explicitly. File: `.claude/skills/ui-review-loop/SKILL.md`
 
 ### Commands
 
@@ -129,6 +162,7 @@ Prefer repo-local skills under `.claude/skills/` when they exist.
 - `/keep-cache-warm` — Keep the Anthropic prompt cache warm via self-paced `/loop` wake-ups. Defined in `.claude/commands/keep-cache-warm.md`.
 - `/enrich-equation <file> (<equation-number>)` — Expand one numbered equation into a multi-line, first-principles derivation with no intermediate step missing (same `\tag`, no cascade), then run the validation sweep. Defined in `.claude/commands/enrich-equation.md`.
 - `/sync-upstream [--dry-run | <range>]` — Sync harness-config deltas from the upstream template repo (`../data-channel-receiver`) since the high-water mark in `.claude/upstream-sync.json`, re-adapting each change telecom/3GPP → LLM/AI surveys (never research content), then advance the mark. Defined in `.claude/commands/sync-upstream.md`.
+- `/study-signoff <study> [<topic>] [--gates …] [--report <path>]` — Run the full `reference-implementation-study` sign-off gate sequence (G1–G4 + REPORT + CITE) for a method-reproduction / evaluation study. Defined in `.claude/commands/study-signoff.md`.
 
 ### Skill Usage Rules
 

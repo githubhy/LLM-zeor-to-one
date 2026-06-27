@@ -1,0 +1,53 @@
+#!/bin/bash
+# Pre-push hook: full survey-wide validation gate.
+# Activated via: git config core.hooksPath .githooks
+# To bypass for an explicit reason, use `git push --no-verify`.
+
+set -uo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+echo "[pre-push] Running survey-wide validation..."
+
+fail=0
+
+# This repo holds multiple surveys, each in its own surveys/<slug>/ dir with an
+# order.json. The validators resolve a survey from its directory (not from the
+# surveys/ parent), so iterate over every dir that has an order.json — the same
+# per-survey target /check-survey uses.
+SURVEY_DIRS=$(find surveys -maxdepth 2 -name order.json -exec dirname {} \; | sort -u)
+if [ -z "$SURVEY_DIRS" ]; then
+    echo "[pre-push] No survey dirs (surveys/*/order.json) found — nothing to validate."
+else
+    for d in $SURVEY_DIRS; do
+        echo "[pre-push]   validating $d"
+        python3 viewer/tools/validate-refs.py "$d" || fail=1
+        python3 viewer/tools/renumber-equations.py --check "$d" || fail=1
+        python3 viewer/tools/renumber-paragraphs.py --check "$d" || fail=1
+        python3 viewer/tools/renumber-sections.py --check "$d" || fail=1
+        # Bare-ref severity for push-gate: always error (the per-edit hook may be
+        # in warn mode during migration, but push to remote is the strict gate).
+        python3 viewer/tools/validate-refs.py --bare-refs-only --severity=error "$d" || fail=1
+    done
+fi
+
+# Cross-link gap check (corpus-level). Advisory at 'warn' (lists gaps, never
+# blocks); blocks only at 'error' severity when a gap is at/above the
+# block-score. Severity from .claude/crosslink-severity, corpus from
+# .claude/crosslink-scope.
+XSEV=$(cat .claude/crosslink-severity 2>/dev/null || echo warn)
+if [ "$XSEV" != "off" ] && [ -f .claude/crosslink-scope ]; then
+    XSCOPE=$(grep -vE '^[[:space:]]*#|^[[:space:]]*$' .claude/crosslink-scope | tr '\n' ' ')
+    python3 viewer/tools/crosslink.py check $XSCOPE --severity="$XSEV" \
+        --min-score 0.18 || fail=1
+fi
+
+if [ $fail -ne 0 ]; then
+    echo "[pre-push] BLOCKED - fix the errors above before pushing." >&2
+    echo "[pre-push] To bypass for an explicit reason: git push --no-verify" >&2
+    exit 1
+fi
+
+echo "[pre-push] Clean. Proceeding with push."
+exit 0
