@@ -21,6 +21,10 @@ viewer/test-results/
 viewer/playwright-report/
 viewer/dist/
 
+# Viewer-generated local reader state (per-user highlight annotations,
+# keyed to a document revision — machine-local, not shared)
+.viewer-highlights/
+
 # OS / editor
 .DS_Store
 *.swp
