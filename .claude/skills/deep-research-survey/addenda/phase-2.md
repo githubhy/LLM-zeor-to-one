@@ -61,7 +61,7 @@ per-card content, nominate these default deliverables:
     tag, with a normalization note when conditions are incomparable) + a causal
     deployment-gap thesis (published-vs-deployed, and WHY) + a per-stage
     (pretraining / alignment / inference) dominant-practice map.
-  - FIGURES (per the figure operating-conditions conventions + the `workflow.md` diagram rule):
+  - FIGURES (per the `.claude/rules/figure-operating-conditions.md` rule + the `workflow.md` diagram rule):
     each architecture/method-family carries at least one conceptual block diagram (ASCII
     fenced-code as the zero-dependency default) and each load-bearing quantitative claim
     carries a reproducible figure with persisted data + generator + a numeric-disclosure
@@ -79,5 +79,5 @@ per-card content, nominate these default deliverables:
     X built this way / what breaks if not / why this and not the obvious alternative"
     questions (wires `survey-explainer-fold` in proactively, not as a later patch).
   - METHOD-SEARCH REGISTER (optional): route any load-bearing-but-unsettled viability
-    question ("is a faster/cheaper realization possible?") through a dedicated
-    method-evaluation pass and archive scored dossiers under `surveys/<survey>/method-search/`.
+    question ("is a faster/cheaper realization possible?") through the `method-eval`
+    skill and archive scored dossiers under `surveys/<survey>/method-search/`.

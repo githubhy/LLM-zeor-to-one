@@ -12,7 +12,7 @@ harness and metric kernels compute the quantities they claim, that the
 chosen metric is the right one for the task, and that no headline number is
 a confidently-wrong artifact. This is the experiment-correctness analogue of
 `citation-audit` (which audits external citations) and a companion to
-single-method evaluation (which scores one candidate method): `sim-audit`
+the `method-eval` skill (which scores one candidate method): `sim-audit`
 audits the whole running evaluation harness.
 
 The discipline is **untrusting**. The highest-leverage lenses do *not*

@@ -1,7 +1,15 @@
 {
   "upstream_path": "../data-channel-receiver",
   "upstream_url": "git@github-fen:FenLinger/data-channel-receiver.git",
-  "last_synced_commit": "5d485d7f9222c38a03dea146561f5dee7a6252db",
-  "last_synced_date": "2026-06-27",
-  "note": "High-water mark for /sync-upstream. This repo's .claude harness was bootstrapped on 2026-06-13 from the upstream template repo (telecom/3GPP) and retargeted to LLM/AI surveys. On 2026-06-27 the full config backlog (7c3a3bf..5d485d7, 314 commits) was synced and re-adapted in 5 reviewable batches; this SHA is the upstream HEAD synced through 2026-06-27. The next /sync-upstream diffs <last_synced_commit>..HEAD for config paths only, re-adapts each delta to the LLM/AI domain, then advances this marker. See the claude-infra-ported-from-data-channel-receiver memory."
+  "last_synced_commit": "9b118d3940d54307a76ebee350c10b2fe4cf22bf",
+  "last_synced_date": "2026-06-28",
+  "pending_sync_back": {
+    "branch": "sync-from-llm-zero-to-one",
+    "decision": "decisions/2026-06-28-02-sync-back-to-upstream.md",
+    "pushed": true,
+    "pr": "https://github.com/FenLinger/data-channel-receiver/pull/15",
+    "merged_to_upstream_main": false,
+    "round_trip_guard": "OUTBOUND sync-back (here -> upstream) of ONE generic improvement: the /enrich-equation command (single-equation, no-cascade derivation expander), genericized. When PR #15 merges to upstream main, last_synced_commit will already be at/after it OR advance the mark to the post-merge HEAD so the next INBOUND does not re-detect the round-tripped commit. Backstop: step-1 inbound filter skips commit subjects containing 'from llm-zero-to-one'."
+  },
+  "note": "High-water mark for /sync-upstream INBOUND (upstream -> here) = origin/main HEAD 9b118d3 (PRs #13 sionna + #14 pitch-perfector both merged to main). Bootstrapped 2026-06-13 from the upstream template repo (telecom/3GPP), retargeted to LLM/AI surveys. 2026-06-27: full backlog (7c3a3bf..5d485d7, 314 commits) synced in 5 batches. 2026-06-28: (a) the entire main config-path delta 5d485d7..9b118d3 is exactly the post-edit-lint.sh / validate-refs-on-dirty.sh generic robustness change (cross-platform Python resolver, per-tool optionality guards, corpus-scoped bare-ref blocking, crosslink.py presence guard; originated in sibling pitch-perfector, merged via PR #14) — applied as an equivalent merge into this repo's fuller toolchain; the sionna PR #13 changes were viewer/ (non-config, out of /sync-upstream scope). (b) a one-time catch-up import from sibling ../pitch-perfector brought this repo to harness parity: two-directional /sync-upstream (--back), commands bg/refine-plan/review-plan/add-reference/enrich/add-dataset, skills method-eval/skill-improvement, rule figure-operating-conditions, hook log-turn-telemetry, scripts notify.sh/compose-notify-msg.py + install-git-hooks. /sync-upstream is now two-directional; its inbound skip-guard keys on 'from llm-zero-to-one' (this repo's own outbound tag), so a sibling's 'from pitch-perfector' sync-back is still imported. The next INBOUND diffs <last_synced_commit>..HEAD for config paths only. OUTBOUND is /sync-upstream --back (PR #15, pending). Viewer (non-config) gaps vs main (figure-pipeline.js, sionna viewer test gates) tracked in todos/2026-06-28-import-viewer-figure-pipeline-from-upstream.md. See decisions/2026-06-28-01/02 and the claude-infra-ported-from-data-channel-receiver memory."
 }

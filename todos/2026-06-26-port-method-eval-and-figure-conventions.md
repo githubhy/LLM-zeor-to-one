@@ -1,6 +1,16 @@
 # Consider porting upstream `method-eval` skill + `figure-operating-conditions.md`
 
-status: open
+status: closed
+
+**Resolution (2026-06-28).** Both components ported during the pitch-perfector
+catch-up sync (re-adapted MIR→LLM): `.claude/skills/method-eval/SKILL.md` (framed
+as a fast viability gate upstream of `reference-implementation-study`) and
+`.claude/rules/figure-operating-conditions.md` (LLM figure operating-conditions
+disclosure). The genericized references were restored by name in all three
+consumers: `deep-research-survey/addenda/phase-2.md` (FIGURES + METHOD-SEARCH
+REGISTER), `sim-audit/SKILL.md` (Overview), `sim-report-completeness.md`
+(Cross-references). Both are catalogued in `CLAUDE.md`. See
+`decisions/2026-06-28-01-catch-up-import-from-pitch-perfector.md`.
 
 ## Context
 

@@ -1,0 +1,15 @@
+{
+  "id": "<TARGET>-ITEMS-v1.0",
+  "skill": "<target-skill-name>",
+  "purpose": "Per-item flag registry. Each item is an independently-toggleable flag (SKILL.md `flags: <ids>`), lazy-loaded from addenda/. test_type tells the harness HOW to verify each item.",
+  "test_types": {
+    "output_ablation": "baseline vs +flag on a controlled task with a known answer; judge the artifact. Runnable in parallel.",
+    "structural_check": "deterministic check on artifacts / the validator (flag-gated): mechanism present + well-formed; gate DISCRIMINATES proposed vs baseline.",
+    "needs_human": "requires a human in the loop; not auto-testable."
+  },
+  "items": [
+    {"id": "P0-1", "flag": "P0-1", "phase": "<n>", "test_type": "output_ablation|structural_check|needs_human",
+     "claim": "<one-line claim>",
+     "test": "<exactly how Phase 5 verifies this item, incl. the known-answer task or the validator flag>"}
+  ]
+}

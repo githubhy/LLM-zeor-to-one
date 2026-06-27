@@ -90,8 +90,9 @@ standalone, parallel to `check-citation-sources.py`):
   (authored on demand).
 - `.claude/skills/sim-audit/SKILL.md` — produces the Verification-suite,
   conformance-matrix, and uncertainty artifacts this rule mandates.
-- the figure caption + numeric operating-conditions disclosure conventions
-  (model, decoding params, few-shot $k$, seeds/CIs) this rule builds on.
+- `.claude/rules/figure-operating-conditions.md` — the figure caption +
+  numeric operating-conditions disclosure conventions (model, decoding
+  params, few-shot $k$, seeds/CIs) this rule builds on.
 - `.claude/rules/citation-integrity.md` — external-value provenance the
   Section-2 anchors and Section-13 statement must satisfy.
 - Worked instance: a reproduction/eval study's Phase-6 report.
