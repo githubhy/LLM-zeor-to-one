@@ -140,3 +140,12 @@ paragraph anchor sits on the line **above** each `[N]` so `check-citation-source
 
 <a id="ref-44"></a><!-- bib:44 -->
 [44] J. Ho, A. Jain, P. Abbeel, "Denoising Diffusion Probabilistic Models," NeurIPS 2020. arXiv:2006.11239. (local: download/ho-ddpm-2020.pdf)
+
+<a id="ref-45"></a><!-- bib:45 -->
+[45] L. Chen, H. Zhao, T. Liu, et al., "An Image is Worth 1/2 Tokens After Layer 2: Plug-and-Play Acceleration for VLLM Inference" (FastV), ECCV 2024. arXiv:2403.06764. (local: download/chen-fastv-2024.pdf)
+
+<a id="ref-46"></a><!-- bib:46 -->
+[46] D. Bolya, C.-Y. Fu, X. Dai, et al., "Token Merging: Your ViT But Faster" (ToMe), ICLR 2023. arXiv:2210.09461. (local: download/bolya-tome-2023.pdf)
+
+<a id="ref-47"></a><!-- bib:47 -->
+[47] Y. Shang, M. Cai, B. Xu, et al., "LLaVA-PruMerge: Adaptive Token Reduction for Efficient Large Multimodal Models," 2024. arXiv:2403.15388. (local: download/shang-prumerge-2024.pdf)
