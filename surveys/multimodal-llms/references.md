@@ -53,3 +53,72 @@ paragraph anchor sits on the line **above** each `[N]` so `check-citation-source
 
 <a id="ref-15"></a><!-- bib:15 -->
 [15] X. Zhai, B. Mustafa, A. Kolesnikov, L. Beyer, "Sigmoid Loss for Language Image Pre-Training," ICCV 2023. arXiv:2303.15343. (local: download/zhai-siglip-2023.pdf)
+
+<a id="ref-16"></a><!-- bib:16 -->
+[16] A. van den Oord, O. Vinyals, K. Kavukcuoglu, "Neural Discrete Representation Learning," NeurIPS 2017. arXiv:1711.00937. (local: download/vandenoord-vqvae-2017.pdf)
+
+<a id="ref-17"></a><!-- bib:17 -->
+[17] P. Esser, R. Rombach, B. Ommer, "Taming Transformers for High-Resolution Image Synthesis," CVPR 2021. arXiv:2012.09841. (local: download/esser-vqgan-2021.pdf)
+
+<a id="ref-18"></a><!-- bib:18 -->
+[18] C. Wu, X. Chen, Z. Wu, et al., "Janus: Decoupling Visual Encoding for Unified Multimodal Understanding and Generation," 2024. arXiv:2410.13848. (local: download/wu-janus-2024.pdf)
+
+<a id="ref-19"></a><!-- bib:19 -->
+[19] A. Radford, J. W. Kim, T. Xu, et al., "Robust Speech Recognition via Large-Scale Weak Supervision," ICML 2023. arXiv:2212.04356. (local: download/radford-whisper-2022.pdf)
+
+<a id="ref-20"></a><!-- bib:20 -->
+[20] Y. Chu, J. Xu, X. Zhou, et al., "Qwen-Audio: Advancing Universal Audio Understanding via Unified Large-Scale Audio-Language Models," 2023. arXiv:2311.07919. (local: download/chu-qwen-audio-2023.pdf)
+
+<a id="ref-21"></a><!-- bib:21 -->
+[21] C. Tang, W. Yu, G. Sun, et al., "SALMONN: Towards Generic Hearing Abilities for Large Language Models," ICLR 2024. arXiv:2310.13289. (local: download/tang-salmonn-2024.pdf)
+
+<a id="ref-22"></a><!-- bib:22 -->
+[22] P. K. Rubenstein, C. Asawaroengchai, D. D. Nguyen, et al., "AudioPaLM: A Large Language Model That Can Speak and Listen," 2023. arXiv:2306.12925. (local: download/rubenstein-audiopalm-2023.pdf)
+
+<a id="ref-23"></a><!-- bib:23 -->
+[23] B. Lin, Y. Ye, B. Zhu, et al., "Video-LLaVA: Learning United Visual Representation by Alignment Before Projection," EMNLP 2024. arXiv:2311.10122. (local: download/lin-video-llava-2023.pdf)
+
+<a id="ref-24"></a><!-- bib:24 -->
+[24] Z. Chen, J. Wu, W. Wang, et al., "InternVL: Scaling up Vision Foundation Models and Aligning for Generic Visual-Linguistic Tasks," CVPR 2024. arXiv:2312.14238. (local: download/chen-internvl-2023.pdf)
+
+<a id="ref-25"></a><!-- bib:25 -->
+[25] J. Bai, S. Bai, S. Yang, et al., "Qwen-VL: A Versatile Vision-Language Model for Understanding, Localization, Text Reading, and Beyond," 2023. arXiv:2308.12966. (local: download/bai-qwen-vl-2023.pdf)
+
+<a id="ref-26"></a><!-- bib:26 -->
+[26] S. Bai, K. Chen, X. Liu, et al., "Qwen2.5-VL Technical Report," 2025. arXiv:2502.13923. (local: download/bai-qwen2.5-vl-2025.pdf)
+
+<a id="ref-27"></a><!-- bib:27 -->
+[27] H. Laurençon, L. Tronchon, M. Cord, V. Sanh, "What matters when building vision-language models?" (Idefics2), NeurIPS 2024. arXiv:2405.02246. (local: download/laurencon-idefics2-2024.pdf)
+
+<a id="ref-28"></a><!-- bib:28 -->
+[28] L. Beyer, A. Steiner, A. S. Pinto, et al., "PaliGemma: A versatile 3B VLM for transfer," 2024. arXiv:2407.07726. (local: download/beyer-paligemma-2024.pdf)
+
+<a id="ref-29"></a><!-- bib:29 -->
+[29] M. Deitke, C. Clark, S. Lee, et al., "Molmo and PixMo: Open Weights and Open Data for State-of-the-Art Multimodal Models," 2024. arXiv:2409.17146. (local: download/deitke-molmo-2024.pdf)
+
+<a id="ref-30"></a><!-- bib:30 -->
+[30] P. Agrawal, S. Antoniak, E. B. Hanna, et al., "Pixtral 12B," 2024. arXiv:2410.07073. (local: download/agrawal-pixtral-2024.pdf)
+
+<a id="ref-31"></a><!-- bib:31 -->
+[31] H. Lu, W. Liu, B. Zhang, et al., "DeepSeek-VL: Towards Real-World Vision-Language Understanding," 2024. arXiv:2403.05525. (local: download/lu-deepseek-vl-2024.pdf)
+
+<a id="ref-32"></a><!-- bib:32 -->
+[32] W. Dai, N. Lee, B. Wang, et al., "NVLM: Open Frontier-Class Multimodal LLMs," 2024. arXiv:2409.11402. (local: download/dai-nvlm-2024.pdf)
+
+<a id="ref-33"></a><!-- bib:33 -->
+[33] H. Liu, C. Li, Y. Li, et al., "LLaVA-NeXT: Improved reasoning, OCR, and world knowledge," blog, 2024-01-30. https://llava-vl.github.io/blog/2024-01-30-llava-next/ (web)
+
+<a id="ref-34"></a><!-- bib:34 -->
+[34] W. Wang, Q. Lv, W. Yu, et al., "CogVLM: Visual Expert for Pretrained Language Models," 2023. arXiv:2311.03079. (abstract-only)
+
+<a id="ref-35"></a><!-- bib:35 -->
+[35] D. Zhu, J. Chen, X. Shen, X. Li, M. Elhoseiny, "MiniGPT-4: Enhancing Vision-Language Understanding with Advanced Large Language Models," 2023. arXiv:2304.10592. (abstract-only)
+
+<a id="ref-36"></a><!-- bib:36 -->
+[36] Q. Ye, H. Xu, G. Xu, et al., "mPLUG-Owl: Modularization Empowers Large Language Models with Multimodality," 2023. arXiv:2304.14178. (abstract-only)
+
+<a id="ref-37"></a><!-- bib:37 -->
+[37] H. Zhang, X. Li, L. Bing, "Video-LLaMA: An Instruction-tuned Audio-Visual Language Model for Video Understanding," EMNLP 2023 (Demo). arXiv:2306.02858. (abstract-only)
+
+<a id="ref-38"></a><!-- bib:38 -->
+[38] A. Défossez, L. Mazaré, M. Orsini, et al., "Moshi: a speech-text foundation model for real-time dialogue," Kyutai, 2024. https://kyutai.org/Moshi.pdf (web)
