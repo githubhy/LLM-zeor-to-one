@@ -137,3 +137,6 @@ paragraph anchor sits on the line **above** each `[N]` so `check-citation-source
 
 <a id="ref-43"></a><!-- bib:43 -->
 [43] F. Wang, W. Zhou, J. Y. Huang, et al., "mDPO: Conditional Preference Optimization for Multimodal Large Language Models," EMNLP 2024. arXiv:2406.11839. (local: download/wang-mdpo-2024.pdf)
+
+<a id="ref-44"></a><!-- bib:44 -->
+[44] J. Ho, A. Jain, P. Abbeel, "Denoising Diffusion Probabilistic Models," NeurIPS 2020. arXiv:2006.11239. (local: download/ho-ddpm-2020.pdf)
