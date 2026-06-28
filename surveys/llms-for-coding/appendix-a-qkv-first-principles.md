@@ -30,7 +30,17 @@ $$
 <!-- sec:A.1-figure-a -->
 <a id="p-a1-setup-and-notation-5"></a><!-- para:a1-setup-and-notation-5 --> <a id="sec-A.1-figure-a"></a>**Figure A.1.** The parameters in one attention head, with Equation <!-- ref:A-1 -->[(1)](#eq-1) read as a left-to-right dataflow. A residual-stream vector $\mathbf{x}\in\mathbb{R}^{d}$ is read by the head's **four** learned matrices — the query and key projections $W_Q, W_K\in\mathbb{R}^{d_k\times d}$ and the value and output projections $W_V\in\mathbb{R}^{d_v\times d}$, $W_O\in\mathbb{R}^{d\times d_v}$ — whereas $\mathbf{q}_i, \mathbf{k}_j, \mathbf{v}_j, \mathbf{o}_i$ are *computed* intermediates, not parameters. The scaled dot product $\mathbf{q}_i^{\top}\mathbf{k}_j/\sqrt{d_k}$ feeds a causal softmax over $j\le i$ whose weights $a_{ij}$ average the values into $\mathbf{o}_i=\sum_{j\le i}a_{ij}\mathbf{v}_j$ (Equation <!-- ref:A-2 -->[(2)](#eq-2)), and $W_O$ maps that back to the additive update $\Delta\mathbf{x}_i = W_O\mathbf{o}_i$ summed into the stream. The matrices are colored by the two products the network actually uses: $W_Q, W_K$ form the QK circuit $M=W_Q^{\top}W_K$ (<!-- secref:A.2 -->[§A.2](#sec-A.2)) and $W_V, W_O$ form the OV circuit $W_{OV}=W_OW_V$ (<!-- secref:A.3 -->[§A.3](#sec-A.3)) — the collapse the rest of the appendix builds on. The per-head parameter count follows directly from the shapes shown, $\lvert W_Q\rvert+\lvert W_K\rvert+\lvert W_V\rvert+\lvert W_O\rvert = 2d(d_k+d_v)$, which for the base Transformer ($d=512$, $d_k=d_v=64$ <!-- cite:54 --> [[54]](references.md#ref-54)) is $131{,}072$ per head; concrete magnitudes across real code models are tabled in <!-- secref:A.13 -->[§A.13](#sec-A.13). The same head is also drawn as a [canonical scaled-dot-product-attention block](figures/qkv-head-parameters-alt.svg) — the three input projections feeding one attention block, then the output projection — as an alternative view. Regenerate via `surveys/llms-for-coding/figures/qkv-head-parameters.py` (and `qkv-head-parameters-alt.py` for the alternative view).
 
-> <a id="p-a1-setup-and-notation-6"></a><!-- para:a1-setup-and-notation-6 --> **Note — What is the relationship between $i$ and $j$, and what ranges do
+> <a id="p-a1-setup-and-notation-6"></a><!-- para:a1-setup-and-notation-6 --> **Note — Why is it called the "residual stream"?** Two ideas, both visible
+> in Figure A.1. *Residual:* each block is wired as a skip connection
+> $\mathbf{x}\leftarrow\mathbf{x}+F(\mathbf{x})$, so it learns only an additive
+> *correction* — for a head, the $\Delta\mathbf{x}_i = W_O\mathbf{o}_i$ of
+> Equation <!-- ref:A-2 -->[(2)](#eq-2) — never a replacement. *Stream:* because
+> every block only adds, the per-token vector is never overwritten; it
+> accumulates from the embedding through every layer as one channel that each
+> head and MLP reads from (via $W_Q,W_K,W_V$) and writes back to (via $W_O$).
+> The full account is in <!-- secref:A.15 -->[§A.15](#sec-A.15).
+
+> <a id="p-a1-setup-and-notation-7"></a><!-- para:a1-setup-and-notation-7 --> **Note — What is the relationship between $i$ and $j$, and what ranges do
 > they take?** They are the **row and column indices of the attention map**,
 > not quantities tied by an equation: $i$ is the *query* (the token doing the
 > attending, selecting $\mathbf{q}_i$ and producing the output $\mathbf{o}_i$),
@@ -43,7 +53,7 @@ $$
 > exactly the $\sum_{j\le i}$ support of Equation <!-- ref:A-2 -->[(2)](#eq-2).
 > The full breakdown is in <!-- secref:A.14 -->[§A.14](#sec-A.14).
 
-> <a id="p-a1-setup-and-notation-7"></a><!-- para:a1-setup-and-notation-7 --> **Note — How large are $d$, $T$, $d_k$, and $d_v$ in real models?** Across the
+> <a id="p-a1-setup-and-notation-8"></a><!-- para:a1-setup-and-notation-8 --> **Note — How large are $d$, $T$, $d_k$, and $d_v$ in real models?** Across the
 > acquired code-LLM sources the three symbols scale very differently. The
 > *residual width* $d$ runs from $512$ in the original Transformer to about
 > $7000$ in a 33B code model, growth bought mostly by adding layers and heads
@@ -355,3 +365,26 @@ $$
 - **Both range over $\{1,\dots,T\}$; the mask only couples them.** Without the mask the two indices are free and $QK^{\top}$ is a dense $T\times T$ matrix; the causal constraint $j \le i$ is the *only* thing tying them, and it lower-triangularizes the map.
 
 <a id="p-a14-the-query-and-key-indices-i-and-j-relationship-and-ranges-8"></a><!-- para:a14-the-query-and-key-indices-i-and-j-relationship-and-ranges-8 --> **Intuition.** Read $i$ as "now" and $j$ as "now and the past." The output $\mathbf{o}_i = \sum_{j\le i} a_{ij}\,\mathbf{v}_j$ is then a **causal, time-varying combination** of the value sequence — structurally a causal FIR filter whose support grows with the position $i$, except the taps $a_{ij}$ are *data-dependent* (computed from the query–key scores through the softmax) rather than fixed. Masking $j > i$ to zero weight is precisely the no-peeking-at-the-future constraint; this is the same matched-filter reading developed in <!-- secref:A.6 -->[§A.6](#sec-A.6), now indexed explicitly in time.
+
+<!-- sec:A.15 -->
+### <a id="sec-A.15"></a>A.15 Why the Shared Vector Is Called the "Residual Stream"
+
+<a id="p-a15-why-the-shared-vector-is-called-the-residual-stream-1"></a><!-- para:a15-why-the-shared-vector-is-called-the-residual-stream-1 --> Section <!-- secref:A.1 -->[§A.1](#sec-A.1) calls the per-token vector $\mathbf{x}_i$ the *residual stream*. The name packs two architectural facts; neither is arbitrary.
+
+| Word | What it names | The math |
+|---|---|---|
+| **residual** | each block adds a *correction*, it does not replace | $\mathbf{x} \leftarrow \mathbf{x} + F(\mathbf{x})$; a head's correction is $\Delta\mathbf{x}_i = W_O\mathbf{o}_i$ |
+| **stream** | the sum is never overwritten, so it flows through the whole depth | $\mathbf{x}^{\text{out}} = \mathbf{x}^{\text{embed}} + \sum_{\ell}\Delta\mathbf{x}^{\text{attn}}_{\ell} + \sum_{\ell}\Delta\mathbf{x}^{\text{mlp}}_{\ell}$ |
+
+<a id="p-a15-why-the-shared-vector-is-called-the-residual-stream-2"></a><!-- para:a15-why-the-shared-vector-is-called-the-residual-stream-2 --> **Term by term.**
+
+<a id="p-a15-why-the-shared-vector-is-called-the-residual-stream-3"></a><!-- para:a15-why-the-shared-vector-is-called-the-residual-stream-3 --> **1. "Residual" — the block learns the correction, not the whole map.** Every attention and MLP sublayer is wired as a *skip (residual) connection*: its output is **added** to its input, $\mathbf{x}\leftarrow\mathbf{x}+F(\mathbf{x})$, rather than overwriting it. The sublayer therefore only has to produce the *residual* $F(\mathbf{x})$ — the part not already present, the leftover correction. For one attention head that residual is exactly the additive update $\Delta\mathbf{x}_i = W_O\mathbf{o}_i$ of Equation <!-- ref:A-2 -->[(2)](#eq-2): $W_O$ maps the head output back into the $d$-dimensional stream space and the result is summed in. Learning a small increment on top of an identity path is easier to optimize — and the identity path lets gradients reach early layers undamped — than learning a full input-to-output transform; this is the residual-connection device the Transformer adopts for every sublayer <!-- cite:54 --> [[54]](references.md#ref-54).
+
+<a id="p-a15-why-the-shared-vector-is-called-the-residual-stream-4"></a><!-- para:a15-why-the-shared-vector-is-called-the-residual-stream-4 --> **2. "Stream" — the running sum is a shared channel, never overwritten.** Because every block only *adds*, the per-token vector is a cumulative sum that persists unmodified from the embedding at the bottom to the unembedding at the top: unrolling the per-block updates gives $\mathbf{x}^{\text{out}} = \mathbf{x}^{\text{embed}} + \sum_{\ell}\Delta\mathbf{x}^{\text{attn}}_{\ell} + \sum_{\ell}\Delta\mathbf{x}^{\text{mlp}}_{\ell}$. Read this way it is a single high-dimensional **communication channel**: each head and MLP *reads* the current value through its input projections ($W_Q, W_K, W_V$ for a head) and *writes* its contribution back additively (through $W_O$). The mechanistic-interpretability framing of attention names this channel the **residual stream** for exactly this reason — the additive, never-overwritten structure lets the final vector be decomposed into the separate contributions that flow down it <!-- cite:59 --> [[59]](references.md#ref-59). The toy transformer of <!-- secxref:C.1 -->[§C.1](appendix-c-toy-transformer.md#sec-C.1) realizes this concretely: a straight climb up one residual stream from the embedding to the logits, each sublayer reading and adding.
+
+<a id="p-a15-why-the-shared-vector-is-called-the-residual-stream-5"></a><!-- para:a15-why-the-shared-vector-is-called-the-residual-stream-5 --> **What it buys.**
+
+- <a id="p-a15-why-the-shared-vector-is-called-the-residual-stream-6"></a><!-- para:a15-why-the-shared-vector-is-called-the-residual-stream-6 --> **The stream is linear and additively decomposable.** The only nonlinearities live *inside* the sublayers (each reads through LayerNorm); the stream itself is a plain sum of contributions. This is the property that lets <!-- secref:A.2 -->[§A.2](#sec-A.2)–<!-- secref:A.4 -->[§A.4](#sec-A.4) and the $h$-head sum of <!-- secref:A.10 -->[§A.10](#sec-A.10) read each head's effect on the output in isolation — the whole circuit-reading program of this appendix rests on it.
+- **The notation reflects it.** A head's contribution is written $\Delta\mathbf{x}_i$ — an *increment*, not a new state — precisely because the stream is a running sum of such deltas; this is why <!-- secref:A.1 -->[§A.1](#sec-A.1) writes $\Delta\mathbf{x}_i$ rather than a decorated $\mathbf{x}$.
+
+<a id="p-a15-why-the-shared-vector-is-called-the-residual-stream-7"></a><!-- para:a15-why-the-shared-vector-is-called-the-residual-stream-7 --> **Intuition.** In signal-processing terms the residual stream is a **running accumulator refined by increments**: $\mathbf{x}^{(\ell+1)} = \mathbf{x}^{(\ell)} + \Delta^{(\ell)}$ has the shape of an iterative-refinement / LMS-style state update — a running estimate (the state) plus a per-step correction (the innovation), each layer one refinement step. Equivalently it is a **shared signal bus with additive taps**: many components branch off one line, each reading the current value and summing its result back, so the line carries the *superposition* of all contributions, and different heads — writing into different (roughly orthogonal) subspaces — are separated on read by their projections, the matched filter of <!-- secref:A.6 -->[§A.6](#sec-A.6).
