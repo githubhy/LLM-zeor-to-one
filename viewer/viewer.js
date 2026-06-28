@@ -932,6 +932,12 @@ function renderSplitContent(markdown, file, anchor) {
       const src = img.getAttribute('src');
       if (src && !src.startsWith('/') && !src.startsWith('http')) img.setAttribute('src', `/${dir}/${src}`);
     });
+    cbBodyEl.querySelectorAll('a[href]').forEach((a) => {
+      const href = a.getAttribute('href');
+      if (!href || href.startsWith('/') || href.startsWith('#')) return;
+      if (/^[a-z][a-z0-9+.-]*:/i.test(href) || /\.md(#.*)?$/i.test(href)) return;
+      a.setAttribute('href', `/${dir}/${href}`);
+    });
   }
   if (cbCrumbEl) cbCrumbEl.textContent = file || '';
   renderMermaidIn(cbBodyEl);
@@ -1698,6 +1704,17 @@ function fixRelativePaths() {
     if (src && !src.startsWith('/') && !src.startsWith('http')) {
       img.setAttribute('src', `/${dir}/${src}`);
     }
+  });
+  // Fix relative asset links (e.g. a link to figures/*.svg or *.pdf) so they
+  // resolve against the doc's directory like images do — not the SPA root, where
+  // they 404. `.md` links are left for the click handler's in-app navigation;
+  // #anchors, already-absolute, and scheme (http:/mailto:/…) links are untouched.
+  contentEl.querySelectorAll('a[href]').forEach(a => {
+    const href = a.getAttribute('href');
+    if (!href || href.startsWith('/') || href.startsWith('#')) return;
+    if (/^[a-z][a-z0-9+.-]*:/i.test(href)) return;   // has a scheme
+    if (/\.md(#.*)?$/i.test(href)) return;           // .md → in-app navigation
+    a.setAttribute('href', `/${dir}/${href}`);
   });
 }
 

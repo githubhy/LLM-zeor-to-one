@@ -48,7 +48,13 @@
 ## Conversation 9
 - **Request**: Go with the recommendations; commit and push.
 - **Actions**: Added the 3 ADD candidates to `/sync-upstream` inbound scope — `bench/`, `.gitignore`, `.viewerignore` — in the §1 pathspec, a new "Shared infra also in scope" path-list bullet (with handling: bench scenarios re-adapted & context-isolated; `.gitignore`/`.viewerignore` surgical merges) that also records the 4 HELD items inline ("Still out of scope"), and the §3 leakage scan (`bench/`). Updated `CLAUDE.md` catalog line. Closed `todos/2026-06-28-sync-upstream-scope-candidates.md` (resolution: 3 added / 4 held) + INDEX. Committed + pushed (this commit + the prior unpushed `bddb1df` qkv work).
-- **Result**: Pending commit/push outcome below.
+- **Result**: Committed `6184594`; pushed `1aa1a1d..6184594 main -> main` (pre-push survey gate green; crosslink advisory-only, non-blocking).
 - **Findings**: —
+
+## Conversation 10
+- **Request**: bug report — `http://localhost:6500/figures/qkv-head-parameters-alt.svg` (the Figure A.1 alt-view link 404s).
+- **Actions**: Diagnosed via curl (root `/figures/...` → 404; `surveys/llms-for-coding/figures/...` → 200) + serve.js `assetPathFor` + viewer.js render. Root cause: the SPA loads docs via `?file=`, and `fixRelativePaths()` rewrote `img[src]` to `/<docdir>/<src>` but not `a[href]`, so a relative `figures/*.svg` *link* resolved against the SPA root → `/figures/...` → 404. Fix: extended `fixRelativePaths()` + `renderSplitContent()` (compare pane) to rewrite relative `a[href]` to `/<docdir>/<href>` for non-`#`/non-scheme/non-`.md` links (`.md`/anchors/scheme untouched). Added regression spec `viewer/tests/relative-asset-link-resolution.spec.js` (2 tests, both pass). Filed `bugs/2026-06-28-01` (med, fixed).
+- **Result**: New spec 2/2 green; `node --check` clean; grep confirmed no existing test asserts a relative non-`.md` href the change would alter. Broader sweep (38 tests): 35 passed; 3 failures all unrelated — 2 heading-anchor "Bug B" flaked (passed on isolated re-run), `citation T12` is a pre-existing `page.goto` 30s load timeout that **fails identically with the fix stashed out** (proven via `git stash`) → filed `todos/2026-06-28-citation-t12-e2e-timeout.md`. **No regression from this change.** Markdown source untouched (GitHub relative-link rendering preserved). Uncommitted.
+- **Findings**: The viewer rewrites image src to the doc dir but treated asset *links* as plain navigation — a general gap, not specific to this figure: any relative markdown link to a non-`.md` asset (`.svg`/`.pdf`/`.png` link) 404s in the SPA. The earlier Conversation-6 caveat ("validate-refs doesn't check non-`.md` asset links") was the static-time shadow of this runtime bug.
 
 <!-- LOG-END -->
