@@ -149,3 +149,6 @@ paragraph anchor sits on the line **above** each `[N]` so `check-citation-source
 
 <a id="ref-47"></a><!-- bib:47 -->
 [47] Y. Shang, M. Cai, B. Xu, et al., "LLaVA-PruMerge: Adaptive Token Reduction for Efficient Large Multimodal Models," 2024. arXiv:2403.15388. (local: download/shang-prumerge-2024.pdf)
+
+<a id="ref-48"></a><!-- bib:48 -->
+[48] L. Chen, J. Li, X. Dong, et al., "Are We on the Right Way for Evaluating Large Vision-Language Models?" (MMStar), NeurIPS 2024. arXiv:2403.20330. (local: download/chen-mmstar-2024.pdf)
