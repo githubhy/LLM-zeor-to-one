@@ -1,0 +1,452 @@
+=== fetching 2103.00020 -> radford-clip-2021.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 6813639, "path": "download/radford-clip-2021.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2103.00020",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2103.00020",
+      "source": "arxiv-direct",
+      "arxiv_id": "2103.00020"
+    }
+  ]
+}
+OK radford-clip-2021.pdf (6813639 bytes) [intended: CLIP Learning Transferable Visual Models Natural Language]
+=== fetching 2010.11929 -> dosovitskiy-vit-2020.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 3743814, "path": "download/dosovitskiy-vit-2020.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2010.11929",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2010.11929",
+      "source": "arxiv-direct",
+      "arxiv_id": "2010.11929"
+    }
+  ]
+}
+OK dosovitskiy-vit-2020.pdf (3743814 bytes) [intended: Image is Worth 16x16 Words Transformers Image Recognition]
+=== fetching 2303.15343 -> zhai-siglip-2023.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 614960, "path": "download/zhai-siglip-2023.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2303.15343",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2303.15343",
+      "source": "arxiv-direct",
+      "arxiv_id": "2303.15343"
+    }
+  ]
+}
+OK zhai-siglip-2023.pdf (614960 bytes) [intended: Sigmoid Loss Language Image Pre-Training SigLIP]
+=== fetching 2204.14198 -> alayrac-flamingo-2022.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 31579390, "path": "download/alayrac-flamingo-2022.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2204.14198",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2204.14198",
+      "source": "arxiv-direct",
+      "arxiv_id": "2204.14198"
+    }
+  ]
+}
+OK alayrac-flamingo-2022.pdf (31579390 bytes) [intended: Flamingo Visual Language Model Few-Shot Learning]
+=== fetching 2301.12597 -> li-blip2-2023.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 6737540, "path": "download/li-blip2-2023.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2301.12597",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2301.12597",
+      "source": "arxiv-direct",
+      "arxiv_id": "2301.12597"
+    }
+  ]
+}
+OK li-blip2-2023.pdf (6737540 bytes) [intended: BLIP-2 Bootstrapping Language-Image Pre-training Querying Transformer]
+=== fetching 2304.08485 -> liu-llava-2023.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 5906135, "path": "download/liu-llava-2023.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2304.08485",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2304.08485",
+      "source": "arxiv-direct",
+      "arxiv_id": "2304.08485"
+    }
+  ]
+}
+OK liu-llava-2023.pdf (5906135 bytes) [intended: Visual Instruction Tuning LLaVA]
+=== fetching 2310.03744 -> liu-llava-1.5-2023.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 2215588, "path": "download/liu-llava-1.5-2023.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2310.03744",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2310.03744",
+      "source": "arxiv-direct",
+      "arxiv_id": "2310.03744"
+    }
+  ]
+}
+OK liu-llava-1.5-2023.pdf (2215588 bytes) [intended: Improved Baselines Visual Instruction Tuning LLaVA-1.5]
+=== fetching 2308.12966 -> bai-qwen-vl-2023.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 6329953, "path": "download/bai-qwen-vl-2023.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2308.12966",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2308.12966",
+      "source": "arxiv-direct",
+      "arxiv_id": "2308.12966"
+    }
+  ]
+}
+OK bai-qwen-vl-2023.pdf (6329953 bytes) [intended: Qwen-VL Versatile Vision-Language Model]
+=== fetching 2409.12191 -> wang-qwen2-vl-2024.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 35936325, "path": "download/wang-qwen2-vl-2024.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2409.12191",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2409.12191",
+      "source": "arxiv-direct",
+      "arxiv_id": "2409.12191"
+    }
+  ]
+}
+OK wang-qwen2-vl-2024.pdf (35936325 bytes) [intended: Qwen2-VL Enhancing Vision-Language Model Any Resolution]
+=== fetching 2502.13923 -> bai-qwen2.5-vl-2025.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 2219929, "path": "download/bai-qwen2.5-vl-2025.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2502.13923",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2502.13923",
+      "source": "arxiv-direct",
+      "arxiv_id": "2502.13923"
+    }
+  ]
+}
+OK bai-qwen2.5-vl-2025.pdf (2219929 bytes) [intended: Qwen2.5-VL Technical Report]
+=== fetching 2312.14238 -> chen-internvl-2023.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 1315333, "path": "download/chen-internvl-2023.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2312.14238",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2312.14238",
+      "source": "arxiv-direct",
+      "arxiv_id": "2312.14238"
+    }
+  ]
+}
+OK chen-internvl-2023.pdf (1315333 bytes) [intended: InternVL Scaling up Vision Foundation Models]
+=== fetching 2405.09818 -> team-chameleon-2024.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 25245551, "path": "download/team-chameleon-2024.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2405.09818",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2405.09818",
+      "source": "arxiv-direct",
+      "arxiv_id": "2405.09818"
+    }
+  ]
+}
+OK team-chameleon-2024.pdf (25245551 bytes) [intended: Chameleon Mixed-Modal Early-Fusion Foundation Models]
+=== fetching 2409.18869 -> wang-emu3-2024.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 16706911, "path": "download/wang-emu3-2024.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2409.18869",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2409.18869",
+      "source": "arxiv-direct",
+      "arxiv_id": "2409.18869"
+    }
+  ]
+}
+OK wang-emu3-2024.pdf (16706911 bytes) [intended: Emu3 Next-Token Prediction is All You Need]
+=== fetching 2408.11039 -> zhou-transfusion-2024.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 14087563, "path": "download/zhou-transfusion-2024.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2408.11039",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2408.11039",
+      "source": "arxiv-direct",
+      "arxiv_id": "2408.11039"
+    }
+  ]
+}
+OK zhou-transfusion-2024.pdf (14087563 bytes) [intended: Transfusion Predict Next Token Diffuse Images One Multi-Modal Model]
+=== fetching 2410.13848 -> wu-janus-2024.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 6020079, "path": "download/wu-janus-2024.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2410.13848",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2410.13848",
+      "source": "arxiv-direct",
+      "arxiv_id": "2410.13848"
+    }
+  ]
+}
+OK wu-janus-2024.pdf (6020079 bytes) [intended: Janus Decoupling Visual Encoding Unified Multimodal]
+=== fetching 2212.04356 -> radford-whisper-2022.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 1008644, "path": "download/radford-whisper-2022.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2212.04356",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2212.04356",
+      "source": "arxiv-direct",
+      "arxiv_id": "2212.04356"
+    }
+  ]
+}
+OK radford-whisper-2022.pdf (1008644 bytes) [intended: Robust Speech Recognition Large-Scale Weak Supervision Whisper]
+=== fetching 2311.07919 -> chu-qwen-audio-2023.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 1798895, "path": "download/chu-qwen-audio-2023.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2311.07919",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2311.07919",
+      "source": "arxiv-direct",
+      "arxiv_id": "2311.07919"
+    }
+  ]
+}
+OK chu-qwen-audio-2023.pdf (1798895 bytes) [intended: Qwen-Audio Advancing Universal Audio Understanding]
+=== fetching 2310.13289 -> tang-salmonn-2024.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 1550182, "path": "download/tang-salmonn-2024.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2310.13289",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2310.13289",
+      "source": "arxiv-direct",
+      "arxiv_id": "2310.13289"
+    }
+  ]
+}
+OK tang-salmonn-2024.pdf (1550182 bytes) [intended: SALMONN Generic Hearing Abilities Large Language Models]
+=== fetching 2306.12925 -> rubenstein-audiopalm-2023.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 561113, "path": "download/rubenstein-audiopalm-2023.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2306.12925",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2306.12925",
+      "source": "arxiv-direct",
+      "arxiv_id": "2306.12925"
+    }
+  ]
+}
+OK rubenstein-audiopalm-2023.pdf (561113 bytes) [intended: AudioPaLM Large Language Model Speak Listen]
+=== fetching 2311.10122 -> lin-video-llava-2023.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 3486722, "path": "download/lin-video-llava-2023.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2311.10122",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2311.10122",
+      "source": "arxiv-direct",
+      "arxiv_id": "2311.10122"
+    }
+  ]
+}
+OK lin-video-llava-2023.pdf (3486722 bytes) [intended: Video-LLaVA Learning United Visual Representation Alignment]
+=== fetching 1711.00937 -> vandenoord-vqvae-2017.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 3174661, "path": "download/vandenoord-vqvae-2017.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:1711.00937",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/1711.00937",
+      "source": "arxiv-direct",
+      "arxiv_id": "1711.00937"
+    }
+  ]
+}
+OK vandenoord-vqvae-2017.pdf (3174661 bytes) [intended: Neural Discrete Representation Learning VQ-VAE]
+=== fetching 2012.09841 -> esser-vqgan-2021.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 50511406, "path": "download/esser-vqgan-2021.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2012.09841",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2012.09841",
+      "source": "arxiv-direct",
+      "arxiv_id": "2012.09841"
+    }
+  ]
+}
+OK esser-vqgan-2021.pdf (50511406 bytes) [intended: Taming Transformers High-Resolution Image Synthesis VQGAN]
+=== fetching 2311.16502 -> yue-mmmu-2023.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 16874947, "path": "download/yue-mmmu-2023.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2311.16502",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2311.16502",
+      "source": "arxiv-direct",
+      "arxiv_id": "2311.16502"
+    }
+  ]
+}
+OK yue-mmmu-2023.pdf (16874947 bytes) [intended: MMMU Massive Multi-discipline Multimodal Understanding]
+=== fetching 2305.10355 -> li-pope-2023.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 906717, "path": "download/li-pope-2023.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2305.10355",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2305.10355",
+      "source": "arxiv-direct",
+      "arxiv_id": "2305.10355"
+    }
+  ]
+}
+OK li-pope-2023.pdf (906717 bytes) [intended: Evaluating Object Hallucination Large Vision-Language Models POPE]
+=== fetching 2407.07726 -> beyer-paligemma-2024.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 3452867, "path": "download/beyer-paligemma-2024.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2407.07726",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2407.07726",
+      "source": "arxiv-direct",
+      "arxiv_id": "2407.07726"
+    }
+  ]
+}
+OK beyer-paligemma-2024.pdf (3452867 bytes) [intended: PaliGemma Versatile 3B Vision-Language Model]
+=== fetching 2410.07073 -> agrawal-pixtral-2024.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 12640953, "path": "download/agrawal-pixtral-2024.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2410.07073",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2410.07073",
+      "source": "arxiv-direct",
+      "arxiv_id": "2410.07073"
+    }
+  ]
+}
+OK agrawal-pixtral-2024.pdf (12640953 bytes) [intended: Pixtral 12B]
+=== fetching 2409.17146 -> deitke-molmo-2024.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 6576158, "path": "download/deitke-molmo-2024.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2409.17146",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2409.17146",
+      "source": "arxiv-direct",
+      "arxiv_id": "2409.17146"
+    }
+  ]
+}
+OK deitke-molmo-2024.pdf (6576158 bytes) [intended: Molmo PixMo Open Weights Open Data State-of-the-Art Multimodal]
+=== fetching 2403.05525 -> lu-deepseek-vl-2024.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 6079366, "path": "download/lu-deepseek-vl-2024.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2403.05525",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2403.05525",
+      "source": "arxiv-direct",
+      "arxiv_id": "2403.05525"
+    }
+  ]
+}
+OK lu-deepseek-vl-2024.pdf (6079366 bytes) [intended: DeepSeek-VL Real-World Vision-Language Understanding]
+=== fetching 2405.02246 -> laurencon-idefics2-2024.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 1465649, "path": "download/laurencon-idefics2-2024.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2405.02246",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2405.02246",
+      "source": "arxiv-direct",
+      "arxiv_id": "2405.02246"
+    }
+  ]
+}
+OK laurencon-idefics2-2024.pdf (1465649 bytes) [intended: What Matters Building Vision-Language Models Idefics2]
+=== fetching 2409.11402 -> dai-nvlm-2024.pdf ===
+{"tried": "arxiv-direct", "ok": true, "bytes": 10877200, "path": "download/dai-nvlm-2024.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2409.11402",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2409.11402",
+      "source": "arxiv-direct",
+      "arxiv_id": "2409.11402"
+    }
+  ]
+}
+OK dai-nvlm-2024.pdf (10877200 bytes) [intended: NVLM Open Frontier-Class Multimodal LLMs]
+
+DONE: 30 ok, 0 fail
