@@ -68,4 +68,15 @@
 - **Result**: All gates green — 32 image refs / **115 .md links** valid (was 114; +1 from the new secxref), 13 eq tags sequential (no cascade), bare-refs + citation-sources clean. High-value crosslink gap cleared (→C.1); remaining candidates all low-cosine (<0.15) advisory / pre-existing. Uncommitted.
 - **Findings**: The TF-IDF crosslink pre-filter pointed at C.2 ("The Forward Pass"), but the on-the-nose target was its sibling C.1 ("The Model and the Residual Stream") — a reminder to read the candidate's neighborhood, not just take the flagged anchor. The new secxref is a `.md` link, which the just-shipped viewer asset-link fix correctly leaves relative for in-app navigation.
 
+## Conversation 13
+- **Request**: Yes — commit and push the residual-stream fold.
+- **Actions**: Committed `6f37b26` `feat(survey): qkv appendix §A.15 — "why is it called the residual stream" fold` (appendix-a + log); pushed.
+- **Result**: Pushed `eea9840..6f37b26 main -> main`; pre-push survey gate clean.
+
+## Conversation 14
+- **Request**: Expand §A.6 (matched-filter intuition) — make the analogy concrete from first principles with a procedure-level one-on-one mapping.
+- **Actions**: `/enrich` (structural + derivation mode), executed in main loop on Opus (correctness-critical math, not delegated). `appendix-a-qkv-first-principles.md` §A.6: kept the intro through "…key-content.", replaced the brief two-differences tail with (1) **First principles** — derived the matched filter from first principles: SNR $(\mathbf{h}^\top\mathbf{s})^2/(\sigma^2\lVert\mathbf{h}\rVert^2)$ maximized by Cauchy–Schwarz at $\mathbf{h}^\star\propto\mathbf{s}$, whitened $\mathbf{s}^\top\Sigma^{-1}\mathbf{r}$, Bayes decision $\arg\max$, posterior $=\mathrm{softmax}(\cdot/\sigma^2)$; (2) a **9-row procedure-level mapping table** (template↔query, candidate bank↔keys, correlator↔$\mathbf{q}^\top\mathbf{k}$, whitening $\Sigma^{-1}$↔learned $M$, $\sigma$↔$\sqrt{d_k}$, time-gate↔causal mask, argmax↔softmax, decode↔$\sum a\mathbf{v}$, deliver↔$W_O$); (3) **load-bearing rows are exact** tie-ins to §A.2/§A.7/§A.3; (4) **four sharpened departures** (adaptive/closed-form, learned-asymmetric-not-noise metric, soft-MMSE-combiner vs hard-detect, global content-addressed). Cascade-free (inline math + markdown table, no new `$$`). No external citation minted (matched filter derived first-principles; no North/Van Trees in references.md).
+- **Result**: All gates green — 13 eq tags sequential (**no cascade**), 115 .md links valid, bare-refs + citation-sources clean, 4 new prose blocks anchored. Crosslink: A.6 produced **no new gap** (already linked to §A.2/§A.3/§A.5/§A.7); 4 advisory candidates all pre-existing/low-cosine. Uncommitted.
+- **Findings**: The matched-filter ↔ attention correspondence is procedure-exact once $M\leftrightarrow\Sigma^{-1}$ (whitening metric) and $\sqrt{d_k}\leftrightarrow\sigma$ (noise-floor temperature, per §A.7) are recognized; the only real departures are adaptive-templates, learned-asymmetric-metric, soft-vs-hard readout, and global-vs-local addressing.
+
 <!-- LOG-END -->
