@@ -1,3 +1,26 @@
-# Design Guidance
+<!-- sec:12 -->
+## <a id="sec-12"></a>12 Design guidance
 
-_Section under construction — drafted in Phase 4 (synthesis). See `_scratch/outline.md` for the section plan and research questions._
+<a id="p-12-design-guidance-1"></a><!-- para:12-design-guidance-1 --> The comparison matrix (§ <!-- secxref:10.1 -->[§10.1](comparison-and-tradeoffs.md#sec-10.1)) and the dominant-practice map (§ <!-- secxref:11.3 -->[§11.3](state-of-the-art-and-practice.md#sec-11.3)) describe the design space; this section is the procedure for *traversing* it. Given a concrete requirement, the decisions can be taken in a fixed order, because each choice constrains the next. The procedure below is load-bearing-depth guidance — a decision order plus a worked walkthrough — not a new result.
+
+<!-- sec:12.1 -->
+### <a id="sec-12.1"></a>12.1 The decision order
+
+<a id="p-121-the-decision-order-1"></a><!-- para:121-the-decision-order-1 --> Take the choices in this sequence; later steps depend on earlier ones.
+
+1. <a id="p-121-the-decision-order-2"></a><!-- para:121-the-decision-order-2 --> **Modalities and direction.** Which signals enter (image, audio, video), and must the model *generate* a non-text modality or only perceive one? Generation forces the § <!-- secxref:6.4 -->[§6.4](multimodal-generation.md#sec-6.4) discrete-AR-versus-diffusion choice and usually a from-scratch or heavily-retrained model; perception-only keeps you in the cheaper encoder-plus-LLM regime. Settle this first — it decides whether the rest of the procedure even applies.
+
+2. **Detail threshold → resolution → connector.** How small is the smallest thing the task must read? Dense documents, small text, and fine charts live *below* the patch scale (§ <!-- secxref:2.2 -->[§2.2](fundamentals.md#sec-2.2)) and demand high effective resolution — native-resolution or AnyRes tiling — and a *token-preserving* MLP projector that keeps every patch. Coarse, scene-level tasks (captioning, high-level VQA) tolerate a *token-reducing* resampler and its bounded budget. This single question fixes both the resolution strategy and the connector family.
+
+3. **Many images, or one?** Interleaved, multi-image, or few-shot prompts argue for a design whose per-image token cost is bounded — a resampler, or deep fusion (§ <!-- secxref:3.4 -->[§3.4](architecture-building-blocks.md#sec-3.4)) that keeps images out of the text sequence entirely. A single image per query removes this pressure and lets early fusion's simplicity win.
+
+4. **Data and compute budget → freezing schedule.** With a precious LLM and little instruction data, freeze it and adapt through a connector or gated cross-attention (§ <!-- secxref:3.5 -->[§3.5](architecture-building-blocks.md#sec-3.5)); with enough data to fine-tune safely, take the LLaVA two-stage path and tune the LLM (§ <!-- secxref:5.2 -->[§5.2](training-and-alignment.md#sec-5.2)). The encoder stays frozen in nearly all cases.
+
+5. **Trustworthiness → alignment pass.** If wrong-but-fluent answers are costly (medical, legal, autonomous), budget a preference-alignment stage after instruction tuning — multimodal DPO, or its conditional/segment-level variants — and evaluate on POPE-style hallucination probes (§ <!-- secxref:5.3 -->[§5.3](training-and-alignment.md#sec-5.3), § <!-- secxref:9.2 -->[§9.2](evaluation-and-benchmarks.md#sec-9.2)).
+
+6. **Serving budget → compression.** Finally, size the visual token bill against the latency and memory budget (§ <!-- secxref:8.1 -->[§8.1](inference-and-serving.md#sec-8.1)). If it is too high, apply compression in increasing order of intrusiveness: a resampler (architectural), encoder-side merging, then LLM-side pruning (§ <!-- secxref:8.2 -->[§8.2](inference-and-serving.md#sec-8.2)) — checking accuracy at each step.
+
+<!-- sec:12.2 -->
+### <a id="sec-12.2"></a>12.2 A worked walkthrough
+
+<a id="p-122-a-worked-walkthrough-1"></a><!-- para:122-a-worked-walkthrough-1 --> Suppose the requirement is an **on-premises document-QA assistant** — read scanned forms and invoices, answer questions, deploy self-hosted for data-privacy reasons, single image per query. Walk the order. **(1)** Perception-only, image input — the encoder-plus-LLM regime, no generation machinery. **(2)** Documents are the canonical below-the-patch-scale task, so resolution is the binding constraint: choose native-resolution or AnyRes tiling, and a token-preserving MLP projector — *not* a Q-Former, whose 32-token bottleneck would crush the small text. **(3)** One image per query, so no multi-image pressure: early fusion, the simplest strong choice. **(4)** On-prem and customizable means an open model with a public recipe, fine-tuned on document data via the LLaVA two-stage path — which the § <!-- secxref:11.2 -->[§11.2](state-of-the-art-and-practice.md#sec-11.2) deployment-gap thesis already recommended. **(5)** Invoices carry consequences, so add a DPO alignment pass and validate hallucination on POPE-style probes plus a DocVQA-style accuracy check. **(6)** High resolution makes the token bill large; if latency suffers, reach first for native-resolution token merging, and only then attention-based pruning, re-checking DocVQA accuracy after each. The procedure lands, without guesswork, on the recognizable modern document-VLM: *a frozen native-resolution SigLIP encoder, an MLP projector, early fusion into an instruction-tuned and DPO-aligned open LLM, served with token compression* — the § <!-- secxref:11.3 -->[§11.3](state-of-the-art-and-practice.md#sec-11.3) consensus, re-derived from the requirement rather than copied. The value of the order is that every choice was forced by the one before it, so the design is *explained*, not merely selected.
