@@ -79,4 +79,15 @@
 - **Result**: All gates green — 13 eq tags sequential (**no cascade**), 115 .md links valid, bare-refs + citation-sources clean, 4 new prose blocks anchored. Crosslink: A.6 produced **no new gap** (already linked to §A.2/§A.3/§A.5/§A.7); 4 advisory candidates all pre-existing/low-cosine. Uncommitted.
 - **Findings**: The matched-filter ↔ attention correspondence is procedure-exact once $M\leftrightarrow\Sigma^{-1}$ (whitening metric) and $\sqrt{d_k}\leftrightarrow\sigma$ (noise-floor temperature, per §A.7) are recognized; the only real departures are adaptive-templates, learned-asymmetric-metric, soft-vs-hard readout, and global-vs-local addressing.
 
+## Conversation 15
+- **Request**: Commit+push the §A.6 enrichment, then explain why $p(j\mid\mathbf{r}) = \mathrm{softmax}_j(\mathbf{s}_j^\top\mathbf{r}/\sigma^2)$.
+- **Actions**: Committed `80ad95d` (A.6 enrichment) and pushed `6f37b26..80ad95d` (gate clean). Then gave the Bayes derivation in chat: Gaussian likelihood → expand $\lVert\mathbf{r}-\mathbf{s}_j\rVert^2$ → drop common $\lVert\mathbf{r}\rVert^2$ + equal-energy $\lVert\mathbf{s}_j\rVert^2$ → only correlator survives → normalized exp = softmax; temperature $=\sigma^2$ (noise power); attention's $\sqrt{d_k}$ plays $\sigma$'s role (§A.7); a_ij are APPs / soft-output; σ²-vs-√dk and unequal-energy subtleties.
+- **Result**: Pushed; explanation delivered.
+
+## Conversation 16
+- **Request**: Fold the whole "why posterior = softmax" answer into §A.6.
+- **Actions**: `survey-explainer-fold` — (1) compact `> **Note —**` after the §A.6 "First principles" paragraph (host = the posterior sentence), forward-linking §A.16; (2) new dedicated section **A.16 "Why the Soft Detector Is the Bayes Posterior"** at file end with **numbered display equations 14–17** (Bayes, Gaussian likelihood, distance expansion, softmax result) — appended cascade-free since A.16 is the last section (no existing eq renumbered). Term-by-term "why each piece is forced" (sufficient statistic / softmax-is-posterior / temperature-is-noise-power), tie-back to attention (√dk↔σ per §A.7; a_ij = APPs; σ²-vs-√dk bookkeeping), unequal-energy caveat (→§A.2), APP/soft-output-detector intuition. No external citation (first-principles; internal refs to §A.6/§A.7/§A.5/§A.2 + eq 14–17). Ran sections/paragraphs `--init` + `renumber-equations` (assigned 14–17) + full `--check` sweep.
+- **Result**: All gates green — **17 eq tags sequential** (eq 14–17 appended, 1–13 untouched → no cascade), equation markers 60→64, 115 .md links valid, bare-refs + citation-sources clean. Crosslink: A.16 no new gap (internally linked). Uncommitted.
+- **Findings**: A section appended at the **file end** can mint numbered display equations cascade-free — the renumber assigns them the next tags (14–17) and touches no existing equation/ref. This is the exception to the survey-explainer-fold "use fenced blocks to avoid cascade" rule, which is a mid-document concern only.
+
 <!-- LOG-END -->
