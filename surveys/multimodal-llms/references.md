@@ -152,3 +152,6 @@ paragraph anchor sits on the line **above** each `[N]` so `check-citation-source
 
 <a id="ref-48"></a><!-- bib:48 -->
 [48] L. Chen, J. Li, X. Dong, et al., "Are We on the Right Way for Evaluating Large Vision-Language Models?" (MMStar), NeurIPS 2024. arXiv:2403.20330. (local: download/chen-mmstar-2024.pdf)
+
+<a id="ref-49"></a><!-- bib:49 -->
+[49] A. van den Oord, Y. Li, O. Vinyals, "Representation Learning with Contrastive Predictive Coding," 2018. arXiv:1807.03748. (local: download/vandenoord-cpc-2018.pdf)
