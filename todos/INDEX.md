@@ -10,3 +10,4 @@
 | 2026-06-28 | port-pitch-perfector-agents | Port (or decide against) the 3 pitch-perfector subagents (survey-enricher, evidence-collector, viewer-dev) | closed | RESOLVED 2026-06-28: all 3 ported+re-adapted, by-name refs restored in /enrich + method-eval, Agents catalog added (decision 2026-06-28-04) |
 | 2026-06-28 | multimodal-llms-reference-impl-handoff | Multimodal-LLMs survey → reference-implementation study handoff | open | two study-ready methods (FastV pruning; connector ablation) nominated by survey §13.2 |
 | 2026-06-28 | multimodal-llms-crosslink-polish | Multimodal-LLMs survey — cross-link polish pass | open | residual low-cosine candidates + body→appendix forward-link conversions |
+| 2026-06-28 | sync-upstream-scope-candidates | Decide which additional infra paths to add to /sync-upstream inbound scope | closed | RESOLVED 2026-06-28: added bench/ .gitignore .viewerignore; held .github/.claude-sync.yml, viewer.content/manifest.json, tools/ |

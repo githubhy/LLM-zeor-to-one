@@ -1,4 +1,4 @@
-Sync harness config between this repo and the upstream template repo (`../data-channel-receiver`). **Default = inbound** (upstream → here), re-adapting each change from the wireless/5G-NR / telecom-3GPP domain to this project's LLM/AI deep-research-survey domain. **`--back` = outbound sync-back** (here → upstream); see the Reverse section. The two directions are **asymmetric** — this is not a symmetric mirror. $ARGUMENTS
+Sync harness config **and the viewer application** between this repo and the upstream template repo (`../data-channel-receiver`). **Default = inbound** (upstream → here), re-adapting each change from the wireless/5G-NR / telecom-3GPP domain to this project's LLM/AI deep-research-survey domain. **`--back` = outbound sync-back** (here → upstream); see the Reverse section. The two directions are **asymmetric** — this is not a symmetric mirror. $ARGUMENTS
 
 `$ARGUMENTS` (all optional):
 - *(empty)* — INBOUND: sync every upstream config delta since the last high-water mark.
@@ -8,7 +8,7 @@ Sync harness config between this repo and the upstream template repo (`../data-c
 
 ## What this is
 
-This project's Claude harness was bootstrapped by adapting a **shared research harness** from the upstream template repo (`../data-channel-receiver`, a wireless/5G-NR / telecom-3GPP survey project) and retargeting it telecom → LLM/AI surveys. This command is the manual, idempotent re-sync. It ports *harness config* (rules/skills/commands/agents/settings/hooks/tools, `CLAUDE.md`/`AGENTS.md`), **never research content** (the upstream's own surveys/reports/decisions are wireless deliverables, not shared config). See the `claude-infra-ported-from-data-channel-receiver` memory.
+This project's Claude harness was bootstrapped by adapting a **shared research harness** from the upstream template repo (`../data-channel-receiver`, a wireless/5G-NR / telecom-3GPP survey project) and retargeting it telecom → LLM/AI surveys. This command is the manual, idempotent re-sync. It ports *harness config* (rules/skills/commands/agents/settings/hooks/tools, `CLAUDE.md`/`AGENTS.md`) **and the viewer application** (`viewer/**` — the markdown-viewer server, client JS, styles, PWA assets, and its test suite), **never research content** (the upstream's own surveys/reports/decisions are wireless deliverables, not shared config). The viewer is **shared infrastructure** (a domain-agnostic reading app), folding in what used to be a separate "viewer wholesale sync" (`decisions/2026-06-17-01`) and the figure-pipeline import (`decisions/2026-06-28-03`) — those now run as part of this incremental sync, with the wholesale copy kept only as a bootstrap/recovery fallback. See the `claude-infra-ported-from-data-channel-receiver` memory.
 
 ## 0. Resolve upstream + baseline
 
@@ -18,18 +18,21 @@ Read `.claude/upstream-sync.json`:
 
 If the upstream working copy may be stale, `git -C <upstream_path> fetch` first (or note that the local clone is the source of truth).
 
-## 1. Find config deltas (not content)
+## 1. Find config + viewer deltas (not content)
 
 ```bash
 UP="$(python3 -c "import json;print(json.load(open('.claude/upstream-sync.json'))['upstream_path'])")"
 BASE="$(python3 -c "import json;print(json.load(open('.claude/upstream-sync.json'))['last_synced_commit'])")"
 git -C "$UP" log --oneline "$BASE"..HEAD                      # every upstream commit since the mark
 git -C "$UP" diff --name-status "$BASE"..HEAD -- \
-    CLAUDE.md AGENTS.md .claude viewer/tools .githooks scripts requirements.txt
+    CLAUDE.md AGENTS.md .claude viewer bench .githooks scripts requirements.txt .gitignore .viewerignore
 ```
 
+The `viewer` pathspec covers the **whole viewer app** (`viewer/tools/**` plus the app code — see below). It is a *tracked-file* diff, so the gitignored generated/local dirs (`node_modules/`, `test-results/`, `.viewer-highlights/`) never appear and need no manual exclude.
+
 - **Skip round-tripped sync-back commits.** A commit whose subject contains `from llm-zero-to-one` (the reverse-sync template, R3 below) is a change that originated HERE and was pushed out — do **not** re-adapt it back in (it already lives here, ungenericized). Filter it: `git -C "$UP" log --oneline "$BASE"..HEAD | grep -vi 'from llm-zero-to-one'`. If the range is *only* sync-back commits, there is nothing to import — advance the mark (step 4) to skip past them and stop. (A *sibling* repo's sync-back — e.g. a subject saying `from pitch-perfector` — is a **legitimate** inbound delta for this repo, since it did not originate here; do not skip those.)
-- **Config paths to consider:** `CLAUDE.md`, `AGENTS.md`, `.claude/**` (rules, skills, commands, agents, settings, hooks, scripts), `viewer/tools/**`, `.githooks/**`, `scripts/**`, `requirements.txt`.
+- **Config + viewer paths to consider:** `CLAUDE.md`, `AGENTS.md`, `.claude/**` (rules, skills, commands, agents, settings, hooks, scripts), `.githooks/**`, `scripts/**`, `requirements.txt`, and the **whole viewer app** `viewer/**`: the domain-agnostic math/cross-link tools `viewer/tools/**`, the server `viewer/serve.js`, the client `viewer/viewer.js` + `viewer/lib/**`, styles `viewer/style.css`, `viewer/index.html`, the PWA/service-worker (`viewer/sw.js`, `viewer/manifest.webmanifest`, `viewer/icons/**`), publish/annotation helpers (`viewer/publish.js`, `viewer/pull-annotations.js`), bundled `viewer/vendor/**`, deploy config `viewer/cloudflare/**`, node manifests (`viewer/package.json`, `viewer/package-lock.json`), the e2e/unit suite (`viewer/tests/**`, `viewer/playwright.config.js`), and `viewer/GUIDE.md`. **Excluded** (generated/local, gitignored): `viewer/node_modules/`, `viewer/test-results/`, `viewer/.viewer-highlights/`.
+- **Shared infra also in scope:** `bench/**` (the skills' pressure-test harness + scenarios — the harness, e.g. `run-integration-test.sh`, applies directly; **re-adapt the RED-baseline scenarios** telecom→LLM like any domain content, and never run them in-session — they must stay context-isolated per `CLAUDE.md`'s Benchmarks note), `.gitignore`, and `.viewerignore` (apply as **surgical merges** — both carry local-only entries, e.g. the viewer-highlights / scratch ignores; never overwrite wholesale). **Still out of scope** (not added; revisit on request): `.github/workflows/` + `.claude-sync.yml` (a *separate* sync lineage — upstream consumes from `FenLinger/claude-config`; adopting them joins that system, not just a path add), `viewer.content.json` / `viewer.manifest.json` (viewer multi-root config whose root list is domain-specific), and top-level `tools/` (mostly telecom-specific — `fetch_3gpp_specs.py`; cherry-pick `mtef_decode.py` only if needed).
 - **Exclude as content** (the upstream's domain work — do NOT sync): `surveys/`, `docs/`, `reports/`, `decisions/`, `bugs/`, `todos/`, `field-notes/`, `prompts/`, `plans/`, `proposals/`, `sim/`, `octave/`, `download/`, `theories/`, `wikis/`, `archives/`, and any wireless-specific tooling under those.
 - For each changed config file, read the actual diff: `git -C "$UP" show "$BASE"..HEAD -- <file>` (or per-commit). Classify each: **modified**, **added** (new skill/rule/command), or **deleted**.
 
@@ -62,27 +65,41 @@ Full provenance: the `claude-infra-ported-from-data-channel-receiver` memory and
 
 This repo ported the full math/cross-link toolchain into `viewer/tools/`: `lint-math.py`, `validate-refs.py`, `renumber-equations.py`, `renumber-sections.py`, `renumber-paragraphs.py`, `link-references.py`, `check-citation-sources.py`, `check-report-completeness.py`, `check-footnote-refs.py`, `crosslink.py` (+ `test_crosslink.py`), `build-index.py`, `init-doc.py`, `split-markdown.py`, `verify.py`. The toolchain is **complete** — there is no longer a "not yet ported" backlog. If a delta changes an already-ported tool, re-apply the change directly (these are domain-agnostic Python — no remap needed beyond docstring examples). If a delta adds a brand-new self-contained (stdlib-only) tool, port it verbatim.
 
+### Viewer application code (mostly domain-agnostic — re-adapt only embedded content)
+
+The viewer *framework* — server (`serve.js`), client (`viewer.js` + `lib/**`), styles (`style.css`), PWA (`sw.js`, `manifest.webmanifest`), and the test harness — is a **domain-agnostic reading app**, so like `viewer/tools/` an upstream change applies **directly**: there is no telecom→LLM remap of the framework code itself. The special handling is narrower:
+
+- **Re-adapt only the embedded *content*.** Demo SPECs, sample data, and test fixtures carry domain examples — e.g. the figure-pipeline demo `SPEC` was re-domained pitch/telecom → scaled-dot-product-attention, and fixture labels/sample-survey paths are LLM-ward here. Retarget these, never copy them.
+- **Preserve local divergences — surgical, never wholesale.** This repo's viewer carries local-only fixes (e.g. the multi-span-highlight rendering fix) and may sit ahead of or behind upstream on a given file. Apply the *equivalent* change as a seam edit against the local file; do **not** overwrite a diverged file (that clobbers the local fix). Worked precedents: `decisions/2026-06-17-01` (the wholesale-sync mechanism, now demoted to a bootstrap/recovery fallback) and `decisions/2026-06-28-03` (the figure-pipeline + sionna-gates import).
+- **Keep local deploy identifiers.** `viewer/cloudflare/**` (and any publish config) may carry account / project / zone IDs — keep **this** repo's, do not import upstream's.
+- **Large multi-file viewer delta = Workflow fan-out.** A new subsystem (as figure-pipeline was) is worth one agent per file + a test-run verify, not a serial hand-port.
+
 ## 3. Verify
 
 ```bash
-# Leakage: no wireless/telecom terms may survive in ported config.
+# Leakage: no wireless/telecom terms may survive in ported config OR viewer content.
 # Expected self-hits (NOT leakage): this command file's own mapping table + grep,
 # and upstream-sync.json's provenance note — exclude them and read the rest.
+# vendor/ + node_modules/ are copied-verbatim third-party (minified false positives) — skip.
 grep -rniE 'ldpc|3gpp|\birc\b|harq|\bofdm\b|otfs|\bntn\b|\b5g\b|wireless|\bfll\b|\bpll\b|beamform|zadoff|\bisac\b|\bbler\b' \
-    CLAUDE.md AGENTS.md .claude/ viewer/tools/ \
+    CLAUDE.md AGENTS.md .claude/ viewer/ bench/ \
+    --exclude-dir=node_modules --exclude-dir=vendor --exclude-dir=test-results \
     | grep -vE '\.claude/commands/sync-upstream\.md|\.claude/upstream-sync\.json'
 python3 -m py_compile <any changed .py>        # Python still compiles
 python3 -m json.tool <any changed .json> >/dev/null   # JSON still valid
+node --check <any changed viewer .js>          # viewer JS still parses
 ```
 
-Confirm rule/skill/dir names still match `CLAUDE.md`'s canonical catalogs. If a `viewer/tools/*.py` changed, run the relevant `viewer/tools/test_*.py` (or `/check-survey surveys/attention-demo` as the end-to-end gate).
+Confirm rule/skill/dir names still match `CLAUDE.md`'s canonical catalogs.
+- If a `viewer/tools/*.py` changed, run the relevant `viewer/tools/test_*.py` (or `/check-survey surveys/attention-demo` as the end-to-end gate).
+- **If viewer app code changed** (`serve.js` / `viewer.js` / `lib/**` / `style.css` / `index.html`), run the viewer suite as the gate: the unit tests (`npm --prefix viewer test`) and any e2e spec the change touches (`cd viewer && npx playwright test <changed-or-related>.spec.js`). A viewer delta is not "ported" until its tests are green here, re-adapted fixtures included.
 
 ## 4. Record + advance the mark
 
 - Update `.claude/upstream-sync.json`: set `last_synced_commit` to the upstream HEAD SHA just synced and `last_synced_date` to today.
 - Append a `prompts/` conversation-log entry citing the upstream SHAs ported.
 - Per Todo Capture, file a `todos/` entry for any delta you could **not** fully port this pass.
-- Commit (`chore: sync upstream config deltas from data-channel-receiver`) listing the upstream SHAs; push only if the user asks.
+- Commit (`chore: sync upstream config + viewer deltas from data-channel-receiver`) listing the upstream SHAs; push only if the user asks.
 
 ## Reverse — sync-back (here → upstream) [`--back`]
 
