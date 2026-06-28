@@ -30,6 +30,12 @@
     // wide-desktop only; opt-in (default off). The floating peek popover stays
     // the resolution path whenever the band is gated off.
     marginNotes:         { def: false,    ok: (v) => typeof v === 'boolean' },
+    // Render style for spec-driven figures (any figure marked with a title
+    // sentinel opts in). 'image' keeps the embedded static PNG; the others
+    // render the figure live and reflow it. Valid ids mirror
+    // viewer/lib/figure-pipeline.js STYLE_IDS — hardcoded here because that
+    // module loads after this SCHEMA is evaluated.
+    figureStyle:         { def: 'colour-academic', ok: (v) => ['colour-academic', 'monochrome', 'minimal', 'swimlane', 'image'].indexOf(v) !== -1 },
   };
 
   // [legacyKey, schemaKey, parse]

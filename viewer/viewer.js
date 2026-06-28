@@ -1297,6 +1297,7 @@ function renderToContent(markdown, anchor) {
   contentEl.innerHTML = render(markdown);
   setupLazyDisplayMath();
   fixRelativePaths();
+  enhanceFigures();
   installFootnoteRefHandlers();
   installPeekHandlers();
   renderMermaidDiagrams();
@@ -1704,6 +1705,133 @@ function currentFileDir() {
   if (!currentFile) return '';
   const idx = currentFile.lastIndexOf('/');
   return idx >= 0 ? currentFile.slice(0, idx) : '';
+}
+
+// ── Spec-driven figures (progressive enhancement) ────────────────────────────
+// A figure embedded as `![alt](fig.png "ID")` where ID is a known figure is
+// upgraded in the viewer to a live, reflowing, style-switchable render
+// (viewer/lib/figure-pipeline.js). GitHub / no-JS keep the static PNG. The
+// figure DATA is a sibling `spec.json` (same dir as the PNG), fetched once.
+// To add a figure: register its id below + ship `<dir>/spec.json` + a renderer
+// in figure-pipeline.js — no other viewer change.
+const FIGURE_REGISTRY = { 'pipeline-figure': true };
+const figureSpecCache = {}; // id -> Promise<spec|null>
+
+function currentFigureStyle() {
+  return settingsStore.get('figureStyle') || 'colour-academic';
+}
+
+function figureSpec(id, specUrl) {
+  if (!figureSpecCache[id]) {
+    figureSpecCache[id] = fetch(specUrl)
+      .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null);
+  }
+  return figureSpecCache[id];
+}
+
+// Post-render: wrap each not-yet-wrapped marked image, then render the current
+// style. Idempotent — re-running skips already-wrapped figures.
+function enhanceFigures() {
+  if (!window.FigurePipeline) return;
+  window.FigurePipeline.ensureStyles();
+  contentEl.querySelectorAll('img[title]').forEach((img) => {
+    const id = img.getAttribute('title');
+    if (!FIGURE_REGISTRY[id]) return;
+    if (img.closest('.fp-wrap')) return; // already enhanced
+    const src = img.getAttribute('src') || '';
+    const wrap = document.createElement('div');
+    wrap.className = 'fp-wrap';
+    wrap.dataset.figureId = id;
+    wrap.dataset.specUrl = src.replace(/[^/]+$/, 'spec.json');
+    img.replaceWith(wrap);
+    img.classList.add('fp-fallback');
+    wrap.appendChild(img);
+    const renderDiv = document.createElement('div');
+    renderDiv.className = 'fp-render';
+    wrap.appendChild(renderDiv);
+    wrap.appendChild(buildFigureChip());
+    renderFigure(wrap);
+  });
+}
+
+// Re-render every enhanced figure in place — called by the store subscriber on a
+// figureStyle change (no full document re-render; mirrors applyMarginNotes()).
+function applyFigureStyle() {
+  contentEl.querySelectorAll('.fp-wrap').forEach(renderFigure);
+}
+
+function renderFigure(wrap) {
+  const id = wrap.dataset.figureId;
+  const style = currentFigureStyle();
+  const renderDiv = wrap.querySelector('.fp-render');
+  const img = wrap.querySelector('img.fp-fallback');
+  updateFigureChip(wrap, style);
+  // Toggle via inline display (beats the higher-specificity `#content img` rule
+  // in style.css, which would otherwise keep the static PNG visible).
+  if (style === 'image') {
+    if (renderDiv) { renderDiv.innerHTML = ''; renderDiv.style.display = 'none'; }
+    if (img) img.style.display = '';
+    return;
+  }
+  if (img) img.style.display = 'none';
+  if (renderDiv) renderDiv.style.display = '';
+  figureSpec(id, wrap.dataset.specUrl).then((spec) => {
+    if (!renderDiv) return;
+    if (currentFigureStyle() !== style) return; // a newer change superseded this
+    if (!spec) { renderDiv.style.display = 'none'; if (img) img.style.display = ''; return; }
+    renderDiv.innerHTML = window.FigurePipeline.render(spec, style);
+  });
+}
+
+function buildFigureChip() {
+  const chip = document.createElement('div');
+  chip.className = 'fp-chip';
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'fp-chip-btn';
+  btn.setAttribute('aria-haspopup', 'true');
+  btn.title = 'Figure style';
+  btn.textContent = '▦ style ▾';
+  const menu = document.createElement('div');
+  menu.className = 'fp-chip-menu';
+  menu.hidden = true;
+  (window.FigurePipeline ? window.FigurePipeline.STYLES : []).forEach((s) => {
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.dataset.styleId = s.id;
+    item.textContent = s.label;
+    item.addEventListener('click', () => {
+      settingsStore.set('figureStyle', s.id);
+      menu.hidden = true;
+      chip.classList.remove('open');
+    });
+    menu.appendChild(item);
+  });
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const open = menu.hidden;
+    menu.hidden = !open;
+    chip.classList.toggle('open', open);
+    if (open) {
+      const close = (ev) => {
+        if (!chip.contains(ev.target)) {
+          menu.hidden = true; chip.classList.remove('open');
+          document.removeEventListener('click', close);
+        }
+      };
+      setTimeout(() => document.addEventListener('click', close), 0);
+    }
+  });
+  chip.appendChild(btn);
+  chip.appendChild(menu);
+  return chip;
+}
+
+function updateFigureChip(wrap, style) {
+  wrap.querySelectorAll('.fp-chip-menu button[data-style-id]').forEach((b) => {
+    b.setAttribute('aria-current', b.dataset.styleId === style ? 'true' : 'false');
+  });
 }
 
 // Resolve a relative .md path against the current file's directory
@@ -2432,11 +2560,11 @@ function scrollToAnchor(anchor, opts) {
   const smooth = !instant && !document.documentElement.classList.contains('no-scroll-fx');
   // 'instant' (not 'auto') — behavior:'auto' defers to the html
   // scroll-behavior:smooth CSS and would still animate.
-  el.scrollIntoView({ behavior: instant ? 'instant' : (smooth ? 'smooth' : 'auto'), block: 'center' });
+  el.scrollIntoView({ behavior: instant ? 'instant' : (smooth ? 'smooth' : 'auto'), block: 'start' });
   if (hasPendingMath) {
     setTimeout(() => {
       const target = document.getElementById(anchor);
-      if (target) target.scrollIntoView({ behavior: 'instant', block: 'center' });
+      if (target) target.scrollIntoView({ behavior: 'instant', block: 'start' });
     }, 350);
   }
   // Flash highlight
@@ -6006,6 +6134,7 @@ settingsStore.subscribe((key, value) => {
     applyMarginNotes();
   }
   if (key === 'marginNotes') applyMarginNotes();
+  if (key === 'figureStyle') applyFigureStyle();
 });
 
 function loadSettings() {
@@ -6128,6 +6257,14 @@ function loadSettings() {
   document.querySelectorAll('input[name="content-font"]').forEach((r) => {
     r.checked = r.value === settingsStore.get('fontFamily');
     r.addEventListener('change', (e) => { if (e.target.checked) settingsStore.set('fontFamily', e.target.value); });
+  });
+
+  // Figure style (spec-driven figures) — radios mirror the inline figure chip
+  // and the palette commands; the store subscriber's applyFigureStyle()
+  // re-renders any enhanced figure in place on change.
+  document.querySelectorAll('input[name="figure-style"]').forEach((r) => {
+    r.checked = r.value === settingsStore.get('figureStyle');
+    r.addEventListener('change', (e) => { if (e.target.checked) settingsStore.set('figureStyle', e.target.value); });
   });
   // (Store subscriber lives at module scope, right after settingsStore — see
   // the comment there.)
@@ -6413,6 +6550,10 @@ function paletteCommands() {
     { text: 'Copy citation', run: palAct(() => {
         if (savedRange) copyCitation('rich'); else showToast('Select text first');
       }) },
+    // Figure render style (mirrors the settings-sheet group + the inline chip).
+    ...(window.FigurePipeline ? window.FigurePipeline.STYLES.map((s) => (
+      { text: 'Figure style: ' + s.label, run: palAct(() => settingsStore.set('figureStyle', s.id)) }
+    )) : []),
   ];
   if (cloud) {
     cmds.push({ text: 'Push annotations to cloud', run: palAct(() => {
@@ -6690,9 +6831,37 @@ document.getElementById('setting-update-fx').addEventListener('change', (e) => {
 // ---------------------------------------------------------------------------
 // Init
 // ---------------------------------------------------------------------------
+// Keep wheel scroll inside a chrome region even when its content fits and shows no
+// scrollbar. CSS overscroll-behavior:contain only engages when the element is
+// actually scrollable, so the fits case (a #sidebar with few items, a modal whose
+// content fits, or the modal backdrop) still chains to the page. This walks the
+// wheel target's ancestor chain within the region; if nothing there can scroll in
+// the wheel's direction, the chain to the document is prevented.
+function trapRegionScroll(region) {
+  if (!region || region._scrollTrapped) return;
+  region._scrollTrapped = true;
+  region.addEventListener('wheel', (e) => {
+    for (let n = e.target; n && n !== region.parentElement; n = n.parentElement) {
+      if (n.scrollHeight > n.clientHeight + 1) {
+        const atTop = n.scrollTop <= 0;
+        const atBottom = n.scrollTop + n.clientHeight >= n.scrollHeight - 1;
+        if (!((e.deltaY < 0 && atTop) || (e.deltaY > 0 && atBottom))) return;
+      }
+    }
+    e.preventDefault();
+  }, { passive: false });
+}
+
+function setupScrollTraps() {
+  ['sidebar', 'right-pane', 'content-b', 'settings-sheet', 'cmd-palette', 'shortcut-cheatsheet']
+    .map((id) => document.getElementById(id))
+    .forEach(trapRegionScroll);
+}
+
 async function init() {
   // One-time event registrations
   contentEl.addEventListener('click', handleLinkClick);
+  setupScrollTraps();
 
   const { version: initVersion } = await fetchFileList();
   buildSidebar();

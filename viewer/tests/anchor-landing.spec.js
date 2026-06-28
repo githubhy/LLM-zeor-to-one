@@ -80,3 +80,47 @@ test('docs mode: a heading uses ~0 scroll-margin-top (no top chrome)', async ({ 
     expect(sm).toBeLessThan(8);
   } finally { stopServer(server, dir); }
 });
+
+// Behavioral: scrollToAnchor must land the target at the top (block:'start',
+// honoring scroll-margin-top), not centre it. The CSS-only tests above pass even
+// with block:'center' (which ignores scroll-margin-top), so this guards the JS.
+const DEEP_DOC = `# Landing Doc
+
+Jump to [the deep section](#deep-section).
+
+` + Array.from({ length: 50 }, (_, i) => `Filler paragraph ${i} lorem ipsum dolor sit amet.`).join('\n\n')
+  + `
+
+## Deep Section
+
+Body under the deep section.
+
+` + Array.from({ length: 25 }, (_, i) => `Tail filler ${i} lorem ipsum.`).join('\n\n') + '\n';
+
+test('docs mode: navigating to a deep heading lands it at the top, not centred', async ({ page }) => {
+  const p = nextPort();
+  const dir = createFixtureDir({ 'doc.md': DEEP_DOC });
+  const server = await startServer(dir, p);
+  try {
+    await seedSettings(page, { chrome: 'docs' });   // --chrome-top ~0, no top bar
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(`http://localhost:${p}/?file=doc.md`);
+    await expect(page.locator('#content h1')).toHaveText('Landing Doc');
+    await page.click('#content a[href="#deep-section"]');
+    // Wait for the smooth scroll to SETTLE (two consecutive reads agree), not a
+    // fixed delay — the ~2000px animation outlasts a naive timeout, and the
+    // resting position is what discriminates the fix from the bug.
+    await page.waitForFunction(() => {
+      const t = document.getElementById('deep-section').getBoundingClientRect().top;
+      const settled = window.__pt !== undefined && Math.abs(window.__pt - t) < 0.5;
+      window.__pt = t;
+      return settled;
+    }, null, { timeout: 4000, polling: 100 });
+    const top = await page.evaluate(() =>
+      Math.round(document.getElementById('deep-section').getBoundingClientRect().top));
+    // block:'start' + chrome-top~0 -> rests at the top (~0); block:'center' would
+    // rest at ~viewport/2 (450), failing this bound — that is the regression gate.
+    expect(top).toBeGreaterThanOrEqual(-4);
+    expect(top).toBeLessThan(80);
+  } finally { stopServer(server, dir); }
+});

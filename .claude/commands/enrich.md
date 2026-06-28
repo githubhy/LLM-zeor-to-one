@@ -37,4 +37,4 @@ When the user requests multiple sections in one command, process them sequential
 
 ## Delegation
 
-For large enrichment tasks (3+ sections, or a section that needs both derivation and evidence enrichment), consider delegating to a subagent via the Agent tool. Provide the agent with: survey file path, target section number(s), enrichment direction, the relevant `.claude/rules/` (math-authoring, citation-integrity), and any specific papers to integrate. Dispatch survey/citation work per the Agent Fan-Out model-selection guidance in `CLAUDE.md` (keep correctness-gating evidence work on Opus).
+For large enrichment tasks (3+ sections, or a section that needs both derivation and evidence enrichment), consider delegating to the `survey-enricher` agent via the Agent tool. Provide the agent with: survey file path, target section number(s), enrichment direction, the relevant `.claude/rules/` (math-authoring, citation-integrity), and any specific papers to integrate. Dispatch survey/citation work per the Agent Fan-Out model-selection guidance in `CLAUDE.md` (keep correctness-gating evidence work on Opus).

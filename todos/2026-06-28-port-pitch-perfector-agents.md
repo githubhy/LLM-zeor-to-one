@@ -1,8 +1,26 @@
 ---
 slug: port-pitch-perfector-agents
 date_filed: 2026-06-28
-status: open
+status: closed
 ---
+
+**Resolution (2026-06-28).** All three agents ported into `.claude/agents/`, re-adapted MIR→LLM:
+- **`survey-enricher.md`** (opus) — "Staff Audio DSP & MIR" → "Staff LLM/AI Research Engineer";
+  body constraints kept (domain-agnostic) + added explicit math-authoring / citation-integrity rule
+  reads and the `references.md` ↔ `download/` source-tag invariant. By-name refs restored:
+  `/enrich.md` Delegation now names `survey-enricher`; `method-eval` Derive stage now uses
+  `agentType:'survey-enricher'` (review/test stages `agentType:'general-purpose'`, mirroring upstream).
+- **`evidence-collector.md`** — model `haiku`→`sonnet` (deviation from upstream; per `CLAUDE.md`
+  Agent Fan-Out "evidence-gathering against a fixed schema → Sonnet" + citation-integrity emphasis);
+  venues ISMIR/TASLP/JASA/DAFx → NeurIPS/ICML/ICLR/ACL/EMNLP/TMLR/JMLR + model cards. Already
+  referenced by `deep-research-survey` Phase 3 and the `skill-improvement` landscape workflow (now resolve).
+- **`viewer-dev.md`** (sonnet) — de-MIR'd and de-"forthcoming"'d: this repo's viewer is complete, so the
+  file now points at the real `viewer/` files + the `node:test`/Playwright suites; dropped the
+  "eventual product pitch-tracking app" framing (no product app here); examples YIN/SWIPE/CREPE →
+  attention/softmax/RoPE/scaling-law.
+
+Added a `### Agents` catalog to `CLAUDE.md` (upstream has none, but this repo catalogs everything).
+Leakage-clean. See `decisions/2026-06-28-04-port-and-readapt-pitch-perfector-agents.md`.
 
 # Port (or decide against) the three pitch-perfector subagents
 

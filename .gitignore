@@ -6,6 +6,9 @@ __pycache__/
 # Cache-warmer runtime markers + validation dirty-flag (session-local, transient)
 .claude/cache-warmer.*.active
 .claude/validate-refs.dirty
+.claude/.tmp/
+# Per-turn API-usage telemetry (session-keyed JSONL; machine-local, not shared)
+**/.claude/diagnostics/
 
 # Acquired full-text sources: PDFs are tracked via Git LFS (see .gitattributes).
 # Still ignore any other (non-PDF) contents of download/.

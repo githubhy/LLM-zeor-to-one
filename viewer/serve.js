@@ -658,7 +658,16 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  if (pathname.startsWith('/figures/') || pathname.match(/\.(png|jpg|jpeg|gif|svg)$/i)) {
+  // Static assets via the cross-root fallback. Images are served from ANY path
+  // (matched by extension) so markdown anywhere can embed them. Interactive
+  // figure artifacts (.html/.pdf/.json) are served only when they live under a
+  // `figures/` OR `artifacts/` directory, so a deep-path interactive figure (e.g.
+  // sim/.../tools/figures/fig-*.html or artifacts/<study>/fig.html, linked from a
+  // survey far away) is reachable exactly like its sibling .png — without opening
+  // the whole repo's HTML to the asset route. A `/figures/`-prefixed URL is still
+  // served regardless of suffix.
+  const isFigureArtifact = (pathname.includes('/figures/') || pathname.includes('/artifacts/')) && /\.(html|pdf|json)$/i.test(pathname);
+  if (pathname.startsWith('/figures/') || /\.(png|jpg|jpeg|gif|svg)$/i.test(pathname) || isFigureArtifact) {
     const filePath = assetPathFor(pathname.slice(1));
     if (filePath) {
       res.writeHead(200, { 'Content-Type': mime(filePath) });

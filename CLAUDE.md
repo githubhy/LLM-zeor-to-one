@@ -175,6 +175,14 @@ Prefer repo-local skills under `.claude/skills/` when they exist.
 - `/refine-plan <plan>` — Review a plan against the real code AND update the plan in place to fix every issue found. Defined in `.claude/commands/refine-plan.md`.
 - `/bg` — Report only the background task count (single integer; calls `TaskList` once). Compose with `/loop` for polling. Defined in `.claude/commands/bg.md`.
 
+### Agents
+
+Custom subagent definitions under `.claude/agents/`, dispatched via the `Agent` tool's `subagent_type`/`agentType` (or a `Workflow` `agent()` call's `opts.agentType`). Re-adapt model choice per the Agent Fan-Out rule above.
+
+- `survey-enricher` (opus) — Staff LLM/AI Research Engineer that enriches a survey section with first-principles derivations, method inventory, and SOTA assessment under the math-authoring + citation-integrity rules. Referenced by `/enrich` (Delegation) and the `method-eval` Derive stage. File: `.claude/agents/survey-enricher.md`
+- `evidence-collector` (sonnet) — parallel evidence-gatherer that returns a structured evidence ledger (quality-graded, citation-faithful) for a research question. Referenced by `deep-research-survey` Phase 3 and the `skill-improvement` landscape workflow. File: `.claude/agents/evidence-collector.md`
+- `viewer-dev` (sonnet) — frontend developer for the local markdown viewer (`viewer/` HTML/CSS/JS + `serve.js`); preserves KaTeX/math shielding, no build step. File: `.claude/agents/viewer-dev.md`
+
 ### Skill Usage Rules
 
 - Check `.claude/skills/` first for a matching repo-local skill.
