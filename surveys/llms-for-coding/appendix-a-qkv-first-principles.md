@@ -180,6 +180,17 @@ $$
 
 <a id="p-a6-intuition-ii-the-score-is-a-learned-matched-filter-6"></a><!-- para:a6-intuition-ii-the-score-is-a-learned-matched-filter-6 --> **Where attention departs from the classical filter.** Four departures, now precise. *(i) Adaptive, but only in the loose sense* — the templates are generated from the data, $\mathbf{q}_i = W_Q\mathbf{x}_i$, so ==pink: the head is an **adaptive filter** whose bank is rebuilt per input==. The word needs care, because two senses of "adaptive" pull apart here. In the *loose* sense it means **input-dependent**, which attention is. In the *technical SP* sense an **adaptive filter** (LMS, RLS) drives its coefficients toward an MMSE optimum by a recursive, error-fed update across samples, $\mathbf{w}_{n+1} = \mathbf{w}_n + \mu\, e_n\, \mathbf{x}_n$ — and attention is **not** that: at inference it runs no such loop, the templates being a closed-form feedforward map of the current input with $W_Q, W_K$ frozen, so there is no error signal, no recursion, and no convergence. ==orange: The only learning is the offline training that *designs* the filter bank (analogous to choosing the templates/whitening of a matched filter), not an online adaptation of it==. This is why the procedures of <!-- secref:A.6 -->[§A.6](#sec-A.6) map cleanly onto a *fixed* matched filter — the detection operation — and not onto an LMS/RLS recursion that has no counterpart in the forward pass. *(ii) Learned, not noise-derived, metric* — a classical filter's whitening $\Sigma^{-1}$ is dictated by the noise statistics, whereas $M = W_Q^{\top}W_K$ is learned end-to-end and is generally **asymmetric**, a *directed* comparison rather than a symmetric Mahalanobis metric. *(iii) Soft, not hard* — the receiver commits to one template and decodes it, while attention keeps the whole posterior and returns the confidence-weighted average of payloads $\mathbf{o}_i = \sum_{j\le i} a_{ij}\mathbf{v}_j$, the MMSE-flavoured soft combiner that is exactly the kernel-regression dual of <!-- secref:A.5 -->[§A.5](#sec-A.5) rather than a detect-then-fetch. *(iv) Global and content-addressed* — the comparison runs over the whole causally masked sequence and is addressed by content, not by a fixed time-lag as in a convolution's local, position-addressed taps.
 
+> <a id="p-a6-intuition-ii-the-score-is-a-learned-matched-filter-7"></a><!-- para:a6-intuition-ii-the-score-is-a-learned-matched-filter-7 --> **Note — How far is the learned $M$ from a whitening $\Sigma^{-1}$?** They
+> share only one thing: both are the bilinear kernel of a quadratic comparison
+> ($\mathbf{s}^{\top}\Sigma^{-1}\mathbf{r}$ versus $\mathbf{x}_i^{\top}M\mathbf{x}_j$).
+> Otherwise $M$ is strictly more general — a covariance inverse is **symmetric,
+> positive-definite, full-rank, and noise-derived**, whereas $M = W_Q^{\top}W_K$
+> is generally **asymmetric, indefinite, rank $\le d_k \ll d$, and task-learned**.
+> The sharpest gap is symmetry: split $M = M_{\mathrm{sym}} + M_{\mathrm{skew}}$;
+> a $\Sigma^{-1}$ has no skew part, so the directed piece $M_{\mathrm{skew}}$ —
+> which makes $i\!\to\!j$ differ from $j\!\to\!i$ — has no matched-filter
+> counterpart at all. The full account is in <!-- secref:A.17 -->[§A.17](#sec-A.17).
+
 <!-- sec:A.7 -->
 ### <a id="sec-A.7"></a>A.7 The $1/\sqrt{d_k}$ Scaling, Derived
 
@@ -463,3 +474,33 @@ $$
 <a id="p-a16-why-the-soft-detector-is-the-bayes-posterior-8"></a><!-- para:a16-why-the-soft-detector-is-the-bayes-posterior-8 --> **Caveat — unequal energies.** The clean "softmax of pure correlators" needs $\lVert\mathbf{s}_j\rVert^2 = E$. If the templates differ in energy, the $\lVert\mathbf{s}_j\rVert^2$ term in Equation <!-- ref:A-16-3 -->[(16)](#eq-16) does not cancel and reappears as a per-hypothesis bias, $p(j\mid\mathbf{r}) = \mathrm{softmax}_j\big((\mathbf{s}_j^{\top}\mathbf{r} - \tfrac{1}{2}\lVert\mathbf{s}_j\rVert^2)/\sigma^2\big)$ — an energy correction acting like a log-prior. Attention carries no explicit such term; the model folds any key-norm effect into the learned $W_K$ and $M$ of <!-- secref:A.2 -->[§A.2](#sec-A.2).
 
 <a id="p-a16-why-the-soft-detector-is-the-bayes-posterior-9"></a><!-- para:a16-why-the-soft-detector-is-the-bayes-posterior-9 --> **Intuition.** In communications terms Equation <!-- ref:A-16-4 -->[(17)](#eq-17) is the symbol-wise a-posteriori-probability (APP) output of a soft-output detector: rather than slicing to the nearest constellation point, it reports the full posterior over symbols and passes it on as soft information. Attention is that detector with a *learned* constellation (the keys) and a *learned* metric ($M$), reading out a posterior-weighted payload instead of a decoded symbol.
+
+<!-- sec:A.17 -->
+### <a id="sec-A.17"></a>A.17 The Learned Metric $M$ versus the Whitening $\Sigma^{-1}$
+
+<a id="p-a17-the-learned-metric-m-versus-the-whitening-sigma-1-1"></a><!-- para:a17-the-learned-metric-m-versus-the-whitening-sigma-1-1 --> The whitening-metric row of <!-- secref:A.6 -->[§A.6](#sec-A.6) lines $M = W_Q^{\top}W_K$ up with the inverse noise covariance $\Sigma^{-1}$ of an optimal matched filter. The two share exactly one property — each is the matrix $K$ in a quadratic comparison $\mathbf{a}^{\top}K\mathbf{b}$ (the statistic $\mathbf{s}^{\top}\Sigma^{-1}\mathbf{r}$ versus the score $\mathbf{x}_i^{\top}M\mathbf{x}_j$ of Equation <!-- ref:A-3 -->[(3)](#eq-3)) — and differ on everything else. $M$ is *strictly more general*: $\Sigma^{-1}$ is the special case of $M$ that is symmetric, positive-definite, full-rank, and noise-derived.
+
+<a id="p-a17-the-learned-metric-m-versus-the-whitening-sigma-1-2"></a><!-- para:a17-the-learned-metric-m-versus-the-whitening-sigma-1-2 --> **The sharpest gap, made exact.** Split any $M$ into its symmetric and skew-symmetric parts:
+
+<a id="eq-18"></a><!-- eq:A-17-1 -->
+$$
+M = \underbrace{\tfrac{1}{2}(M+M^{\top})}_{M_{\mathrm{sym}}} \;+\; \underbrace{\tfrac{1}{2}(M-M^{\top})}_{M_{\mathrm{skew}}}. \tag{18}
+$$
+
+<a id="p-a17-the-learned-metric-m-versus-the-whitening-sigma-1-3"></a><!-- para:a17-the-learned-metric-m-versus-the-whitening-sigma-1-3 --> A covariance inverse is symmetric, so $\Sigma^{-1}$ has *no* skew part — $M_{\mathrm{skew}}$ is exactly the piece of $M$ with no whitening-filter counterpart. It is what makes the comparison **directed**: $\mathbf{x}_i^{\top}M_{\mathrm{skew}}\mathbf{x}_j = -\mathbf{x}_j^{\top}M_{\mathrm{skew}}\mathbf{x}_i$, so the score reverses sign under $i \leftrightarrow j$ and the self-score $\mathbf{x}^{\top}M_{\mathrm{skew}}\mathbf{x} = 0$. Only $M_{\mathrm{sym}}$ could ever be a $\Sigma^{-1}$ — and even it differs, since it need not be positive-definite and is low-rank. So the analogy reaches *at most* the symmetric part of $M$.
+
+<a id="p-a17-the-learned-metric-m-versus-the-whitening-sigma-1-4"></a><!-- para:a17-the-learned-metric-m-versus-the-whitening-sigma-1-4 --> **The four relaxations, in order of significance.**
+
+| Property | $\Sigma^{-1}$ (whitening) | $M = W_Q^{\top}W_K$ | Consequence |
+|---|---|---|---|
+| symmetry | symmetric (a true metric) | generally **asymmetric** ($W_Q\neq W_K$) | $M$ encodes a *directed* read — what a token offers as a key need not equal what it seeks as a query; a symmetric metric cannot express this |
+| definiteness | positive-definite | generally **indefinite** | scores may be negative; $\mathbf{x}^{\top}M\mathbf{x}$ is not a valid norm, while $\Sigma^{-1}$ always returns non-negative energy |
+| rank | full-rank ($d\times d$) | rank $\le d_k \ll d$ (the bottleneck) | $M$ compares only inside a $d_k$-dimensional subspace (<!-- secref:A.2 -->[§A.2](#sec-A.2), <!-- secref:A.8 -->[§A.8](#sec-A.8)); whitening uses every direction |
+| origin | noise-derived (fixed by the noise statistics, SNR-optimal) | task-learned (gradient descent on the loss) | $M$ can encode syntactic or semantic structure no noise model would produce |
+
+<a id="p-a17-the-learned-metric-m-versus-the-whitening-sigma-1-5"></a><!-- para:a17-the-learned-metric-m-versus-the-whitening-sigma-1-5 --> **What to take away.**
+
+- <a id="p-a17-the-learned-metric-m-versus-the-whitening-sigma-1-6"></a><!-- para:a17-the-learned-metric-m-versus-the-whitening-sigma-1-6 --> **$\Sigma^{-1}$ is a corner of the space $M$ lives in.** The matched-filter metric is the symmetric, positive-definite, full-rank, noise-optimal special case; $M$ relaxes all four. The single shared property is being the bilinear kernel of the comparison — the basis of the analogy, and its only load-bearing point.
+- **The asymmetry is qualitative, not quantitative.** A whitening metric is symmetric *by definition*, so $M_{\mathrm{skew}}$ is not a "larger" or "smaller" $\Sigma^{-1}$ — it is outside the matched-filter picture entirely. This is also why the kernel-regression reading of <!-- secref:A.5 -->[§A.5](#sec-A.5) carries the explicit caveat "*when $M$ is symmetric positive-definite*" — that is exactly the corner where the metric analogy is clean.
+
+<a id="p-a17-the-learned-metric-m-versus-the-whitening-sigma-1-7"></a><!-- para:a17-the-learned-metric-m-versus-the-whitening-sigma-1-7 --> **Intuition.** $\Sigma^{-1}$ is a reciprocal, energy-based (Mahalanobis / generalized-least-squares) metric: $d(\mathbf{a},\mathbf{b}) = d(\mathbf{b},\mathbf{a})$. The skew part of $M$ is a **non-reciprocal coupling** — the gain from $i$ to $j$ differs from the gain from $j$ to $i$, as in a non-Hermitian operator or a directed, non-reciprocal channel. Whitening cannot represent non-reciprocity at all; that is the part of attention that is genuinely *not* a matched filter.

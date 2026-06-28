@@ -96,4 +96,10 @@
 - **Result**: A.16 fold pushed `80ad95d..b0ee259`. Sharpening validated — 17 eq tags, 115 .md links, sections/paragraphs/bare-refs clean. Sharpening + todo **uncommitted**.
 - **Findings**: The matched-filter analogy is exact for the *detection* operation; the only correct "adaptive/online-learner" reading is at a different level (a stack's in-context optimization), which is why it's a separate (source-gated) intuition, not a reframing of §A.6.
 
+## Conversation 18
+- **Request**: To what extent is $M$ different from the whitening $\Sigma^{-1}$? → then fold it in, commit, push.
+- **Actions**: Answered: $M$ is **strictly more general** — $\Sigma^{-1}$ is the symmetric/PD/full-rank/noise-derived special case; $M$ relaxes all four (asymmetric, indefinite, rank $\le d_k\ll d$, task-learned); sharpest gap = symmetry (skew part $M_{\mathrm{skew}}$ has no whitening counterpart; non-reciprocal coupling). Then `survey-explainer-fold`: (1) compact `> **Note —**` after the §A.6 departures paragraph (host = whitening-metric departure), forward-linking §A.17; (2) new **A.17 "The Learned Metric $M$ versus the Whitening $\Sigma^{-1}$"** at file end with numbered display **eq 18** (symmetric/skew split, cascade-free), the antisymmetry property, a four-relaxation table (symmetry/definiteness/rank/origin), what-to-take-away, and the non-reciprocal-coupling intuition. Refs to §A.6/§A.2/§A.8/§A.5 + eq (3). No external citation (linear-algebra first-principles). Ran sections/paragraphs `--init` + `renumber-equations` (assigned eq 18) + full `--check`.
+- **Result**: All gates green — **18 eq tags sequential** (eq 18 appended, 1–17 untouched), 115 .md links valid, bare-refs + citation-sources clean. Crosslink: A.17 no new gap. Committed + pushed (below).
+- **Findings**: The symmetric/skew decomposition is the crisp "to what extent" answer — $M_{\mathrm{sym}}$ is the only part that could be a $\Sigma^{-1}$ (and even it is low-rank/possibly-indefinite), while $M_{\mathrm{skew}}$ is qualitatively outside the matched-filter picture; this is the same SPD caveat §A.5's kernel reading already carries.
+
 <!-- LOG-END -->
