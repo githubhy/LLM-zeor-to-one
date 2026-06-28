@@ -122,3 +122,18 @@ paragraph anchor sits on the line **above** each `[N]` so `check-citation-source
 
 <a id="ref-38"></a><!-- bib:38 -->
 [38] A. Défossez, L. Mazaré, M. Orsini, et al., "Moshi: a speech-text foundation model for real-time dialogue," Kyutai, 2024. https://kyutai.org/Moshi.pdf (web)
+
+<a id="ref-39"></a><!-- bib:39 -->
+[39] C. Schuhmann, R. Beaumont, R. Vencu, et al., "LAION-5B: An Open Large-Scale Dataset for Training Next Generation Image-Text Models," NeurIPS 2022 (Datasets & Benchmarks). arXiv:2210.08402. (local: download/schuhmann-laion5b-2022.pdf)
+
+<a id="ref-40"></a><!-- bib:40 -->
+[40] W. Zhu, J. Hessel, A. Awadalla, et al., "Multimodal C4: An Open, Billion-scale Corpus of Images Interleaved with Text," NeurIPS 2023 (Datasets & Benchmarks). arXiv:2304.06939. (local: download/zhu-mmc4-2023.pdf)
+
+<a id="ref-41"></a><!-- bib:41 -->
+[41] L. Chen, J. Li, X. Dong, et al., "ShareGPT4V: Improving Large Multi-Modal Models with Better Captions," ECCV 2024. arXiv:2311.12793. (local: download/chen-sharegpt4v-2023.pdf)
+
+<a id="ref-42"></a><!-- bib:42 -->
+[42] T. Yu, Y. Yao, H. Zhang, et al., "RLHF-V: Towards Trustworthy MLLMs via Behavior Alignment from Fine-grained Correctional Human Feedback," CVPR 2024. arXiv:2312.00849. (local: download/yu-rlhfv-2023.pdf)
+
+<a id="ref-43"></a><!-- bib:43 -->
+[43] F. Wang, W. Zhou, J. Y. Huang, et al., "mDPO: Conditional Preference Optimization for Multimodal Large Language Models," EMNLP 2024. arXiv:2406.11839. (local: download/wang-mdpo-2024.pdf)
