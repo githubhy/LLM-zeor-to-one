@@ -1,0 +1,28 @@
+{
+ "convention": "column-vector, single attention head (Appendix A, A.1)",
+ "shapes": {
+  "x": "R^d",
+  "W_Q": "R^{d_k x d}",
+  "W_K": "R^{d_k x d}",
+  "W_V": "R^{d_v x d}",
+  "q": "R^{d_k}",
+  "k": "R^{d_k}",
+  "v": "R^{d_v}",
+  "o": "R^{d_v}",
+  "W_O": "R^{d x d_v}",
+  "delta_x": "R^d"
+ },
+ "circuits": {
+  "QK": "M = W_Q^T W_K (A.2)",
+  "OV": "W_OV = W_O W_V (A.3)"
+ },
+ "param_count_per_head": "2*d*d_k + 2*d*d_v = 2 d (d_k + d_v)",
+ "base_transformer": {
+  "d": 512,
+  "d_k": 64,
+  "d_v": 64,
+  "h": 8,
+  "params_per_head": 131072,
+  "source": "ref 54 (Vaswani et al. 2017); magnitudes tabled in A.13"
+ }
+}

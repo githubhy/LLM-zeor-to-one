@@ -1,0 +1,12 @@
+{
+ "view": "canonical scaled-dot-product-attention block",
+ "alt_of": "qkv-head-parameters.svg",
+ "param_count_per_head": "2*d*d_k + 2*d*d_v = 2 d (d_k + d_v)",
+ "base_transformer": {
+  "d": 512,
+  "d_k": 64,
+  "d_v": 64,
+  "params_per_head": 131072,
+  "source": "ref 54; magnitudes in A.13"
+ }
+}
