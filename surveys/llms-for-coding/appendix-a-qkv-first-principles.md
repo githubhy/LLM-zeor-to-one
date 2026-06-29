@@ -611,3 +611,93 @@ $$
 <a id="p-a18-composition-across-layers-q-k-and-v-composition-7"></a><!-- para:a18-composition-across-layers-q-k-and-v-composition-7 --> **What it buys.** K-composition lets a head match on *relational context* — "the token after an earlier $A$" — rather than on the raw token identity that is all a single QK circuit reading the bare embeddings can see. It is the smallest circuit that implements copy-with-a-pointer, and the induction heads it builds are the mechanism most directly tied to in-context learning: across a training run their formation coincides with the sharp rise in the model's in-context-learning ability <!-- cite:60 --> [[60]](references.md#ref-60). The same move generalizes — Q-composition reshapes *what* a later head seeks, V-composition lengthens the *content* path — but K-composition is the one that builds a positional pointer, and induction is its canonical instance.
 
 <a id="p-a18-composition-across-layers-q-k-and-v-composition-8"></a><!-- para:a18-composition-across-layers-q-k-and-v-composition-8 --> **Intuition.** Read the residual stream as a shared blackboard (<!-- secref:A.1 -->[§A.1](#sec-A.1)): each head both reads from it and writes to it. *Q-*, *K-*, and *V-composition* are just *which* of a head's three pencils — what it seeks, what it advertises, what it carries — picks up a note an earlier head chalked there. Induction works because the previous-token head writes "my predecessor was $X$" beside every token, and the induction head's *key* pencil reads exactly those notes, so the query "I am $A$; find where $A$ occurred before" lands on the right source and copies what came next.
+
+<!-- sec:A.19 -->
+### <a id="sec-A.19"></a>A.19 One Attention Layer, Written Out in Full
+
+<a id="p-a19-one-attention-layer-written-out-in-full-1"></a><!-- para:a19-one-attention-layer-written-out-in-full-1 --> Sections <!-- secref:A.2 -->[§A.2](#sec-A.2)–<!-- secref:A.8 -->[§A.8](#sec-A.8) derived the *parts* of a head — the comparison metric $M$, the content map $W_{OV}$, the $1/\sqrt{d_k}$ scaling — and <!-- secref:A.10 -->[§A.10](#sec-A.10) assembled the $h$-head layer in the abstract. This section runs a *single causal head end to end* on one concrete input, every quantity shown, so the mechanics are not left to the imagination. Take $T=3$ tokens — the **columns** of $X\in\mathbb{R}^{d\times T}$ in the convention of <!-- secref:A.1 -->[§A.1](#sec-A.1) — model width $d=4$, head width $d_k=d_v=2$, with that section's projection shapes $W_Q,W_K\in\mathbb{R}^{d_k\times d}$, $W_V\in\mathbb{R}^{d_v\times d}$, $W_O\in\mathbb{R}^{d\times d_v}$. The integer weights are chosen only for legibility, so the softmax produces the sole decimals:
+
+<a id="eq-21"></a><!-- eq:A-19-1 -->
+$$
+X = \begin{bmatrix} 1 & 0 & 1 \\ 0 & 1 & 1 \\ 1 & 0 & 1 \\ 0 & 1 & 1 \end{bmatrix}, \quad W_Q = W_K = \begin{bmatrix} 1 & 0 & 1 & 0 \\ 0 & 1 & 0 & 1 \end{bmatrix}, \quad W_V = \begin{bmatrix} 0 & 1 & 0 & 1 \\ 1 & 0 & 1 & 0 \end{bmatrix}, \quad W_O = \begin{bmatrix} 1 & 0 \\ 0 & 1 \\ 1 & 0 \\ 0 & 1 \end{bmatrix}. \tag{21}
+$$
+
+<!-- sec:A.19-step-1 -->
+<a id="p-a19-one-attention-layer-written-out-in-full-2"></a><!-- para:a19-one-attention-layer-written-out-in-full-2 --> <a id="sec-A.19-step-1"></a>**Step 1 — project.** Each token column is mapped to its query, key, and value by the per-position projections $\mathbf{q}_i=W_Q\mathbf{x}_i$, $\mathbf{k}_j=W_K\mathbf{x}_j$, $\mathbf{v}_j=W_V\mathbf{x}_j$ of Equation <!-- ref:A-2 -->[(2)](#eq-2); batched across the columns of $X$:
+
+<a id="eq-22"></a><!-- eq:A-19-2 -->
+$$
+Q = W_Q X = \begin{bmatrix} 2 & 0 & 2 \\ 0 & 2 & 2 \end{bmatrix}, \quad K = W_K X = \begin{bmatrix} 2 & 0 & 2 \\ 0 & 2 & 2 \end{bmatrix}, \quad V = W_V X = \begin{bmatrix} 0 & 2 & 2 \\ 2 & 0 & 2 \end{bmatrix}. \tag{22}
+$$
+
+<!-- sec:A.19-step-2 -->
+<a id="p-a19-one-attention-layer-written-out-in-full-3"></a><!-- para:a19-one-attention-layer-written-out-in-full-3 --> <a id="sec-A.19-step-2"></a>**Step 2 — score and scale.** Each column of $Q,K,V$ is one token's $\mathbf{q}_i,\mathbf{k}_j,\mathbf{v}_j$. Every query dots every key and is divided by $\sqrt{d_k}=\sqrt 2$ (the variance control of <!-- secref:A.7 -->[§A.7](#sec-A.7)) — the per-entry score $s_{ij}=\mathbf{q}_i^\top\mathbf{k}_j/\sqrt{d_k}$ of Equation <!-- ref:A-2 -->[(2)](#eq-2), in matrix form $S=Q^\top K/\sqrt{d_k}$:
+
+<a id="eq-23"></a><!-- eq:A-19-3 -->
+$$
+S = \frac{Q^\top K}{\sqrt{d_k}} = \frac{1}{\sqrt 2}\begin{bmatrix} 4 & 0 & 4 \\ 0 & 4 & 4 \\ 4 & 4 & 8 \end{bmatrix} = \begin{bmatrix} 2.83 & 0 & 2.83 \\ 0 & 2.83 & 2.83 \\ 2.83 & 2.83 & 5.66 \end{bmatrix}. \tag{23}
+$$
+
+<!-- sec:A.19-step-3 -->
+<a id="p-a19-one-attention-layer-written-out-in-full-4"></a><!-- para:a19-one-attention-layer-written-out-in-full-4 --> <a id="sec-A.19-step-3"></a>**Step 3 — mask, then softmax each row.** Causality forbids reading the future, so entry $(i,j)$ with $j>i$ is set to $-\infty$ before the row-wise softmax (the masking of <!-- secref:A.1 -->[§A.1](#sec-A.1)); each surviving row is normalized to sum to one:
+
+<a id="eq-24"></a><!-- eq:A-19-4 -->
+$$
+A = \mathrm{softmax}_{\text{row}}\big(\mathrm{mask}(S)\big) = \begin{bmatrix} 1 & 0 & 0 \\ 0.056 & 0.944 & 0 \\ 0.053 & 0.053 & 0.894 \end{bmatrix}. \tag{24}
+$$
+
+<a id="p-a19-one-attention-layer-written-out-in-full-5"></a><!-- para:a19-one-attention-layer-written-out-in-full-5 --> The matrix $A$ is lower-triangular by construction: position $1$ can attend only to itself ($a_{11}=1$), and every row sums to one — these are mixing weights, drawn slot-by-slot in Figure A.12.
+
+<!-- sec:A.19-step-4 -->
+<a id="p-a19-one-attention-layer-written-out-in-full-6"></a><!-- para:a19-one-attention-layer-written-out-in-full-6 --> <a id="sec-A.19-step-4"></a>**Step 4 — aggregate, project, and add.** Each query's output is the $A$-weighted average of the value columns, $\mathbf{o}_i=\sum_{j\le i}a_{ij}\mathbf{v}_j$ of Equation <!-- ref:A-2 -->[(2)](#eq-2) — in matrix form $O=VA^\top$ — mapped back to width $d$ by $W_O$ and *added* to the stream as $\Delta\mathbf{x}_i=W_O\mathbf{o}_i$ (the residual wiring of <!-- secref:A.1 -->[§A.1](#sec-A.1); the content map $W_{OV}=W_OW_V$ of <!-- secref:A.3 -->[§A.3](#sec-A.3) appears here split into its two factors $W_O$ and $W_V$):
+
+<a id="eq-25"></a><!-- eq:A-19-5 -->
+$$
+O = VA^\top = \begin{bmatrix} 0 & 1.888 & 1.894 \\ 2 & 0.112 & 1.894 \end{bmatrix}, \qquad H = X + W_O O = \begin{bmatrix} 1 & 1.888 & 2.894 \\ 2 & 1.112 & 2.894 \\ 1 & 1.888 & 2.894 \\ 2 & 1.112 & 2.894 \end{bmatrix}. \tag{25}
+$$
+
+<a id="p-a19-one-attention-layer-written-out-in-full-7"></a><!-- para:a19-one-attention-layer-written-out-in-full-7 --> $H$ is the layer's output — the same shape as $X$, ready to feed the next block.
+
+<a id="p-a19-one-attention-layer-written-out-in-full-8"></a><!-- para:a19-one-attention-layer-written-out-in-full-8 --> **What a real layer adds.** Two wrappers were stripped to expose the attention arithmetic. First, a production layer runs $h$ heads in parallel and *sums* their writes, $\Delta\mathbf{x}_i = \sum_{\ell} W_{OV}^{(\ell)}\sum_{j\le i} a_{ij}^{(\ell)}\mathbf{x}_j$ — the low-rank-circuit sum of <!-- secref:A.10 -->[§A.10](#sec-A.10), Equation <!-- ref:A-10 -->[(10)](#eq-10); the single head here is one term. Second, each sublayer reads a *normalized* copy of the stream (pre-norm LayerNorm) and is followed by a feed-forward sublayer, both written out in <!-- secxref:C.2 -->[§C.2](appendix-c-toy-transformer.md#sec-C.2). The attention pipeline above is unchanged by either wrapper.
+
+<a id="p-a19-one-attention-layer-written-out-in-full-9"></a><!-- para:a19-one-attention-layer-written-out-in-full-9 --> ![A left-to-right dataflow of one attention head: the input matrix X is projected to Q, K, V, then scored and scaled to S, causally masked and softmaxed to the attention matrix A, which weights V to give O, is projected by W_O, and added back through a residual skip to give H; a side panel shows the three-by-three lower-triangular attention matrix with its softmax weights](figures/qkv-one-layer-forward.svg)
+
+<!-- sec:A.19-figure-a -->
+<a id="p-a19-one-attention-layer-written-out-in-full-10"></a><!-- para:a19-one-attention-layer-written-out-in-full-10 --> <a id="sec-A.19-figure-a"></a>**Figure A.12.** One causal attention head computed end to end (<!-- secref:A.19 -->[§A.19](#sec-A.19)). *Left:* the dataflow with tensor shapes — the input $X$ ($d\times T$) is projected to $Q,K,V$ ($d_k\times T$), scored and scaled into $S=Q^\top K/\sqrt{d_k}$ ($T\times T$), causally masked and row-softmaxed into the attention matrix $A$, which weights the values ($O=VA^\top$), is projected back by $W_O$, and added to the stream as the residual $H=X+W_O O$. *Right:* the attention matrix $A$ of Equation <!-- ref:A-19-4 -->[(24)](#eq-24) — lower-triangular by the causal mask, each row summing to one. Worked example, no training; $T=3$, $d=4$, $d_k=2$; integer weights (Equation <!-- ref:A-19-1 -->[(21)](#eq-21)) chosen for legibility; all values computed and deterministic. Regenerate via `surveys/llms-for-coding/figures/qkv-one-layer-forward.py`.
+
+<!-- sec:A.20 -->
+### <a id="sec-A.20"></a>A.20 Two Layers Stacked: the Same Computation, Composed
+
+<a id="p-a20-two-layers-stacked-the-same-computation-composed-1"></a><!-- para:a20-two-layers-stacked-the-same-computation-composed-1 --> One layer mixes the stream once: every output in <!-- secref:A.19 -->[§A.19](#sec-A.19) is a causal average of *that layer's* value rows. Stacking a second layer buys what a single layer cannot do — layer $2$ can read what layer $1$ *wrote*, the composition of <!-- secref:A.18 -->[§A.18](#sec-A.18). The cleanest demonstration is the minimal induction example: the stream `A B A`, which should predict `B` (the token that followed the earlier `A`). Vocabulary $\{A,B\}$; each position's feature stacks a one-hot *own* block over a one-hot *prev* block as in Equation <!-- ref:A-9 -->[(9)](#eq-9).
+
+<a id="p-a20-two-layers-stacked-the-same-computation-composed-2"></a><!-- para:a20-two-layers-stacked-the-same-computation-composed-2 --> **Layer 1 — the previous-token head writes the *prev* block.** It attends from each position to its predecessor and copies that token forward, so after layer $1$ the three residual rows are (the $\mathbf{e}^{\text{prev}}$ component of Equation <!-- ref:A-18-1 -->[(19)](#eq-19); position $1$ has no predecessor):
+
+<a id="eq-26"></a><!-- eq:A-20-1 -->
+$$
+\mathbf{x}_1 = [\,\underbrace{1,0}_{\text{own }A}\mid\underbrace{0,0}_{\text{prev}}\,], \qquad \mathbf{x}_2 = [\,\underbrace{0,1}_{\text{own }B}\mid\underbrace{1,0}_{\text{prev }A}\,], \qquad \mathbf{x}_3 = [\,\underbrace{1,0}_{\text{own }A}\mid\underbrace{0,1}_{\text{prev }B}\,]. \tag{26}
+$$
+
+<a id="p-a20-two-layers-stacked-the-same-computation-composed-3"></a><!-- para:a20-two-layers-stacked-the-same-computation-composed-3 --> **Layer 2 — the induction head keys on the *prev* block.** Its query at position $3$ is the own token $A$. The QK circuit $M$ of Equation <!-- ref:A-9 -->[(9)](#eq-9) scores own-against-prev, $s_{3j}\propto\beta\,[\,\text{own}(\text{tok}_3)=\text{prev}(\text{tok}_{j-1})\,]$; with $\beta=4$ and the $1/\sqrt{d_k}$ scaling ($d_k=2$) the raw, scaled, and softmaxed score rows are:
+
+<a id="eq-27"></a><!-- eq:A-20-2 -->
+$$
+s_3 = \beta\,[0,\,1,\,0] = [0,\,4,\,0], \qquad \tfrac{s_3}{\sqrt 2} = [0,\,2.83,\,0], \qquad a_3 = \mathrm{softmax}(s_3/\sqrt 2) = [0.053,\,0.894,\,0.053]. \tag{27}
+$$
+
+<a id="p-a20-two-layers-stacked-the-same-computation-composed-4"></a><!-- para:a20-two-layers-stacked-the-same-computation-composed-4 --> Only key $2$ matches — its *prev* block is $A$, the current token — so the head attends there with weight $0.894$.
+
+<a id="p-a20-two-layers-stacked-the-same-computation-composed-5"></a><!-- para:a20-two-layers-stacked-the-same-computation-composed-5 --> **The copy.** The OV circuit copies the attended position's *own* token into the logits ($\gamma=4$); the weighted own-blocks and the resulting next-token distribution are:
+
+<a id="eq-28"></a><!-- eq:A-20-3 -->
+$$
+\boldsymbol{\ell} = \gamma\sum_j a_{3j}\,\mathbf{e}^{\text{own}}(\text{tok}_j) = [0.423,\,3.577], \qquad \mathrm{softmax}(\boldsymbol{\ell}) = [0.041,\,0.959]. \tag{28}
+$$
+
+<a id="p-a20-two-layers-stacked-the-same-computation-composed-6"></a><!-- para:a20-two-layers-stacked-the-same-computation-composed-6 --> The head predicts `B` with probability $0.96$ — exactly the induction completion `A B A → B`, traced number by number in Figure A.13.
+
+<a id="p-a20-two-layers-stacked-the-same-computation-composed-7"></a><!-- para:a20-two-layers-stacked-the-same-computation-composed-7 --> **Why this is irreducibly two-layer.** The score in Equation <!-- ref:A-20-2 -->[(27)](#eq-27) carries information only because the *prev* block of Equation <!-- ref:A-20-1 -->[(26)](#eq-26) was already present — and that block is the layer-$1$ write. A single layer (the pass of <!-- secref:A.19 -->[§A.19](#sec-A.19)) has no *prev* block: position $3$'s key would see only its own token $A$, never its predecessor, so it could not ask "which earlier position was *preceded* by an $A$?" This is the $K$-composition of <!-- secref:A.18 -->[§A.18](#sec-A.18) made arithmetic — depth turns a per-layer average into a *pointer* across the sequence, the circuit most directly tied to in-context learning <!-- cite:60 --> [[60]](references.md#ref-60).
+
+<a id="p-a20-two-layers-stacked-the-same-computation-composed-8"></a><!-- para:a20-two-layers-stacked-the-same-computation-composed-8 --> ![A three-panel trace of a two-layer induction circuit on the stream A B A: the residual stream after layer one showing each position's one-hot own and prev blocks with the query at position three matching the key at position two; the layer-two attention weights concentrating on position two; and the predicted next-token bars placing almost all mass on B](figures/qkv-two-layer-trace.svg)
+
+<!-- sec:A.20-figure-a -->
+<a id="p-a20-two-layers-stacked-the-same-computation-composed-9"></a><!-- para:a20-two-layers-stacked-the-same-computation-composed-9 --> <a id="sec-A.20-figure-a"></a>**Figure A.13.** Two layers stacked, traced on the stream `A B A` (<!-- secref:A.20 -->[§A.20](#sec-A.20)). *Left:* the residual stream after layer $1$ — each position carries a one-hot *own* block over a one-hot *prev* block (Equation <!-- ref:A-20-1 -->[(26)](#eq-26)); the previous-token head wrote the *prev* row. The query (position $3$, own $A$) matches the key whose *prev* block is $A$ — position $2$. *Middle:* the layer-$2$ attention from that query (Equation <!-- ref:A-20-2 -->[(27)](#eq-27)), concentrating with weight $0.89$ on position $2$. *Right:* the OV circuit copies position $2$'s own token, so the predicted next token is `B` with probability $0.96$ (Equation <!-- ref:A-20-3 -->[(28)](#eq-28)). Hand-built head (the $(M,W_{OV})$ of Equation <!-- ref:A-9 -->[(9)](#eq-9)), no training; vocabulary $\{A,B\}$, $\beta=4$, $\gamma=4$; all values computed and deterministic. Regenerate via `surveys/llms-for-coding/figures/qkv-two-layer-trace.py`.
