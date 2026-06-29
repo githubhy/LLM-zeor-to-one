@@ -83,4 +83,14 @@
 - **Result**: All gates green (equations 31 tags sequential; sections/paragraphs --check clean; link-refs up to date; validate-refs 0/0 — 78 eq markers, 36 images, 117 .md links; bare-refs error clean; citation-sources 0). Committed + pushed.
 - **Findings**: No local katex module — the viewer loads KaTeX 0.16.21 from CDN. `npx katex@0.16.21 --display-mode --input <file>` is the way to parse-check survey equations before commit; it de-risks complex array/label constructions that lint-math can't validate (lint checks delimiters / line-starts, not KaTeX semantics).
 
+## Conversation 15
+- **Request**: (after Q&A "what do the 1's in M represent?") "fold this answer into the survey directly, without markdown note format, after the '$M$ (the QK circuit) couples…' sentence" in §A.20.
+- **Actions**: Added a plain main-flow paragraph (not a Note blockquote) after the M/W_OV sentence in §A.20: the two 1's are the own→prev couplings, one per vocab token, at (own_A,prev_A) and (own_B,prev_B) — a 2×2 identity in the upper-right (own-rows × prev-cols) block; in s_ij=x_i^T M x_j the row contracts with the query and the column with the key, so each 1 = a "query own=a ↔ key prev=a" match rule (same token) → s_ij=β·[own(tok_i)=prev(tok_{j-1})] (prefix matching); diagonal-only because induction matches the same token; the matrix form of Eq (9)'s M=βΣ_a e^own(a)e^prev(a)^T; the (own_A,prev_A) entry is the one that fires the pos3→pos2 match in the trace. Ran the validation sweep.
+- **Result**: All gates green (31 eq tags sequential; sections/paragraphs --check clean — new para anchored; link-refs up to date; validate-refs 0/0 — 117 .md links; bare-refs error clean). Not committed.
+
+## Conversation 16
+- **Request**: "I need the entire answer folded" — expand the condensed §A.20 paragraph on M's 1's into the full chat answer.
+- **Actions**: Replaced the condensed paragraph with the full answer as three plain-prose paragraphs (bold lead-ins, no Note box): **Reading the two ones** (positions of the 1's; the 2×2 identity in the upper-right block, M=β[[0,I],[0,0]]; the row=query / column=key contraction; the two explicit match rules; the summed prefix-match indicator), **Why only the diagonal** (same-token argument; an off-diagonal 1 would match a different token; matrix form of Eq (9)), **In the trace** (the (own_A,prev_A) entry fires x_3^T M x_2=β → the 0.894 weight of Eq (30); the (own_B,prev_B) entry dormant; the zero rows/cols mean the query-prev and key-own blocks play no role). Parse-checked the inline smallmatrix block-form against KaTeX 0.16.21 (OK). Ran the validation sweep.
+- **Result**: All gates green (paragraphs --check clean, +2 new paras anchored; 31 eq tags sequential; validate-refs 0/0, 117 .md links; bare-refs clean). Not committed.
+
 <!-- LOG-END -->
