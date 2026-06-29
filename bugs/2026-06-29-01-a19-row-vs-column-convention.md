@@ -54,6 +54,11 @@ cross-section convention consistency; this relies on author/reader review (the
 user's catch here). A lightweight future guard could grep §A.19/§A.20 for the
 $d\times T$ vs $T\times d$ orientation, but it is not worth a dedicated checker.
 
+**Documentation guard.** A convention Note was added to §A.1 stating the column
+convention explicitly and contrasting it with the original Transformer paper's
+row convention [54] (verified against the source), so the next author/reader
+sees the chosen convention up front rather than re-deriving it.
+
 ## Refs
 
 - Files: `surveys/llms-for-coding/appendix-a-qkv-first-principles.md` §A.19;

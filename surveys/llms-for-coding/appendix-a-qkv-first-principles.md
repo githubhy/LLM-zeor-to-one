@@ -63,6 +63,23 @@ $$
 > $128{,}000$ in the latest, almost entirely through positional-encoding
 > extension. A full sourced table, smallest to largest, is in <!-- secref:A.13 -->[§A.13](#sec-A.13).
 
+> <a id="p-a1-setup-and-notation-9"></a><!-- para:a1-setup-and-notation-9 --> **Note — Which dimension convention is this, and how does it relate to the original Transformer paper?** Appendix A writes tokens as **columns**
+> ($\mathbf{x}_i\in\mathbb{R}^d$, $X\in\mathbb{R}^{d\times T}$) and **left**-multiplies the
+> projections — $W_Q,W_K\in\mathbb{R}^{d_k\times d}$, $W_V\in\mathbb{R}^{d_v\times d}$,
+> $W_O\in\mathbb{R}^{d\times d_v}$, with $\mathbf{q}_i=W_Q\mathbf{x}_i$ and
+> $\Delta\mathbf{x}_i=W_O\mathbf{o}_i$. The original Transformer <!-- cite:54 --> [[54]](references.md#ref-54)
+> uses the **transposed** (row / data-matrix) convention: queries packed as
+> the *rows* of $Q,K,V$ and projections *right*-multiplied —
+> $W_i^Q,W_i^K\in\mathbb{R}^{d_{\text{model}}\times d_k}$, $W_i^V\in\mathbb{R}^{d_{\text{model}}\times d_v}$,
+> $W^O\in\mathbb{R}^{hd_v\times d_{\text{model}}}$ — with $\mathrm{Attention}(Q,K,V)=\mathrm{softmax}(QK^\top/\sqrt{d_k})V$.
+> The two are exact transposes: the computed *values* — the score
+> $s_{ij}=\mathbf{q}_i^\top\mathbf{k}_j$, the metric $M=W_Q^\top W_K$, the map $W_{OV}=W_OW_V$, and
+> the attention output — are identical; only the bookkeeping differs. This
+> appendix adopts the column form because it makes the two circuits read as
+> $d\times d$ operators *on the residual stream*, the $M$ and $W_{OV}$ of <!-- secref:A.2 -->[§A.2](#sec-A.2)–<!-- secref:A.3 -->[§A.3](#sec-A.3)
+> — the mechanistic-interpretability "circuits" convention <!-- cite:59 --> [[59]](references.md#ref-59). Every worked
+> example here (e.g. <!-- secref:A.19 -->[§A.19](#sec-A.19)) uses this column form throughout.
+
 <!-- sec:A.2 -->
 ### <a id="sec-A.2"></a>A.2 The Query–Key Collapse: Only $M = W_Q^{\top} W_K$ Governs the Pattern
 
