@@ -18,4 +18,10 @@
 - **Result**: Figure labels A.1–A.11 in reading order; validate-refs 0/0 (34 image refs valid), lint-math 0, all --check clean, no crosslink gaps. New anchors sec-A.9-figure-b/c.
 - **Findings**: Figure anchors use section-local a/b/c indexing (`sec-A.9-figure-b`), decoupled from the cascading display number — so adding figures only renumbers visible labels, not anchors. Only the two captions themselves mention "Figure A.8/A.9" (no external refs), making the cascade trivial. matplotlib mathtext lacks `\iff`.
 
+## Conversation 4
+- **Request**: "integrate this to the survey inline" — fold the just-answered `e^own(tok_j)` notation explanation into §A.9 (started survey-explainer-fold, then user narrowed scope to inline-only — no dedicated section).
+- **Actions**: Added one compact `> **Note — Reading the one-hot notation …**` blockquote immediately after Equation (9) in §A.9 (matching the A.1 "residual stream" Note idiom): tok_j = vocab symbol at j; e^own(·) = one-hot embedding map (superscript names the block, not a power); the [own|prev] stack in R^{2V} with concrete e^own(B)=(0,1,0,0,0,0); how Eq (9)'s rank-one terms wire own-slot a ↔ prev-slot a. Cross-linked Figure A.9. Used `\mid` for the block separator. Ran renumber-paragraphs --init (anchored the Note) + full validation sweep.
+- **Result**: All gates green (lint 0, validate-refs 0/0, paragraphs/sections/equations --check clean — 18 eq tags, no cascade, check-citation-sources 0, crosslink no gaps). Not committed yet.
+- **Findings**: Inline-only fold = survey-explainer-fold's artifact-1 (the Note) without the dedicated-section artifact; no new equation/section means zero cascade. renumber-paragraphs --init correctly injects the para anchor into a blockquote's first line.
+
 <!-- LOG-END -->
