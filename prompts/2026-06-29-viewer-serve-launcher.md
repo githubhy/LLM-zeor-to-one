@@ -12,4 +12,10 @@
 - **Result**: All gates green (lint-math 0, validate-refs 0/0, check-citation-sources 0, crosslink no gaps, all --check clean). No new bib entries; no deferred items.
 - **Findings**: §A.9 already builds the induction head and §B.8 already frames a parallel "four departures" — so the enrichment reuses/cross-links existing material rather than re-deriving. [59] explicitly names W_Q^T W_K the low-rank "QK circuit"; the rank-≤d_k bound and param counts are first-principles (no citation needed).
 
+## Conversation 3
+- **Request**: (after Q&A on "what is a layer" / "what is M called" in §A.9/§A.17) "add diagrams to illustrate the ideas."
+- **Actions**: Added two matplotlib→SVG schematics to §A.9 reusing the house figure idiom: `qkv-induction-two-layer` (Figure A.8 — the cross-layer induction circuit: previous-token head at ℓ−1 writes the prev block, induction head at ℓ reads it; K-composition link + "one layer earlier" bracket; runs the same hand-built head so weight 0.91 / predict A 0.88 are computed) and `qkv-induction-anatomy` (Figure A.9 — Equation 9 drawn literally as two one-hot block matchers, M: own↔prev, W_OV: own→logit). Each with companion .json. Appended after Figure A.7 (A.7 keeps its number); cascaded the two later captions A.8→A.10, A.9→A.11. Added a pointer paragraph + wired secrefs. Rendered both to PNG and visually verified layout (fixed a band-title overlap in two-layer and a clipping/label-overlap redesign in anatomy; fixed `\iff`→`\Leftrightarrow` mathtext). Ran renumber-sections + renumber-paragraphs --init + validation sweep. Filed decision 2026-06-29-02.
+- **Result**: Figure labels A.1–A.11 in reading order; validate-refs 0/0 (34 image refs valid), lint-math 0, all --check clean, no crosslink gaps. New anchors sec-A.9-figure-b/c.
+- **Findings**: Figure anchors use section-local a/b/c indexing (`sec-A.9-figure-b`), decoupled from the cascading display number — so adding figures only renumbers visible labels, not anchors. Only the two captions themselves mention "Figure A.8/A.9" (no external refs), making the cascade trivial. matplotlib mathtext lacks `\iff`.
+
 <!-- LOG-END -->

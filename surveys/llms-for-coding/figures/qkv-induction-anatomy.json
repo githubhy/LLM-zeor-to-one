@@ -1,0 +1,25 @@
+{
+ "vocab": [
+  "A",
+  "B",
+  "C",
+  "D",
+  "E",
+  "F"
+ ],
+ "query": {
+  "pos": 6,
+  "own": "C",
+  "prev": "F"
+ },
+ "key": {
+  "pos": 1,
+  "own": "A",
+  "prev": "C"
+ },
+ "match_slot": "C",
+ "copied_token": "A",
+ "M": "beta * sum_a e_own(a) e_prev(a)^T  (own[query] <-> prev[key])",
+ "W_OV": "gamma * sum_a e_logit(a) e_own(a)^T  (own[attended] -> logit)",
+ "rule": "score high iff own(tok_i) == prev(tok_{j-1}); copy own(attended)."
+}

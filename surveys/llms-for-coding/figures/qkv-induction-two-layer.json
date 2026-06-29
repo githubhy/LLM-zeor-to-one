@@ -1,0 +1,42 @@
+{
+ "vocab": [
+  "A",
+  "B",
+  "C",
+  "D",
+  "E",
+  "F"
+ ],
+ "tokens": [
+  2,
+  0,
+  3,
+  1,
+  4,
+  5,
+  2
+ ],
+ "token_str": [
+  "C",
+  "A",
+  "D",
+  "B",
+  "E",
+  "F",
+  "C"
+ ],
+ "trigger_pos": 6,
+ "first_occurrence_pos": 0,
+ "matched_pos": 1,
+ "match_weight": 0.9081058383088124,
+ "predicted_tok": "A",
+ "predicted_prob": 0.8753556936878171,
+ "answer_tok": "A",
+ "beta": 10.0,
+ "gamma": 4.0,
+ "circuits": {
+  "M": "beta * sum_a e_own(a) e_prev(a)^T (QK)",
+  "W_OV": "gamma * sum_a e_logit(a) e_own(a)^T (OV)"
+ },
+ "note": "two-layer: prev block written by a previous-token head at layer L-1; induction head reads it at layer L (K-composition)."
+}
