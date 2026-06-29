@@ -702,10 +702,10 @@ $$
 
 <a id="eq-27"></a><!-- eq:A-20-1 -->
 $$
-X^{(2)} = X^{(1)} + \Delta X^{(1)} = \begin{bmatrix} 1 & 0 & 1 \\ 0 & 1 & 0 \\ 0 & 0 & 0 \\ 0 & 0 & 0 \end{bmatrix} + \begin{bmatrix} 0 & 0 & 0 \\ 0 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & 1 \end{bmatrix} = \begin{bmatrix} 1 & 0 & 1 \\ 0 & 1 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & 1 \end{bmatrix}. \tag{27}
+X^{(2)} = X^{(1)} + \Delta X^{(1)} = \begin{array}{cccccc} & {\scriptstyle A\ \ B\ \ A} & & {\scriptstyle /\ \ A\ \ B} & & {\scriptstyle \mathrm{pos}\ 1\ 2\ 3} \\ {\scriptstyle\begin{matrix}\mathrm{own}_A\\\mathrm{own}_B\\\mathrm{prev}_A\\\mathrm{prev}_B\end{matrix}} & \begin{bmatrix} 1 & 0 & 1 \\ 0 & 1 & 0 \\ 0 & 0 & 0 \\ 0 & 0 & 0 \end{bmatrix} & + & \begin{bmatrix} 0 & 0 & 0 \\ 0 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & 1 \end{bmatrix} & = & \begin{bmatrix} 1 & 0 & 1 \\ 0 & 1 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & 1 \end{bmatrix} \end{array} \tag{27}
 $$
 
-<a id="p-a20-two-layers-stacked-the-same-computation-composed-6"></a><!-- para:a20-two-layers-stacked-the-same-computation-composed-6 --> The first summand $X^{(1)}$ is the token embedding (the *own* rows; the *prev* rows still empty); the second, $\Delta X^{(1)}$, is the previous-token head's write (the *prev* rows — position $1$ has no predecessor, so its column stays zero). The induction head's two circuits are the $(M, W_{OV})$ of Equation <!-- ref:A-9 -->[(9)](#eq-9), as matrices in this basis:
+<a id="p-a20-two-layers-stacked-the-same-computation-composed-6"></a><!-- para:a20-two-layers-stacked-the-same-computation-composed-6 --> The column headers read off the encoding: $X^{(1)}$'s columns carry the **own** tokens $A,B,A$ (the stream itself); $\Delta X^{(1)}$'s carry the **predecessors** $/,A,B$ — the same row *shifted one position right*, since $\text{prev}(\text{pos } j)=\text{own}(\text{pos } j{-}1)$ (position $1$ has no predecessor, so its column is zero). Their sum $X^{(2)}$ gives every position both its own token and its predecessor. The induction head's two circuits are the $(M, W_{OV})$ of Equation <!-- ref:A-9 -->[(9)](#eq-9), as matrices in this basis: The induction head's two circuits are the $(M, W_{OV})$ of Equation <!-- ref:A-9 -->[(9)](#eq-9), as matrices in this basis:
 
 <a id="eq-28"></a><!-- eq:A-20-1b -->
 $$

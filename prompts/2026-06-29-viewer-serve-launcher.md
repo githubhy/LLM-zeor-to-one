@@ -77,4 +77,10 @@
 - **Result**: All gates green (renumber-equations: new Eq 28 inserted, S/A/copy auto-cascaded 28→29/29→30/30→31 — 3 tag + 3 ref updates; 31 tags sequential; sections/paragraphs --check clean; link-refs up to date; validate-refs 0/0 — 78 eq markers, 36 images, 117 .md links; bare-refs error clean; citation-sources 0). Not committed.
 - **Findings**: Using a fresh eq ID (A-20-1b) for an inserted equation lets the marker system cascade tags + refs automatically without renaming the downstream eq IDs (A-20-2/3/4) or their ref markers — cleaner than hand-renumbering IDs. The point that the bilinear score ignores inert dimensions is what makes "features in a subspace of a larger d" a legitimate (if still idealized) realism framing.
 
+## Conversation 14
+- **Request**: (user annotated Eq (27) with column tokens A B A / / A B) "Are the columns assigned like this? ... add the labels then commit and push."
+- **Actions**: Confirmed the annotation is correct — columns = positions; X^(1) columns carry the own tokens A,B,A (the stream), ΔX^(1) columns carry the predecessors /,A,B (the stream shifted right by one). Added labels to Eq (27): token column-headers over the two summands (A B A; / A B), a position header over the result (pos 1 2 3), and an own_A/own_B/prev_A/prev_B row-label column — via a KaTeX `array` wrapping the three `bmatrix` blocks. Added a prose sentence stating the encoding + the shift identity prev(pos j)=own(pos j−1). Parse-checked the labeled equation against KaTeX 0.16.21 (the viewer's CDN version) via the katex CLI — renders cleanly (35.9KB HTML).
+- **Result**: All gates green (equations 31 tags sequential; sections/paragraphs --check clean; link-refs up to date; validate-refs 0/0 — 78 eq markers, 36 images, 117 .md links; bare-refs error clean; citation-sources 0). Committed + pushed.
+- **Findings**: No local katex module — the viewer loads KaTeX 0.16.21 from CDN. `npx katex@0.16.21 --display-mode --input <file>` is the way to parse-check survey equations before commit; it de-risks complex array/label constructions that lint-math can't validate (lint checks delimiters / line-starts, not KaTeX semantics).
+
 <!-- LOG-END -->
