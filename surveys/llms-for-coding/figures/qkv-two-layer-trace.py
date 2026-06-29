@@ -183,7 +183,7 @@ for a in range(V):
              fontsize=10, color=(OV_D if top else MUTE), fontweight="bold")
 
 fig.suptitle(r"Two layers stacked: induction on  A B A $\rightarrow$ B   "
-             r"(column convention; $d=2V=4$, $d_k=2$, $T=3$; $\beta=4$, $\gamma=4$; hand-built)",
+             r"(column convention; $d=2|\mathcal{V}|=4$, $d_k=2$, $T=3$; $\beta=4$, $\gamma=4$; hand-built)",
              fontsize=11.8, color=INK, fontweight="bold", y=1.03, x=0.5)
 fig.savefig(HERE / "qkv-two-layer-trace.svg", bbox_inches="tight", facecolor="white")
 print("wrote qkv-two-layer-trace.svg / .json")
