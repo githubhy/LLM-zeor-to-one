@@ -10,7 +10,33 @@ cd viewer && npm install
 
 This installs the required `chokidar`, `ws`, and `ignore` packages. You need **Node.js 18+**.
 
+> **Tip — skip the manual install.** The launcher scripts below auto-install
+> `viewer/node_modules` on first run, so you can go straight to Quick Start
+> without this step. Running `node viewer/serve.js` directly *before* installing
+> fails with `Error: Cannot find module 'ws'` — the launchers exist to prevent
+> exactly that.
+
 ## Quick Start
+
+The cross-platform launcher scripts auto-install dependencies on first run and
+default to serving `surveys/` when no directory is given, so a bare port flag
+just works:
+
+```bash
+# macOS / Linux / Git Bash
+scripts/serve-viewer.sh                       # serves surveys/ on :3000
+scripts/serve-viewer.sh -p 3500               # serves surveys/ on :3500
+scripts/serve-viewer.sh surveys/llms-for-coding -p 3500
+```
+
+```powershell
+# Windows PowerShell
+scripts\serve-viewer.ps1                       # serves surveys/ on :3000
+scripts\serve-viewer.ps1 -p 3500              # serves surveys/ on :3500
+scripts\serve-viewer.ps1 surveys/llms-for-coding -p 3500
+```
+
+Once dependencies are installed you can also call `serve.js` directly:
 
 ```bash
 # From the repository root
@@ -348,6 +374,7 @@ The toolkit enforces these conventions for equation cross-references:
 
 | Problem | Solution |
 |---------|----------|
+| `Error: Cannot find module 'ws'` on startup | `viewer/node_modules` isn't installed. Use a launcher (`scripts/serve-viewer.sh` / `scripts\serve-viewer.ps1`), which installs deps automatically, or run `cd viewer && npm install` once. |
 | Math not rendering | Check browser console for KaTeX errors. Ensure internet is available for CDN. |
 | Live reload not working | Check terminal for "chokidar not installed" warning. Run `cd viewer && npm install`. |
 | Images not loading | Verify image paths in markdown are relative to the target directory (e.g., `figures/image.png`). |
