@@ -48,7 +48,7 @@ Caption-only edit (no figure rerun — the rendered numbers were already right):
 - budget-strip clause → "the conserved budget at the *grounded* base-Transformer
   scale ($d_k = 64$), $h\,d_k = 8\times 64 = 512 = d_{\text{model}}$".
 
-Commit SHA: (pending — not committed this turn unless asked).
+Commit SHA: `98dca53` (the caption fix and this bug file landed together).
 
 ## Regression test
 
