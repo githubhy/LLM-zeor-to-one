@@ -194,4 +194,21 @@
 - **Result**: Gates green — paragraphs --check clean (173 blocks, +2 anchored); **35 eq tags, no cascade**; sections clean; link-refs up to date; validate-refs 0/0 (118 .md links); bare-refs clean; the LRT/sigmoid inline spans KaTeX-checked (OK). Not committed.
 - **Findings**: §A.16 was the right host over §A.21 — it already established softmax = posterior over hypotheses with log-likelihood scores, so the LLR (pairwise log-likelihood contrast, binary threshold rule) is the natural completion of its decision-rule story, with a cross-link back to §A.21's logit=log-odds for the read-out side.
 
+## Conversation 35
+- **Request**: "try again" (retry the failed push).
+- **Actions**: A 4th `git push` over the default **schannel** TLS backend failed identically (`schannel: failed to receive handshake`). Diagnosed: `curl https://github.com` and `https://api.github.com` both returned **HTTP 200**, so the network/GitHub were reachable — localizing the fault to git's schannel TLS backend, not connectivity. Re-pushed with a per-command backend override, `git -c http.sslBackend=openssl push origin main` → **success** (`400b195..2f8e2c9`); pre-push gate passed; `main` in sync with `origin/main`.
+- **Result**: All three pending commits (145c273, 6337677, 2f8e2c9) are on the remote. Root cause: schannel handshake failure on this machine; OpenSSL backend works.
+- **Findings**: When `git push`/`fetch` fails with `schannel: failed to receive handshake` but `curl` to the same host returns 200, it's git's schannel TLS backend, not the network — `git -c http.sslBackend=openssl …` (per-command) or `git config http.sslBackend openssl` (persistent) is the fix. Earlier pushes this session over schannel had succeeded, so the failure was transient/environmental, not a config error.
+
+## Conversation 36
+- **Request**: "How to interpret $W_{OV}$?"
+- **Actions**: Answered (no edit; backfilled this entry next turn). $W_{OV}=W_OW_V$ is the OV/*content* circuit: $M$ routes (where), $W_{OV}$ transports (what), write $\Delta\mathbf{x}_i=\sum_{j\le i}a_{ij}W_{OV}\mathbf{x}_j$; a rank-$\le d_v$ read→write channel; read by SVD $W_{OV}=\sum_r\tau_r\mathbf{p}_r\mathbf{e}_r^\top$ (right SVs = read directions, left = write, $\tau$ = gain); copy ($\mathbf{p}=\mathbf{e}$) vs transform; gauge — only the product is observable (§A.4); direct logit attribution $W_UW_{OV}$ (§A.21). Offered a fold.
+- **Result**: Answered.
+
+## Conversation 37
+- **Request**: "prose" — fold the $W_{OV}$ interpretation.
+- **Actions**: Found §A.8 *already* covers the SVD read→write + copy/transform of $W_{OV}$ (para 2), so rather than duplicate, folded a **consolidation** paragraph at the end of §A.8 — "Putting it together — how to read $W_{OV}$" — tying the scattered lenses into one place: where/what (§A.11), the rank-$\le d_v$ channel (§A.10), the read→write dictionary (the SVD above), gauge / product-only (§A.4), and direct-logit $W_UW_{OV}$ (§A.21, §A.9). Prose mode (no Note, no new section, no new equation → cascade-free).
+- **Result**: Gates green — paragraphs --check clean (174 blocks, +1 anchored); 35 eq tags, no cascade; sections clean; link-refs up to date; validate-refs 0/0 (118 .md links); bare-refs clean. Not committed.
+- **Findings**: The $W_{OV}$ interpretation was already distributed across §A.3/A.4/A.8/A.10/A.11/A.21; the fold's value is consolidation + cross-links in one findable place, not new math — so the right move was a closing synthesis paragraph in §A.8, not a duplicate of its existing SVD reading.
+
 <!-- LOG-END -->
