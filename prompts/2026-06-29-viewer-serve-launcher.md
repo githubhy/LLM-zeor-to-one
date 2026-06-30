@@ -211,4 +211,20 @@
 - **Result**: Gates green — paragraphs --check clean (174 blocks, +1 anchored); 35 eq tags, no cascade; sections clean; link-refs up to date; validate-refs 0/0 (118 .md links); bare-refs clean. Not committed.
 - **Findings**: The $W_{OV}$ interpretation was already distributed across §A.3/A.4/A.8/A.10/A.11/A.21; the fold's value is consolidation + cross-links in one findable place, not new math — so the right move was a closing synthesis paragraph in §A.8, not a duplicate of its existing SVD reading.
 
+## Conversation 38
+- **Request**: "what is $W_{OV}$ called?" (backfilled).
+- **Actions**: Answered (no edit). $W_{OV}=W_OW_V$ is the **OV circuit** (output–value circuit), partner to $M=W_Q^\top W_K$ the **QK circuit**; terminology from the transformer-circuits framework (survey ref [59]); the survey uses it (§A.3 "Output–Value Collapse", §A.8 "the two circuits"); functional aliases = the head's "content map". Noted "OV" lists output-first but applies value-first ($W_O(W_V\mathbf{x})$).
+- **Result**: Answered.
+
+## Conversation 39
+- **Request**: "Does more-layer attention mean more 'prev' relations?" (backfilled).
+- **Actions**: Answered (no edit). No — depth *composes* relations (relations of relations), it does not multiply "prev". A prev relation is one shift-by-one head in one layer (§A.20 layer 1); the parallel count of such primitives is set by head count / *width* (§A.10), not depth. Depth buys composition: longer-range (prev-of-prev, $k$-back), induction (the 2-layer floor), and abstract syntactic/semantic relations at greater depth — width gives parallel relations, depth gives relations of relations. Offered a fold.
+- **Result**: Answered.
+
+## Conversation 40
+- **Request**: "prose" — fold the depth-vs-"prev" answer.
+- **Actions**: `prose` fold appended to the end of §A.18 ("Composition Across Layers"), after the Intuition paragraph: **"Does adding layers add more 'prev' relations?"** — depth composes relations rather than multiplying prev; prev is a one-head/one-layer primitive whose parallel count is *width* (§A.10); depth buys composition ($k$-back, induction as the 2-layer floor, syntactic/semantic relations), "width gives relations in parallel, depth gives relations of relations". Cross-links §A.20, §A.10. Prose mode (no Note, no new section, no new equation → cascade-free).
+- **Result**: Gates green — paragraphs --check clean (175 blocks, +1 anchored); 35 eq tags, no cascade; sections clean; link-refs up to date; validate-refs 0/0 (118 .md links); bare-refs clean. Not committed.
+- **Findings**: §A.18's existing "What it buys" said "the same move generalizes"; this fold sharpens it into the explicit width-vs-depth answer (parallel vs composed relations) the reader's question asked for, without duplicating the composition mechanics already derived above.
+
 <!-- LOG-END -->
