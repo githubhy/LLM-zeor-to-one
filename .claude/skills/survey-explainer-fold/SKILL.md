@@ -1,6 +1,6 @@
 ---
 name: survey-explainer-fold
-description: Fold a conceptual Q&A / chat explanation into a survey as TWO linked artifacts — a compact inline blockquote "Note" at the point of confusion, and a dedicated, anchored, well-structured section that holds the full answer almost verbatim — then run the mandatory renumber/validate/index sweep that guarantees the edit lands clean. Use whenever, while reading a survey/appendix, the user wants a just-answered "why/how is X like this?" explanation persisted into the document.
+description: Fold a conceptual Q&A / chat explanation into a survey at the point of confusion — in one of three shapes selectable per request: the default two-artifact fold (a compact inline blockquote "Note" plus a dedicated, anchored section holding the full answer almost verbatim), a note-only inline gloss, or a plain-prose insert straight into the main flow (no note box, no section) — then run the mandatory renumber/validate/index sweep that guarantees the edit lands clean. Use whenever, while reading a survey/appendix, the user wants a just-answered "why/how is X like this?" explanation persisted into the document.
 ---
 
 # Survey Explainer Fold
@@ -9,8 +9,8 @@ description: Fold a conceptual Q&A / chat explanation into a survey as TWO linke
 
 When a reader asks "why is this built this way?" or "how big is X in practice?"
 and gets a good answer, that answer should not evaporate into the chat. This
-skill persists it into the survey as **two artifacts that always ship
-together**:
+skill persists it into the survey. Its **default (`full`) mode** ships **two
+artifacts that always ship together**:
 
 1. **The inline Note** — a compact `> **Note — …**` blockquote placed at the
    exact equation/paragraph that triggered the question. It gives the
@@ -25,10 +25,15 @@ together**:
 The two are wired both ways: Note → section (forward link), section → the
 Note's host (back reference).
 
+Two lighter modes drop one or both artifacts when the answer does not warrant
+them — **`note-only`** (the inline Note alone) and **`prose`** (plain main-flow
+paragraphs at the host, no box, no section). See *Modes* for selection. The
+**mechanics are identical** in every mode.
+
 This is a **rigid** skill for the mechanics (templates, placement rules, the
-validation sweep) and **flexible** only in the prose content of the answer.
-Do not drop either artifact, and do not skip the sweep — that is the whole
-point (see *How the update is guaranteed*).
+validation sweep) and **flexible** only in the prose content of the answer and
+the choice of mode. Do not drop a mode's chosen artifacts, and do not skip the
+sweep — that is the whole point (see *How the update is guaranteed*).
 
 ## When to use
 
@@ -43,15 +48,50 @@ point (see *How the update is guaranteed*).
 Not for: brand-new derivations that belong in the main flow (write those as
 ordinary numbered content); fixing prose in place (just edit it).
 
+## Modes
+
+The fold ships in one of three shapes. The **mechanics are identical** across
+modes (placement rules, the no-cascade discipline, the Step-6 sweep, the
+citation-integrity rule); only *which artifacts ship* changes.
+
+| Mode | Artifacts | Use when | Workflow steps |
+|---|---|---|---|
+| **`full`** (default) | inline Note **+** dedicated anchored section, wired both ways | the answer is substantial, deserves a link-target, and the host derivation line should stay terse | 1, 2, 3, 4, 5, 6, 7 |
+| **`note-only`** (aka `inline`) | a single inline `> **Note —**` blockquote at the host, no section | a compact notation / conceptual gloss that does not merit a standalone section | 1, 2, 6, 7 (skip 3–5) |
+| **`prose`** (aka `direct`) | plain main-flow paragraph(s) at the host — **no** Note box, **no** section | the answer is a direct elaboration that belongs *in the reading flow* at the host, and a boxed aside would interrupt it | 1, 2′, 6, 7 (skip 3–5) |
+
+**Selecting the mode.** Default to `full`. Choose `note-only` (the user often
+calls this **`inline`**) for a one-paragraph gloss — the user's standing
+preference for compact notation folds (see the `inline-notation-folds-preference`
+memory and decision `2026-06-29-03`). Choose `prose` (the user often calls this
+**`direct`**) when the user says "fold this **directly**", "without a/the note",
+"without the note format", "into the main flow", "as plain prose", or otherwise
+asks for the answer to read as part of the section rather than as a boxed aside.
+**When the user names the shape, that overrides the default** — the mode is the
+one thing the caller, not the skill, decides.
+
+The two aliases split on **box vs. no box** — which is also the one trap to
+avoid: `inline` → `note-only` keeps a compact *boxed* `> **Note —**` aside at
+the spot; `direct` → `prose` drops the box and writes straight into the flow.
+Do **not** let the literal sense of "inline" pull `inline` toward `prose` (which
+is in fact the *more* inline of the two) — the mapping is fixed: `inline` = the
+boxed Note, `direct` = no box.
+
+Whichever mode, the **no-cascade discipline is non-negotiable**: never mint a
+new numbered `$$…$$` equation (it would `\tag` and renumber every later
+equation). Reference existing equations with the marked+linked form, reproduce
+verbatim math as fenced blocks, and put concrete values in a markdown table —
+all three are cascade-free (Step 4).
+
 ## How the update is guaranteed
 
 Reliability comes from two pillars. The skill supplies the first; the repo
 already enforces the second.
 
-**Pillar 1 — deterministic output (this skill).** Fixed templates for both
-artifacts, fixed placement rules, and a checklist mean every run produces the
-same shape: both artifacts, both links, correct anchors. Nothing is left to
-recall.
+**Pillar 1 — deterministic output (this skill).** Fixed templates per artifact,
+fixed placement rules, and a checklist mean every run produces the same shape
+*for the chosen mode*: the mode's artifacts, its links, correct anchors.
+Nothing is left to recall.
 
 **Pillar 2 — blocking gates (the repo).** Correctness is not hoped for, it is
 refused if wrong:
@@ -76,9 +116,11 @@ fixed, and the gates reject anything that is not.
 - **The target file** — the survey/appendix being read (e.g.
   `surveys/llms-for-coding/appendix-a-qkv-first-principles.md`).
 - **The host** — the equation or paragraph that triggered the question (where
-  the Note goes).
-- **The Q&A** — the question (becomes both the Note's lead and the section
-  title, declaratively) and the answer body.
+  the Note / prose goes).
+- **The Q&A** — the question (becomes the Note's lead, the section title, or a
+  prose bold lead-in, declaratively) and the answer body.
+- **The mode** — `full` / `note-only` / `prose` (see *Modes*); defaults to
+  `full`, overridden by what the user asks for.
 
 Before editing, Read `.claude/rules/math-authoring.md` (marker / anchor /
 delimiter rules) and `.claude/rules/citation-integrity.md` (no external
@@ -113,7 +155,40 @@ Do **not** hand-write the paragraph anchor — Step 6 injects it.
 > `\mid`>. The full breakdown is in <!-- secref:A.13 -->[§A.13](#sec-A.13).
 ```
 
-### Step 3 — Choose the dedicated section's home (placement rules)
+In `note-only` mode this Note is the whole fold: drop the trailing forward link
+(there is no section to point at), then go straight to Step 6.
+
+### Step 2′ — (prose mode) Write the plain-prose insert instead
+
+In `prose` mode there is no Note box and no dedicated section: the answer goes
+into the section's **main flow** as one or more ordinary paragraphs, inserted
+**immediately after the host paragraph** and before the next block (an existing
+Note, equation, or heading). Match the surrounding prose — give each paragraph a
+**bold lead-in** in the section's own style (e.g. `**Where the two values come
+from.**`) when its siblings use them, and keep the density consistent with the
+neighbors. Edit by matching the unique tail of the host paragraph and appending
+the new paragraphs after it.
+
+The cascade-free discipline of Step 4 is the main constraint here, because prose
+folds are where a stray display equation is most tempting:
+
+- **No new numbered `$$` equation** — it mints a `\tag{N}` and cascades every
+  later equation. Use inline math `$...$`; reference existing equations with the
+  marked+linked form (`<!-- ref:A-20-1 -->[(27)](#eq-27)`); reproduce any
+  verbatim block as a fenced code block.
+- **Do not hand-write paragraph anchors** — `renumber-paragraphs.py --init` in
+  Step 6 injects them and renumbers the section's downstream paragraphs.
+- Keep markers inline after prose (never column-0 / first content of a block),
+  conditional bars as `\mid`, and obey the inline-`$`-vs-digit rule — the
+  `lint-math` hook blocks violations either way.
+
+Step 5 is skipped (there are no two artifacts to wire); if the prose references
+other sections/equations, use the normal `secref` / `ref` markers inline. Then
+go to Step 6. *(Worked instances: the §A.20 plain-prose folds — "Reading the two
+ones", "Where the two values come from" — in
+`prompts/2026-06-29-viewer-serve-launcher.md`.)*
+
+### Step 3 — (full mode) Choose the dedicated section's home (placement rules)
 
 These rules are load-bearing — they are why the edit stays cheap and clean:
 
@@ -133,7 +208,7 @@ These rules are load-bearing — they are why the edit stays cheap and clean:
   the appendix that defines those symbols), even if the host Note lives in a
   different part; the forward link spans the distance.
 
-### Step 4 — Write the dedicated section in "answer format"
+### Step 4 — (full mode) Write the dedicated section in "answer format"
 
 Write the heading with the marker + inline anchor exactly like its siblings
 (`<!-- sec:A.13 -->` on the line above, then `### <a id="sec-A.13"></a>A.13
@@ -177,19 +252,21 @@ not read in an acquired source.** If a needed number is not in any acquired
 source, acquire it first via the `source-fetch` skill, or mark the gap — do not
 guess. Prove small lemmas inline instead of citing.
 
-### Step 5 — Wire both links
+### Step 5 — (full mode) Wire both links
 
 - Note → section: the `<!-- secref:A.13 -->[§A.13](#sec-A.13)` added in Step 2.
 - Section → host: a `secref` back to the host's subsection in the section's
   intro (or a bracket-wrapped `[§N]` only if the host is an external-spec ref).
+
+*(`note-only` and `prose` modes skip this step — there is no second artifact.)*
 
 ### Step 6 — Run the mandatory sweep (the guarantee)
 
 In order, on the target file (paths relative to repo root):
 
 ```bash
-python viewer/tools/renumber-sections.py   FILE --init     # anchor the new section + promote secrefs
-python viewer/tools/renumber-paragraphs.py FILE --init     # anchor the new Note + section paragraphs
+python viewer/tools/renumber-sections.py   FILE --init     # full mode: anchor the new section + promote secrefs (no-op in note-only/prose)
+python viewer/tools/renumber-paragraphs.py FILE --init     # anchor the new Note/prose + section paragraphs (load-bearing in every mode)
 python viewer/tools/renumber-sections.py   FILE --check     # must be clean
 python viewer/tools/renumber-paragraphs.py FILE --check     # must be clean
 python viewer/tools/renumber-equations.py  FILE --check     # tags still sequential (no cascade)
@@ -214,10 +291,13 @@ if the user asks.
 ## Checklist (create one todo per item)
 
 - [ ] Read `math-authoring.md` + `citation-integrity.md`; locate host + local IDs.
-- [ ] Inline Note written at the host, with forward link, no hand-written anchor.
-- [ ] Section home chosen: numbered subsection, appended at end of its block.
-- [ ] Section written in answer-format; verbatim math as fenced blocks / values as a table; refs marked+linked; every number read from an acquired source; no memory citations.
-- [ ] Both links wired (Note→section, section→host).
+- [ ] **Mode chosen** (`full` / `note-only` / `prose`) per the *Modes* table and the user's phrasing.
+- [ ] *(full, note-only)* Inline Note written at the host — with forward link (full) / no link (note-only) — no hand-written anchor.
+- [ ] *(prose)* Plain-prose paragraph(s) written at the host, bold lead-ins matching siblings, no Note box, no hand-written anchor.
+- [ ] *(full only)* Section home chosen: numbered subsection, appended at end of its block.
+- [ ] *(full only)* Section written in answer-format; verbatim math as fenced blocks / values as a table; refs marked+linked; every number read from an acquired source; no memory citations.
+- [ ] *(full only)* Both links wired (Note→section, section→host).
+- [ ] **No cascade**: no new numbered `$$` equation minted (equations `--check` reports 0 tag updates).
 - [ ] Sweep run: sections/paragraphs `--init` → all `--check` clean → equations `--check` no cascade → link-references/validate-refs/bare-refs/citation-sources clean → index rebuilt.
 - [ ] Turn logged.
 
@@ -237,8 +317,10 @@ if the user asks.
 
 ## Cross-link sign-off
 
-The dedicated section this skill creates is a prime cross-link target (and
-source). Before sign-off, run the `cross-link` skill (or
-`crosslink.py check $SCOPE --changed`) over the new section and clear the
+The dedicated section a `full`-mode fold creates is a prime cross-link target
+(and source); a `note-only` / `prose` fold adds new prose that can still be a
+cross-link source. Before sign-off, run the `cross-link` skill (or
+`crosslink.py check $SCOPE --changed`) over the new content and clear the
 reported high-value gaps, or file a `todos/` entry for any left out of scope —
-per `.claude/rules/cross-linking.md`.
+per `.claude/rules/cross-linking.md`. A `note-only` / `prose` fold of a few
+paragraphs is usually below the gap threshold, but run the check regardless.
