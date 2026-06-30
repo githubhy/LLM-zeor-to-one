@@ -2,6 +2,7 @@
 
 | date | slug | title | status | hook |
 |---|---|---|---|---|
+| 2026-06-30 | appendix-a-crosslink-candidates | appendix-a — pre-existing cross-link candidates surfaced during the §A.21 fold | open | advisory low-cosine: A.5→B.6 (0.242), A.5→B.7, A.13→E.5; not from §A.21 (already linked); clear via /cross-link |
 | 2026-06-30 | a11-explicit-math-candidates | §A.11 — remaining prose-only quantities that could be explicit math | closed | RESOLVED 2026-06-30: update rule + logits z_t=W_U x added inline to §A.11 (no cascade); B–H sweep found loss/optimizer already explicit in appendix-c §C.2–C.4, cross-linked §C.4 |
 | 2026-06-28 | icl-as-online-learning-intuition | Add in-context-learning-as-online-optimization intuition to Appendix A | open | the genuine "adaptive/online learner" reading (forward pass = GD step); needs source-fetch (von Oswald/Akyürek/Dai/Garg) before writing |
 | 2026-06-28 | citation-t12-e2e-timeout | Investigate pre-existing citation T12 e2e timeout (page.goto load never settles) | open | found during asset-link-fix regression; fails identically with fix stashed out → not a regression; likely env/load |
