@@ -38,7 +38,7 @@ $M = W_Q^\top W_K$ and $W_{OV} = W_O W_V$. There is no sixth (or fifth) matrix;
 
 Fixed as part of the §A.11 explicit-parameters enrichment (which also defines
 $L$, names all four matrices in the setup, and adds the parameter-gradient
-table). Commit SHA: (pending — not committed this turn unless asked).
+table). Commit SHA: `4d22a50`.
 
 ## Regression test
 
