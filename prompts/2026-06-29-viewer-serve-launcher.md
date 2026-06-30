@@ -227,4 +227,31 @@
 - **Result**: Gates green — paragraphs --check clean (175 blocks, +1 anchored); 35 eq tags, no cascade; sections clean; link-refs up to date; validate-refs 0/0 (118 .md links); bare-refs clean. Not committed.
 - **Findings**: §A.18's existing "What it buys" said "the same move generalizes"; this fold sharpens it into the explicit width-vs-depth answer (parallel vs composed relations) the reader's question asked for, without duplicating the composition mechanics already derived above.
 
+## Conversation 41
+- **Request**: "what kind of info can you read off from https://transformer-circuits.pub/2021/framework/head_dump/small_a.html ?" (backfilled).
+- **Actions**: WebFetch failed (page >10MB). Described what transformer-circuits head-dump pages show, from knowledge of the framework (survey [59]) — with explicit caveats that I couldn't read it live — and tied it to §A.8 (QK/OV circuits) / §A.21 ($W_UW_{OV}$). (Partly corrected next turn after parsing.)
+- **Result**: Answered with caveats; offered to parse if the content were provided.
+
+## Conversation 42
+- **Request**: "parse the page then get the actual info from the parsed results" (backfilled).
+- **Actions**: `curl`-downloaded `small_a.html` (12.7 MB, 7322 lines) to scratchpad; parsed with ripgrep `-o` (lines too big for Read). Extracted: model = `n_head=12, d_head=64`, heads `0:0`–`0:11` ⇒ **1-layer attention-only**; methodology intro (pivot on key/query; QK/OV normalization; key selection `QK.max(0)*OV.max(0)*token_prob**0.1`, query/output `QK[:, src]*token_prob**0.1`); per head a 3-column grid — col 1 key token, col 2 **"Queries that prefer key"** (QK), col 3 **"Effect on logits"** (OV) — **all text, no images**: the skip-trigram decomposition. Corrected the Conv-41 from-memory description (this page is the skip-trigram QK/OV table, *not* eigenvalue/copying-score plots — those are in the framework paper).
+- **Result**: Parsed; reported structure + correction; tied to §A.8 / §A.21 / §A.4.
+
+## Conversation 43
+- **Request**: "yes, pull them then fold that" — pull verbatim skip-trigram rows from a head + fold a head-dump note into §A.8.
+- **Actions**: Read the raw grid cells of Head 0:0 and pulled two verbatim rows. **Row 1** key `'left'` → queries (QK score) = backslash-ending tokens (`'}}\'` 95.06, `')}\'` 88.50, `'}\'` 83.88, `')\'` 82.12, …) → effect on logits (OV) `'right'` (2.77), `'middle'` (1.66), `'frac'` (1.39), `'sqrt'` (1.31), `'displaystyle'`, `'overline'`, `'nabla'` — a LaTeX head completing `\left … \right`. **Row 2** key `'<META_START>'` → queries = punctuation (`'.'` 39.06, `'::'` 33.44, `'/'` 25.84, …) → effect `'py'` (3.58), `'html'`, `'php'`, `'github'`, `'://'`, `'blog'` — a URL/path skip-trigram. Folded a **note-only** Note at the end of §A.8 ("Reading these circuits empirically: the head dump") citing [59], mapping the two columns to the QK circuit $M$ and OV $W_UW_{OV}$ (§A.21), products-not-raw (§A.4), with the `small_a` `\left…\right` example.
+- **Result**: Gates green — paragraphs --check clean (176 blocks, +1 note anchored); 35 eq tags, no cascade; link-refs up to date; validate-refs 0/0 (118 .md links); bare-refs clean; citation-sources 0 errors (reused [59], no new entry). Not committed.
+- **Findings**: `small_a`'s head dump is all-text skip-trigram tables (no images); col 2 = QK routing, col 3 = OV logit effect = the empirical instantiation of §A.8's two circuits / §A.21's $W_UW_{OV}$. Head 0:0 is a LaTeX/`\left` head plus a document-structure/URL head. Parsing big single-line-blob HTML: `curl` to disk + ripgrep `-o` (Read chokes on multi-MB lines).
+
+## Conversation 44
+- **Request**: "give me a large list contains several rows from each head" (backfilled).
+- **Actions**: Wrote `scratchpad/parse_dump.py` (regex over the downloaded `small_a.html`) to extract, per head, key (col 1) + top-3 queries (col 2) + top-5 effect-on-logits (col 3); printed 6 rows × 12 heads. Fixed a Windows `gbk` console crash (utf-8 stdout reconfigure; `→`→`->`). Presented a cleaned per-head list with one-line function reads. Artifacts: ~4 rows leaked span HTML from tokens containing quotes (dropped); Head 0:1 is mostly invalid-UTF-8 (shown �).
+- **Result**: Delivered the list. Interpretable heads: 0:0 antonyms/idioms/LaTeX/URLs (`left`→`right`, `up`→`down`, `to`→`fro`); 0:2 duplicate-token copying; 0:4 idioms (`take`→`granted/account/consideration`); 0:5 code/dtype (`astype`→`uint/float/int`); 0:8 HTML tags; 0:9/0:11 bracket/whitespace closers.
+
+## Conversation 45
+- **Request**: "good, insert this table to the survey."
+- **Actions**: Rendered the per-head list as a 12-row markdown table (Head | Reads as | Example: key → top effect-on-logits) and inserted it after the §A.8 head-dump note it illustrates, with an intro citing [59] and a closing synthesis. Dropped the `$\`→math example from row 0:0 to avoid a lone-`$`-in-table lint risk; kept clean code-token examples. Cascade-free (a markdown table, no equation).
+- **Result**: Gates green — paragraphs --check clean (178 blocks, +2 paras anchored; table skipped); 35 eq tags, no cascade; link-refs up to date; validate-refs 0/0 (118 .md links); bare-refs clean; citation-sources 0 errors (reused [59], no new entry). Not committed.
+- **Findings**: Markdown-table cells with code-token examples are cascade-free and lint-safe provided cells avoid a bare `|` and inline `$...$` (use backtick code spans + a literal `→`); `<META_START>`-type tokens must sit in backticks so markdown doesn't parse them as HTML.
+
 <!-- LOG-END -->

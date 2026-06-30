@@ -248,6 +248,27 @@ $$
 
 <a id="p-a8-reading-a-trained-head-the-svd-of-the-two-circuits-5"></a><!-- para:a8-reading-a-trained-head-the-svd-of-the-two-circuits-5 --> **Putting it together — how to read $W_{OV}$.** The SVD above is the core, and the full reading of the OV circuit adds three lenses around it. *What it is:* the *content* half of the head — $M$ decides *where* to attend, ==blue: $W_{OV}$ decides *what* each attended token contributes==, the head's write being $\Delta\mathbf{x}_i=\sum_{j\le i}a_{ij}\,W_{OV}\,\mathbf{x}_j$ (<!-- secref:A.11 -->[§A.11](#sec-A.11)). *A bounded channel:* it has rank $\le d_v$ (<!-- secref:A.10 -->[§A.10](#sec-A.10)), transporting at most $d_v$ feature directions — the read→write dictionary $\{\mathbf{e}_r\!\to\!\mathbf{p}_r,\ \tau_r\}$ above *is* that channel, copying when $\mathbf{p}_r=\mathbf{e}_r$ and remapping otherwise. *Gauge-invariant:* only the product $W_{OV}=W_OW_V$ is observable — the factors are gauge (<!-- secref:A.4 -->[§A.4](#sec-A.4)), so never read $W_O$ or $W_V$ alone, only their product. *Read out in vocabulary:* composed with the unembedding, $W_UW_{OV}$ is the head's *direct* effect on the next-token logits (<!-- secref:A.21 -->[§A.21](#sec-A.21)) — the trained-model form of the hand-built copy circuit of <!-- secref:A.9 -->[§A.9](#sec-A.9).
 
+> <a id="p-a8-reading-a-trained-head-the-svd-of-the-two-circuits-6"></a><!-- para:a8-reading-a-trained-head-the-svd-of-the-two-circuits-6 --> **Note — Reading these circuits empirically: the "head dump."** The QK/OV decomposition of this section is exactly what the transformer-circuits framework <!-- cite:59 --> [[59]](references.md#ref-59) tabulates per head in its published *attention-head dumps*. For a one-layer attention-only model each head appears as a skip-trigram table with two columns — *"Queries that prefer key"* (the QK circuit $M$ — which query tokens attend to a given key token) and *"Effect on logits"* (the OV circuit read through the unembedding, the $W_UW_{OV}$ of <!-- secref:A.21 -->[§A.21](#sec-A.21) — which output tokens the head promotes) — both computed from the $M$ and $W_{OV}$ *products*, never the raw matrices (<!-- secref:A.4 -->[§A.4](#sec-A.4)). For example, a head in their `small_a` dump (12 heads, $d_\text{head}=64$) keys on the token `left` from backslash contexts and most promotes `right`, `frac`, `sqrt` — a LaTeX head completing `\left … \right`.
+
+<a id="p-a8-reading-a-trained-head-the-svd-of-the-two-circuits-7"></a><!-- para:a8-reading-a-trained-head-the-svd-of-the-two-circuits-7 --> **The twelve heads of `small_a`, read off the dump.** Parsing that published dump <!-- cite:59 --> [[59]](references.md#ref-59) gives roughly one interpretable skip-trigram circuit per head. The "Example" column reads `key → top effect-on-logits` (the OV write through $W_UW_{OV}$); the queries that select each key are omitted for space:
+
+| Head | Reads as | Example: key → top effect-on-logits |
+|---|---|---|
+| 0:0 | antonyms / idioms (+ LaTeX, URLs) | `left`→`right`; `up`→`down`; `back`→`forth`; `to`→`fro` |
+| 0:1 | rare / non-ASCII bytes (+ a `.po` copy) | `msgid`→`msgstr`, `msgid` |
+| 0:2 | duplicate-token copying | `GT`→`GT`, `GR`, `GM`; `ar`→`ar`, `AR`, `Ar` |
+| 0:3 | after an article, capitalized words | `the`→`Analysis`, `Effect`, `Structure` |
+| 0:4 | idiom completion | `take`→`granted`, `account`, `consideration` |
+| 0:5 | code / numeric / dtype | `astype`→`uint`, `float`, `int`, `bool`; `struct`→`unpack`, `pack` |
+| 0:6 | document / markup structure | `<META_START>`→`<META_END>`, `src`; `#:`→`msgstr`, `msgid` |
+| 0:7 | suffix / morphology | `www`→`org`; `\r\n\r\n`→`ente`, `enced`, `encia` |
+| 0:8 | HTML tags + antonyms | `span`→`strong`, `button`, `script`; `after`→`before` |
+| 0:9 | code-bracket / whitespace closers | `\n`(indent)→`});`, `)`, `}`; `/**`→`*/` |
+| 0:10 | file paths / dates / citations | `Users`→`Desktop`, `workspace`; `],[@`→`2005`, `2003` |
+| 0:11 | bracket / LaTeX nesting closers | `{`→`}}`; `}(`→`)))`; `_{`→`}}^` |
+
+<a id="p-a8-reading-a-trained-head-the-svd-of-the-two-circuits-8"></a><!-- para:a8-reading-a-trained-head-the-svd-of-the-two-circuits-8 --> The breadth — copying, antonyms, idioms, code, markup, morphology, bracket-nesting — is the framework's claim made concrete: a one-layer attention-only model is a bank of human-readable skip-trigram circuits, each summarized by its QK and OV *products* exactly as in this section.
+
 <!-- sec:A.9 -->
 ### <a id="sec-A.9"></a>A.9 An Induction Head, Built by Hand
 
