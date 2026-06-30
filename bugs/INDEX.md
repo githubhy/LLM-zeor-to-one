@@ -2,6 +2,7 @@
 
 | date | id | title | severity | status | hook |
 |---|---|---|---|---|---|
+| 2026-06-30 | 2026-06-30-02 | §A.11 said a head has "six raw matrices"; it has four (W_Q, W_K, W_V, W_O) | low | fixed | miscount in prose + Figure A.11 caption + figure title; a head has 4 projections (QK: W_Q,W_K; OV: W_V,W_O), §A.4 gauge d_k²+d_v²; fixed text + regenerated svg during the §A.11 explicit-params enrichment |
 | 2026-06-30 | 2026-06-30-01 | Figure A.10 caption reuses d_k for two scales (demo d_k=8 vs grounded d_k=64) within one caption, reading as a contradiction | low | fixed | both values correct; symbol collision + undisclosed demo dims; reader-flagged; caption-only disambiguation (demo scale stated numerically, each d_k tagged demo/grounded) |
 | 2026-06-29 | 2026-06-29-01 | §A.19 worked example used the row/data-matrix convention, clashing with §A.1's column convention | med | fixed | numbers right but X∈R^{T×d}/W_Q∈R^{d×d_k} clashed with §A.1's column form and made "W_OV=W_O W_V" dimensionally false; rewrote §A.19 + Fig A.12 to column convention (same values, transposed) |
 | 2026-06-28 | 2026-06-28-01 | Relative asset links (link to figures/*.svg) 404 in viewer SPA — href not rewritten to doc dir | med | fixed | viewer rewrote img src but not a[href]; figures/*.svg link resolved to root /figures/ → 404; fixRelativePaths now rewrites asset hrefs too |

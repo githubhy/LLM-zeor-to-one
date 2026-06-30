@@ -16,7 +16,7 @@ component along the descent direction -delta_i and so reduces the loss.
 ("where to look"), the OV circuit W_OV fetches ("what to bring"), the output incurs a
 loss, and the backprop gradient delta_i splits into two symmetric teaching signals that
 feed back into M and W_OV -- so the head is meaningful only as the pair (M, W_OV), never
-as the six raw matrices. This is the optimizer's training loop across steps, NOT a
+as the four raw matrices W_Q, W_K, W_V, W_O. This is the optimizer's training loop across steps, NOT a
 per-token recursive LMS/RLS update (cf. A.6, which notes attention's adaptation is a
 closed-form function of the current input).
 
@@ -89,7 +89,7 @@ ax2 = fig.add_subplot(gs[1])
 
 # ---- Panel A: the co-adaptation training loop (schematic) -----------------
 ax1.set_xlim(0, 12); ax1.set_ylim(0, 10); ax1.axis("off")
-ax1.set_title(r"The training loop co-adapts the pair $(M,\,W_{OV})$ — not the six raw matrices",
+ax1.set_title(r"The training loop co-adapts the pair $(M,\,W_{OV})$ — not the four raw matrices",
               fontsize=10.5)
 
 
