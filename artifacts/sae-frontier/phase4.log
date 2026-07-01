@@ -1,0 +1,11 @@
+Phase 4: H4 width sweep...
+  R=2 done
+  R=4 done
+  R=8 done
+  R=16 done
+Phase 4: robustness...
+  feature_prob=0.03 done
+  feature_prob=0.06 done
+  feature_prob=0.12 done
+Phase 4: Morris screening (P0-3)...
+Phase 4 complete. H4 gap monotone in R: True | best gap by R: {2: 0.357, 4: 0.5, 8: 0.61, 16: 0.665}

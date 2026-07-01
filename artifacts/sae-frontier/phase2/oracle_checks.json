@@ -1,0 +1,178 @@
+{
+  "relu": {
+    "variant": "relu",
+    "checks": [
+      {
+        "type": "analytical",
+        "point": "decode(0) == b_dec",
+        "expected": 0.0,
+        "measured": 0.0,
+        "tolerance": 1e-09,
+        "passed": true
+      },
+      {
+        "type": "analytical",
+        "point": "features non-negative",
+        "expected": ">=0",
+        "measured": 0.0,
+        "tolerance": 1e-09,
+        "passed": true
+      },
+      {
+        "type": "metamorphic",
+        "point": "decoder affine/linear",
+        "expected": 0.0,
+        "measured": 0.0,
+        "tolerance": 1e-08,
+        "passed": true
+      },
+      {
+        "type": "analytical",
+        "point": "f == relu(preact)",
+        "expected": 0.0,
+        "measured": 0.0,
+        "tolerance": 1e-12,
+        "passed": true
+      }
+    ],
+    "passed": true
+  },
+  "gated": {
+    "variant": "gated",
+    "checks": [
+      {
+        "type": "analytical",
+        "point": "decode(0) == b_dec",
+        "expected": 0.0,
+        "measured": 0.0,
+        "tolerance": 1e-09,
+        "passed": true
+      },
+      {
+        "type": "analytical",
+        "point": "features non-negative",
+        "expected": ">=0",
+        "measured": 0.0,
+        "tolerance": 1e-09,
+        "passed": true
+      },
+      {
+        "type": "metamorphic",
+        "point": "decoder affine/linear",
+        "expected": 0.0,
+        "measured": 0.0,
+        "tolerance": 1e-08,
+        "passed": true
+      },
+      {
+        "type": "analytical",
+        "point": "f == 0 where gate closed",
+        "expected": 0.0,
+        "measured": 0.0,
+        "tolerance": 1e-12,
+        "passed": true
+      },
+      {
+        "type": "analytical",
+        "point": "f == relu(mag) where gate open",
+        "expected": 0.0,
+        "measured": 0.0,
+        "tolerance": 1e-12,
+        "passed": true
+      }
+    ],
+    "passed": true
+  },
+  "topk": {
+    "variant": "topk",
+    "checks": [
+      {
+        "type": "analytical",
+        "point": "decode(0) == b_dec",
+        "expected": 0.0,
+        "measured": 0.0,
+        "tolerance": 1e-09,
+        "passed": true
+      },
+      {
+        "type": "analytical",
+        "point": "features non-negative",
+        "expected": ">=0",
+        "measured": 0.0,
+        "tolerance": 1e-09,
+        "passed": true
+      },
+      {
+        "type": "metamorphic",
+        "point": "decoder affine/linear",
+        "expected": 0.0,
+        "measured": 0.0,
+        "tolerance": 1e-08,
+        "passed": true
+      },
+      {
+        "type": "analytical",
+        "point": "active count <= k",
+        "expected": "<= 8",
+        "measured": 8,
+        "tolerance": 0,
+        "passed": true
+      },
+      {
+        "type": "analytical",
+        "point": "survivors are top-k of relu(pre)",
+        "expected": 0.0,
+        "measured": 0.0,
+        "tolerance": 1e-10,
+        "passed": true
+      }
+    ],
+    "passed": true
+  },
+  "jumprelu": {
+    "variant": "jumprelu",
+    "checks": [
+      {
+        "type": "analytical",
+        "point": "decode(0) == b_dec",
+        "expected": 0.0,
+        "measured": 0.0,
+        "tolerance": 1e-09,
+        "passed": true
+      },
+      {
+        "type": "analytical",
+        "point": "features non-negative",
+        "expected": ">=0",
+        "measured": 0.0,
+        "tolerance": 1e-09,
+        "passed": true
+      },
+      {
+        "type": "metamorphic",
+        "point": "decoder affine/linear",
+        "expected": 0.0,
+        "measured": 0.0,
+        "tolerance": 1e-08,
+        "passed": true
+      },
+      {
+        "type": "analytical",
+        "point": "active f == pre (no shrink)",
+        "expected": 0.0,
+        "measured": 0.0,
+        "tolerance": 1e-12,
+        "passed": true
+      },
+      {
+        "type": "analytical",
+        "point": "inactive f == 0",
+        "expected": 0.0,
+        "measured": 0.0,
+        "tolerance": 1e-12,
+        "passed": true
+      }
+    ],
+    "passed": true
+  }
+}
