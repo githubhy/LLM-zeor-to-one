@@ -38,7 +38,7 @@ product — a **virtual weight** that is never stored in the parameters but gove
 direct contribution to the logits is the virtual weight $W_U W_{OV}^{h} W_E$
 (§ <!-- secref:2.2 -->[§2.2](#sec-2.2)). **Second, the stream has no privileged basis.** Rotating the
 whole stream by an orthogonal $R$ and every reading/writing matrix accordingly leaves the function
-unchanged, so an individual residual coordinate carries no intrinsic meaning; meaning lives in
+unchanged (<!-- secxref:A.4 -->[§A.4](appendix-a-transformer-circuits-math.md#sec-A.4)), so an individual residual coordinate carries no intrinsic meaning; meaning lives in
 *directions*, and — crucially — a basis becomes privileged only *after* an elementwise nonlinearity
 (a ReLU, or an SAE's activation), which is why the neuron basis of an MLP, not the residual basis, is
 where axis-aligned features can even be hoped for (§ <!-- secref:2.3 -->[§2.3](#sec-2.3)).
@@ -119,7 +119,7 @@ to load onto. It is also the reason the interpretable unit is a *direction found
 learning*, not a neuron.
 
 <a id="p-24-superposition-2"></a><!-- para:24-superposition-2 --> *Toy Models of Superposition* <!-- cite:3 --> [[3]](references.md#ref-3) makes this precise on a synthetic ReLU-output autoencoder: as feature
-sparsity rises past a threshold, the optimal geometry undergoes a **phase transition** from
+sparsity rises past a threshold, the optimal geometry undergoes a **phase transition (<!-- secxref:B.2 -->[§B.2](appendix-b-superposition.md#sec-B.2))** from
 "orthogonal, drop the unimportant features" (a PCA-like regime) to "pack extra features as antipodal
 pairs, then as vertices of regular polytopes" (a uniform-superposition regime governed by the same
 mathematics as the physics Thomson problem). The derivation, the feature-dimensionality metric, and the
