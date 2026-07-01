@@ -31,6 +31,16 @@ this source-fetch: it may not be executed until the four papers below are in
 two consumers — the Appendix-A intuition subsection *and* the plan's H9 — and
 closing it unblocks both.
 
+**Update 2026-07-01 (b) — the mechanistic companion §A.22 now exists.** The
+*mechanistic* ICL section (§A.22 "Induction Heads and In-Context Learning") was
+added to `appendix-a-qkv-first-principles.md` — it derives the ICL score, the
+co-emergence phase change, and the ablation test from Eq (9), and explicitly
+flags the *algorithmic* forward-pass-as-optimizer reading (this todo) as the
+out-of-scope, source-gated companion, contrasted with the §A.6/§A.16
+matched-filter detection. So this todo is now specifically the **algorithmic
+half**: acquire the GD-ICL sources, then add the contrasting subsection (and the
+plan-H9 experiment). §A.22 gives it a ready host to link from.
+
 ## What is left
 
 - `source-fetch` the in-context-learning-as-gradient-descent papers, e.g. von Oswald et al.
