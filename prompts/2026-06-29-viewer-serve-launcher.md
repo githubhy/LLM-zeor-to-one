@@ -260,4 +260,43 @@
 - **Result**: Gates green — paragraphs --check clean (180 blocks, +2 anchored); 35 eq tags, no cascade; sections clean; link-refs up to date; validate-refs 0/0 (118 .md links); bare-refs clean. Not committed.
 - **Findings**: §A.11 (co-adaptation) is the right home for "emergence" — the descent argument shows heads co-adapt; the natural follow-on is that *which* role emerges is seed-dependent symmetry breaking, while the *rule* stays hand-settable/steerable (§A.9/§A.20/§A.6). The §A.8 head-dump table now points to that discussion.
 
+## Conversation 47
+- **Request**: "yes, use superpowers to draft a plan for it" (the train-a-tiny-transformer-to-understand-transformers idea).
+- **Actions**: Read `reference-implementation-study/SKILL.md` (phases 1–6, gates G1–G4). Drafted `plans/2026-06-30-tiny-transformer-induction-study.md` — a repo-conformant reference-implementation-study plan driving Appendix A → implementation: objective (train a tiny transformer, watch an induction head emerge, reproduce its head dump, verify the §A math); 5 pre-registered hypotheses (H1 1-layer-fails/2-layer-works §A.18; H2 induction head + ICL phase change §A.9/A.20/A.11; H3 trained-circuit ≈ hand-built §A.9 + OV copying score §A.8/A.4; H4 seed-dependent head→role §A.11; H5 loss/softmax-Jacobian §A.21/Eq 11–12); phases 1–6 + gates, deliverables/layout, verification anchors, MVP-vs-stretch, risks (toy≠scale), open decisions. Interpreted "superpowers" as "full-capability, thorough" and authored the plan **directly** (a plan is one coherent doc and I already hold the appendix-A/head-dump context) rather than invoking the Workflow multi-agent tool (not a clear opt-in; better saved for implementation) — flagged multi-agent execution as open-decision #4.
+- **Result**: Plan saved to `plans/`; presented for review; NOT implemented (plan workflow gate). Lint-clean (.md hook passed).
+- **Findings**: The repo is already set up for this — Appendix A is the survey, Appendix C is a math-faithful toy transformer to reuse, and `reference-implementation-study` is the survey→impl driver; the study is a reproduction/interpretability variant (ablations as "candidates", circuit-formation/theory-match as "metrics").
+
+## Conversation 48
+- **Request**: (plan iteration) put parameter values into the plan; add a block diagram; make it original-Transformer-style; style the wiring.
+- **Actions**: Extended `plans/2026-06-30-tiny-transformer-induction-study.md` Phase 1: concrete config tables (architecture $L,h,d,d_k,d_\text{ff},\lvert\mathcal{V}\rvert,T,h_{kv}$ + training) across induction/+MLP/grokking/char-level; an architecture block diagram evolved ASCII → **Mermaid** → **original-Transformer style** (Vaswani palette: peach MHA, gold Add&Norm, blue FF, pink embedding, purple Linear, green Softmax; ⊕ positional, N× subgraph, Linear→Softmax→Output; decoder-only; post-norm noted vs modern pre-norm §A.19) → **styled wiring** (`linkStyle`: slate forward path, orange residual skips). Kept an expanded-MHA graph. All lint-clean (mermaid in fenced blocks).
+- **Result**: Plan draft updated repeatedly; still uncommitted, awaiting review.
+
+## Conversation 49
+- **Request**: web-search 10 elegant Transformer/LLM diagram tools/libs to choose from.
+- **Actions**: WebSearch (tools, text-to-diagram comparison, illustrated-transformer). Delivered 10 curated candidates (Mermaid, D2, Graphviz, PlantUML/TikZ, PlotNeuralNet, matplotlib, Excalidraw, draw.io, NN-SVG, Netron) + exemplars (Transformer Explainer, Illustrated Transformer) with repo-fit notes + sources.
+- **Result**: Selection list delivered.
+
+## Conversation 50
+- **Request**: generate each candidate's Transformer diagram on a local page to review.
+- **Actions**: Rendered a real **matplotlib** sample (`scratchpad/mpl_transformer_sample.png`, original style). Built `scratchpad/transformer-diagram-gallery.html` — one card per candidate: live client-side renders (Mermaid via mermaid.js, Graphviz via WASM, Excalidraw-style via rough.js) + the matplotlib PNG; source for D2/TikZ/PlotNeuralNet; links for draw.io/NN-SVG/Netron. Served on a background static server (`python http.server :8123`, task `byf7ql9wm`); verified 200.
+- **Result**: Gallery at http://localhost:8123/transformer-diagram-gallery.html.
+
+## Conversation 51
+- **Request**: "check the diagram yourself."
+- **Actions**: Screenshotted the served page with the viewer's Playwright (chromium-1217 via explicit `executablePath`; `domcontentloaded` + render wait), per card. Found Mermaid ✓, matplotlib ✓, Excalidraw-style ✓, but **Graphviz ✗** (wrong `@hpcc-js/wasm` UMD — it's ESM: the `export` console error) and **TikZ ✗** (TikZJax LaTeX-WASM too heavy). Fixed: Graphviz via `@hpcc-js/wasm-graphviz` ESM (`Graphviz.load().dot()`), TikZ → source-only, removed TikZJax, `mermaid theme:default`. Re-screenshotted: Graphviz now renders (colored stack, N× cluster, orange residual skips); TikZ shows clean source. Console clean except a harmless favicon 404.
+- **Result**: Gallery verified — 4 rendered (Mermaid, Graphviz, matplotlib, Excalidraw-style), 3 source (D2, TikZ, PlotNeuralNet), 3 external links. Server still up. Noted user-added GPT-2 ladder (decision 2026-07-01-01, todo gpt2-training-reproduction) for a later plan fold.
+- **Findings**: `@hpcc-js/wasm` v2 is ESM (no UMD global) — import `@hpcc-js/wasm-graphviz/+esm`; TikZJax is too heavy for a reliable gallery (keep TikZ as source); Playwright browser-rev mismatch → drive the installed chromium via `executablePath`.
+
+## Conversation 52
+- **Request**: redraw the plan's diagrams in the style of Figure C.1 (`appendix-c-toy-transformer.md` §C.1).
+- **Actions**: Read Figure C.1 + its generator `surveys/llms-for-coding/figures/appendix-c-anatomy.py` to extract the style — light-alpha (0.20) rounded `FancyBboxPatch` boxes, semantic palette (blue embed `#2563eb` / purple attn `#7c3aed` / green FFN `#16a34a` / grey norm+IO `#6b7280` / amber unembed `#d97706`), grey dashed residual skips into white "+" circles, multi-panel bottom→top zoom with figure-level "⇒" connectors. Wrote `plans/figures/tiny-transformer-anatomy.py` reusing C.1's `box()`/`up()` helpers + palette verbatim, producing a **3-panel** figure (Whole model → One decoder block → One attention head) for the plan's primary induction config (L=2,h=4,d=128,d_k=32,d_ff=512,|V|=64,T=256). Rendered to SVG; verified via a QA png. Replaced **both** Mermaid diagrams in `plans/2026-06-30-tiny-transformer-induction-study.md` with the single figure embed + a C.1-style **Figure 1.** caption; kept the block→§ map + circuits paragraph; added a short attention-head lead. QA png routed to `tempfile.gettempdir()` (not committed).
+- **Result**: Plan diagrams now in the C.1 style — one 3-panel matplotlib figure replaces the two Mermaid blocks (`grep -c mermaid` = 0). lint-math passed on each edit. Plan remains an uncommitted draft.
+- **Findings**: matplotlib mathtext rejects `\textstyle` (drop it, `\sum` renders inline fine); reusing C.1's exact `box()`/`up()` + palette gives style-parity with the survey's anatomy figure.
+
+## Conversation 53
+- **Request**: (1) make TransformerLens integration a **must** (was "optional"); (2) quantization / Phase 5 **in scope**; (3) recommend an **execution mode**.
+- **Actions**: Plan `plans/2026-06-30-tiny-transformer-induction-study.md`: Phase 2 bullet + §8.1 now make **TransformerLens a required analysis-path dependency** (activation caching / attention-pattern capture / ablation across all rungs incl. our toy loaded into `HookedTransformer`) while **weight-space circuits ($M$, $W_{OV}$) and the training loop stay first-party** (resolves the tension with the first-party circuit-extraction bullet). Phase 5 heading `(Gate G4, optional)` → `(Gate G4, in scope)` with an int8/int4 + fp32→bf16→int8→int4 knee-table + CIs spec; §8.4 → **RESOLVED: in scope**. §8.5 → **RECOMMENDED: direct execution structured by the `reference-implementation-study` gates (G1–G4 + REPORT + CITE); workflow/ultracode opt-in only for the parallelizable Phase-4 sensitivity + `sim-audit` + Phase-6 report stages**.
+- **Result**: Plan updated (still an uncommitted draft; §8.1/§8.4 resolved, §8.5 recommended-pending-confirm, §8.2/§8.3 already resolved). lint-math clean on each edit.
+- **Findings**: execution-mode call turns on the bottleneck being *compute* (single-laptop training, not agent-parallelizable), so a full multi-agent workflow buys little on the training core; reserve fan-out for authoring/verify/report stages.
+
 <!-- LOG-END -->
