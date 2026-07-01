@@ -299,4 +299,15 @@
 - **Result**: Plan updated (still an uncommitted draft; §8.1/§8.4 resolved, §8.5 recommended-pending-confirm, §8.2/§8.3 already resolved). lint-math clean on each edit.
 - **Findings**: execution-mode call turns on the bottleneck being *compute* (single-laptop training, not agent-parallelizable), so a full multi-agent workflow buys little on the training core; reserve fan-out for authoring/verify/report stages.
 
+## Conversation 54
+- **Request**: "Can we inspect the in-context learning from the work in this plan?"
+- **Actions**: Answered (design/scoping, no edits). Read the plan §1–§2 to ground it. Confirmed **yes — ICL inspection is already the spine**: H2 tests the ICL score (in-context loss vs token position) dropping at a phase change, and the Phase-1 metrics already name "the ICL score"; TransformerLens (now required) gives the ablation hooks. Mapped three levels — L1 measure the ICL signature (in-plan), L2 causally attribute it to the induction circuit via ablation (tooling in-plan, not yet an explicit experiment), L3 real-scale ICL at the GPT-2 rung (extends H6). Distinguished the **mechanistic** (Olsson, [60]) sense from the **algorithmic** "forward-pass-as-GD" sense (the `icl-as-online-learning-intuition` todo, source-gated). Offered (a) fold H8+ablation, (b) Phase-4b GPT-2 real-ICL, (c) the ICL-as-GD extension.
+- **Result**: Answer delivered; user replied "all".
+
+## Conversation 55
+- **Request**: "all" — fold all three ICL amendments into the plan.
+- **Actions**: `plans/2026-06-30-tiny-transformer-induction-study.md`: added **H8** (mechanistic ICL — ICL score co-emerges with the induction head + causally carried by it: ablate induction / prev-token head → collapse, random-head control intact, generalization control) and **H9** (algorithmic ICL — in-context linear-regression as GD/ridge, source-gated) to the §2 hypotheses table; §1 objective reframed as an ICL-mechanism microscope; rung-applicability note updated; Phase-1 metrics += ICL co-emergence + ICL-ablation delta; Phase-3 += ICL co-emergence overlay bullet; Phase-4 += ICL causal-ablation battery bullet; Phase-4b += real-scale ICL ablation bullet + G3b clause; §6 MVP += H8, new **H9 source-gated sub-study block**; §4 figures += ICL co-emergence + ablation-delta charts; §9 refs updated. Filed decision `2026-07-01-03` (+ INDEX row). Updated todo `2026-06-28-icl-as-online-learning-intuition` (now the hard gate for H9 — added the regression-task experiment, plan/decision refs) + INDEX hook.
+- **Result**: Plan folds ICL in as first-class (H8 mechanistic in MVP+Phase 3/4/4b; H9 algorithmic hard-gated on the source-fetch todo). lint-math clean on each edit. Plan still a draft awaiting review.
+- **Findings**: H8 is near-zero new compute (reuses the already-required TransformerLens ablation hooks); H9's citation risk is contained by hard-gating execution on the pre-existing source-fetch todo rather than writing the GD-ICL literature from memory.
+
 <!-- LOG-END -->

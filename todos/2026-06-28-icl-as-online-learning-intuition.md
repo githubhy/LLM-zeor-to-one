@@ -21,6 +21,16 @@ but it is out of scope for the per-head matched-filter sections and — cruciall
 sources are **not yet in `references.md`**, so writing it now would violate the
 citation-integrity rule (no external citation from memory).
 
+**Update 2026-07-01 — now also the hard gate for plan H9.** The tiny-transformer
+induction study (`plans/2026-06-30-tiny-transformer-induction-study.md`) folded
+this reading in as its **H9 (algorithmic ICL, source-gated)** stretch sub-study —
+an in-context linear-regression task probing whether the forward pass tracks an
+explicit online learner (decision `2026-07-01-03`). H9 is explicitly blocked on
+this source-fetch: it may not be executed until the four papers below are in
+`download/` with `local:` tags and each claim is verified. So this todo now has
+two consumers — the Appendix-A intuition subsection *and* the plan's H9 — and
+closing it unblocks both.
+
 ## What is left
 
 - `source-fetch` the in-context-learning-as-gradient-descent papers, e.g. von Oswald et al.
@@ -36,6 +46,12 @@ citation-integrity rule (no external citation from memory).
   "adaptive / online learner" reading — explicitly contrasted with the per-head matched-filter
   *detection* of §A.6 (the two are different levels: one head's detection vs a stack's
   in-context optimization).
+- **(plan H9)** After the fetch, implement the in-context linear-regression task in the
+  tiny-transformer study — sequences of (x, y) pairs from a randomly sampled linear map,
+  predict y for a fresh x — and the model-vs-online-learner prediction overlay (one/few
+  GD steps or the closed-form ridge solution), with residuals and the tightening-with-depth/
+  context trend. Scope the claim to what the acquired sources actually establish (linear vs
+  softmax attention, constructed vs trained weights).
 
 ## Acceptance
 
@@ -47,4 +63,5 @@ sweep green; cross-link sign-off cleared.
 
 - `surveys/llms-for-coding/appendix-a-qkv-first-principles.md` §A.6 departure (i), §A.16
 - `.claude/rules/citation-integrity.md`; `.claude/skills/source-fetch/SKILL.md`
-- Conversation log: `prompts/2026-06-28-qkv-index-notation-fold.md` (Conversation 17)
+- Plan H9: `plans/2026-06-30-tiny-transformer-induction-study.md` §2 (H9), §6; decision `decisions/2026-07-01-03-fold-icl-inspection-into-tiny-transformer-plan.md`
+- Conversation log: `prompts/2026-06-28-qkv-index-notation-fold.md` (Conversation 17); `prompts/2026-06-29-viewer-serve-launcher.md`
