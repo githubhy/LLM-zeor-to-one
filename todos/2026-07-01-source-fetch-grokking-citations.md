@@ -1,7 +1,7 @@
 ---
 slug: source-fetch-grokking-citations
 date_filed: 2026-07-01
-status: open
+status: closed
 ---
 
 # Source-fetch + cite the grokking literature for appendix-c §C.8
@@ -27,3 +27,5 @@ status: open
 - Survey: `surveys/llms-for-coding/appendix-c-toy-transformer.md` §C.8.
 - Decision: `decisions/2026-07-01-02-grokking-first-principles-derive-now-cite-later.md`.
 - Skill: `.claude/skills/source-fetch/SKILL.md`; rule: `.claude/rules/citation-integrity.md`.
+
+**Resolution.** (2026-07-01) Fetched + content-verified the three papers §C.8 actually attributes: Power et al. 2022 (arXiv:2201.02177), Nanda et al. 2023 (arXiv:2301.05217, ICLR), Varma et al. 2023 (arXiv:2309.02390) into `download/`. Added references [67]/[68]/[69] with strong `local:` tags; wired cite markers at each attributed claim in §C.8 (phenomenon → [67]; Fourier circuit + progress measures → [68]; circuit-efficiency delay → [69]) and rewrote the Provenance note from "deferred" to "attributed." Verified every cited claim appears in-source (Nanda: Fourier + progress measure + modular addition; Power: grok/generalization; Varma: circuit/efficiency/norm). Gates green: `check-citation-sources` 69 entries / 59 strong local / 0 err; `link-references --check` up to date; `validate-refs` 0 err. **Scoped out:** Liu/Omnigrok, Wei, Schaeffer — these belong to the toy→SOTA integration discussion (currently in the plan/chat, not §C.8's text), so they are not cited here; fetch + cite them if that discussion is ever folded into the survey.

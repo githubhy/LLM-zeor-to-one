@@ -197,3 +197,12 @@
 
 <a id="ref-66"></a><!-- bib:66 -->
 [66] J. Su, Y. Lu, S. Pan, A. Murtadha, B. Wen, Y. Liu, "RoFormer: Enhanced Transformer with Rotary Position Embedding." *Neurocomputing* 2024. arXiv:2104.09864. (local: download/su-rope-2021.pdf)
+
+<a id="ref-67"></a><!-- bib:67 -->
+[67] A. Power, Y. Burda, H. Edwards, I. Babuschkin, V. Misra, "Grokking: Generalization Beyond Overfitting on Small Algorithmic Datasets." 2022. arXiv:2201.02177. (local: download/power-grokking-2022.pdf)
+
+<a id="ref-68"></a><!-- bib:68 -->
+[68] N. Nanda, L. Chan, T. Lieberum, J. Smith, J. Steinhardt, "Progress Measures for Grokking via Mechanistic Interpretability." *ICLR 2023.* arXiv:2301.05217. (local: download/nanda-progress-measures-grokking-2023.pdf)
+
+<a id="ref-69"></a><!-- bib:69 -->
+[69] V. Varma, R. Shah, Z. Kenton, J. Kramár, R. Kumar, "Explaining Grokking through Circuit Efficiency." 2023. arXiv:2309.02390. (local: download/varma-grokking-circuit-efficiency-2023.pdf)
