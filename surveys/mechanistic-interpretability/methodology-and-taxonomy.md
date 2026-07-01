@@ -15,7 +15,7 @@
    (§ <!-- secxref:10 -->[§10](evaluation-and-metrics.md#sec-10)).
 
 <a id="p-31-the-canonical-loop-and-why-intervention-is-load-bearing-3"></a><!-- para:31-the-canonical-loop-and-why-intervention-is-load-bearing-3 --> Step 3 is what makes the loop *mechanistic* rather than merely *representational*, and the reason is the
-single most important methodological fact in the field: **decodability is not use.** A probe that reads
+single most important methodological fact in the field: **decodability is not use (<!-- secxref:Q.2 -->[§Q.2](appendix-q-reader-questions.md#sec-Q.2)).** A probe that reads
 a concept from a layer with high accuracy establishes only that the information is *present and linearly
 recoverable* — not that the model's forward computation actually reads it out and acts on it <!-- cite:26 --> [[26]](references.md#ref-26). The
 gap is not hypothetical: Hewitt & Liang <!-- cite:25 --> [[25]](references.md#ref-25) show that a sufficiently expressive probe attains high

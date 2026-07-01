@@ -6,7 +6,7 @@
 <!-- sec:5.1 -->
 ### <a id="sec-5.1"></a>5.1 Activation patching / causal tracing [headline]
 
-<a id="p-51-activation-patching-causal-tracing-headline-1"></a><!-- para:51-activation-patching-causal-tracing-headline-1 --> **One-line idea.** Copy a single internal activation from one run into another and measure how much of the behavior it restores (or destroys) — the atomic causal experiment of MI.
+<a id="p-51-activation-patching-causal-tracing-headline-1"></a><!-- para:51-activation-patching-causal-tracing-headline-1 --> **One-line idea.** Copy a single internal activation from one run into another and measure how much of the behavior it restores (or destroys) — the atomic causal experiment of MI (<!-- secxref:C.1 -->[§C.1](appendix-c-causal-interventions.md#sec-C.1)).
 
 <a id="p-51-activation-patching-causal-tracing-headline-2"></a><!-- para:51-activation-patching-causal-tracing-headline-2 --> **Placement & lineage.** A special case of Pearl-style causal mediation analysis applied to activations, adapted to transformers by Vig et al. <!-- cite:32 --> [[32]](references.md#ref-32) (gender-bias mediation) and made a localization workhorse by ROME's "causal tracing" <!-- cite:31 --> [[31]](references.md#ref-31). Every downstream causal method (path, attribution, ACDC, EAP) is an optimization or approximation of this primitive; the practitioner how-to is Heimersheim & Nanda <!-- cite:34 --> [[34]](references.md#ref-34).
 

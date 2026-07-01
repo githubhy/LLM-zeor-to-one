@@ -21,7 +21,7 @@
 <!-- sec:Q.4 -->
 ### <a id="sec-Q.4"></a>Q.4 Why do attribution graphs *freeze* attention?
 
-<a id="p-q4-why-do-attribution-graphs-freeze-attention-1"></a><!-- para:q4-why-do-attribution-graphs-freeze-attention-1 --> Because attention's softmax nonlinearity is much harder to sparsify and linearize than an MLP's (§ <!-- secxref:8.3 -->[§8.3](method-inventory-automation.md#sec-8.3)). Freezing attention at its real, input-computed values keeps the rest of the replacement model linear in the transcoder features, which is exactly what makes the end-to-end Jacobian attribution possible. It is an honest, visible approximation — attention is "used but not explained" in the graph — and relaxing it is active follow-up work.
+<a id="p-q4-why-do-attribution-graphs-freeze-attention-1"></a><!-- para:q4-why-do-attribution-graphs-freeze-attention-1 --> Because attention's softmax nonlinearity is much harder to sparsify and linearize than an MLP's (§ <!-- secxref:8.3 -->[§8.3](method-inventory-automation.md#sec-8.3)). Freezing attention at its real, input-computed values keeps the rest of the replacement model linear (<!-- secxref:C.3 -->[§C.3](appendix-c-causal-interventions.md#sec-C.3)) in the transcoder features, which is exactly what makes the end-to-end Jacobian attribution possible. It is an honest, visible approximation — attention is "used but not explained" in the graph — and relaxing it is active follow-up work.
 
 <!-- sec:Q.5 -->
 ### <a id="sec-Q.5"></a>Q.5 Why does adding a single mean-difference vector steer behavior at all?
