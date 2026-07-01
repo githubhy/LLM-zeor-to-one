@@ -1,0 +1,57 @@
+{"tried": "arxiv-direct", "ok": true, "bytes": 2534772, "path": "download/park-lrh-geometry-2024.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2311.03658",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2311.03658",
+      "source": "arxiv-direct",
+      "arxiv_id": "2311.03658"
+    }
+  ]
+}
+RESULT OK 2311.03658 download/park-lrh-geometry-2024.pdf
+{"tried": "arxiv-direct", "ok": true, "bytes": 4402561, "path": "download/engels-not-all-features-linear-2024.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2405.14860",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2405.14860",
+      "source": "arxiv-direct",
+      "arxiv_id": "2405.14860"
+    }
+  ]
+}
+RESULT OK 2405.14860 download/engels-not-all-features-linear-2024.pdf
+{"tried": "arxiv-direct", "ok": true, "bytes": 3360716, "path": "download/vig-causal-mediation-2020.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:2004.12265",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/2004.12265",
+      "source": "arxiv-direct",
+      "arxiv_id": "2004.12265"
+    }
+  ]
+}
+RESULT OK 2004.12265 download/vig-causal-mediation-2020.pdf
+{"tried": "arxiv-direct", "ok": true, "bytes": 3383448, "path": "download/sundararajan-integrated-gradients-2017.pdf", "content_type": "application/pdf"}
+{
+  "query": "arxiv:1703.01365",
+  "email_configured": false,
+  "annas_fallback": false,
+  "candidates": [
+    {
+      "pdf_url": "https://arxiv.org/pdf/1703.01365",
+      "source": "arxiv-direct",
+      "arxiv_id": "1703.01365"
+    }
+  ]
+}
+RESULT OK 1703.01365 download/sundararajan-integrated-gradients-2017.pdf
+=== supp done ===

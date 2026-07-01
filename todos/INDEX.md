@@ -15,3 +15,5 @@
 | 2026-06-28 | multimodal-llms-reference-impl-handoff | Multimodal-LLMs survey → reference-implementation study handoff | open | two study-ready methods (FastV pruning; connector ablation) nominated by survey §13.2 |
 | 2026-06-28 | multimodal-llms-crosslink-polish | Multimodal-LLMs survey — cross-link polish pass | open | residual low-cosine candidates + body→appendix forward-link conversions |
 | 2026-06-28 | sync-upstream-scope-candidates | Decide which additional infra paths to add to /sync-upstream inbound scope | closed | RESOLVED 2026-06-28: added bench/ .gitignore .viewerignore; held .github/.claude-sync.yml, viewer.content/manifest.json, tools/ |
+| 2026-07-01 | mechinterp-ris-handoff | Mechanistic-interpretability survey → reference-implementation-study handoff | open | 3 study-ready candidates (SAE frontier; EAP-IG faithfulness; steering head-to-head) nominated by survey §15.2 |
+| 2026-07-01 | mechinterp-crosslink-polish | Mechanistic-interpretability survey — cross-link polish pass | open | 19 advisory candidate links (mainly section→Q&A back-links) above 218 existing intra-survey links |
