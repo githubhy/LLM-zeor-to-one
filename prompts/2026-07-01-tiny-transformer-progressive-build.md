@@ -1,0 +1,46 @@
+# Conversation Log — 2026-07-01 — session: tiny-transformer-progressive-build
+
+## Conversation 1
+- **Request**: For `plans/2026-06-30-tiny-transformer-induction-study.md`, would building the transformer progressively up to a full functional tiny transformer be a good idea?
+- **Actions**: Read the plan. Answered as design consultation (no edits). Disambiguated "progressive" into three senses: (1) progressive implementation / software bottom-up, (2) progressive scientific ladder of independent from-scratch models at increasing architectural complexity, (3) progressive weight-growing (net2net/stacking) — plus a curriculum-training aside.
+- **Result**: Recommended adopt #1 (free, de-risks G1) + a curated #2 (spine: zero-layer bigram → one-layer skip-trigram §A.8 → two-layer induction MVP; MLP/full-stack stay stretch); explicitly rule out #3 and data-curriculum (both confound the from-scratch mechanism story). Offered to fold into the plan and file a decision record. Awaiting user go-ahead.
+- **Findings**: The plan already latently encodes the ladder (ablation grid {1,2,3 layers} + H1) but as a side ablation, not a spine. Two real gaps surfaced: (a) no rung below the induction task, so §A.8 skip-trigrams is never empirically validated and the 1-layer model only ever *fails* (under-selling H1 — it should *succeed* at skip-trigrams to prove the machinery, then fail at induction); (b) H2/H3 assert the induction head forms but never exhibit the K-composition path — a layer-0 prev-token-head ablation that breaks the layer-1 induction head (§A.18) would be a much stronger mechanistic result, nearly free once built progressively.
+## Conversation 2
+- **Request**: Change the study goal to "finally understand GPT-2"; then: if training GPT-2 takes so much power, how large a model can a 16GB MacBook/laptop train?
+- **Actions**: Assessed the pivot (augment vs replace; bounded GPT-2 slice). User leaned "augment". Answered the feasibility question from first principles: memory (16 bytes/param AdamW) vs compute (6ND, D≈20N, ~1 TFLOP/s effective laptop throughput).
+- **Result**: Established that memory is not the limit (124M ≈ 2 GB training state) but compute is (124M ≈ ~3 weeks from scratch). Practical from-scratch ceiling ~10M (≤~30M) with a *small vocab*; load pretrained for 124M. Proposed the three-rung toy→mini-GPT-2→pretrained-GPT-2 ladder.
+- **Findings**: Compute-feasible (~10M) is ~30–50× below memory-feasible (~700M) on a laptop. At <~30M params, keeping GPT-2's 50,257 BPE vocab makes the embedding table dominate params (~19M at width 384) — must shrink vocab (char/small-BPE) or you train an embedding table, not a transformer.
+
+## Conversation 3
+- **Request**: Put the whole feasibility answer into a wiki under ./wikis/ and update the plan accordingly.
+- **Actions**: Created wikis/ (new repo convention) → laptop-scale-training-feasibility.md (memory-vs-compute, 6ND law, by-size table, embedding-table gotcha, three-rung ladder, assumptions, sources). Folded the ladder into plans/2026-06-30-...: §1 ladder paragraph, H6 transfer hypothesis + rung-applicability note, three-rung config table, Phase 3 rung-2 bullet, new Phase 4b (pretrained GPT-2, gate G3b), §6 scope + §8 decisions (framework + GPT-2 scope RESOLVED) + §9 refs. Filed decision 2026-07-01-01 + todo gpt2-training-reproduction; updated both indexes.
+- **Result**: Wiki + updated plan lint-clean. Plan still awaiting review; MVP now rung 1 + pretrained-GPT-2 rung 3, mini-GPT-2 rung 2 as stretch, 124M-from-scratch deferred (tracked).
+- **Findings**: lint-math gotcha — a literal currency symbol in a money range parses as an unclosed inline-math delimiter; reworded to "tens of dollars". Same failure class as the digit-abut delimiter rule.
+## Conversation 4
+- **Request**: Why is there only decoders in the toy transformer?
+- **Actions**: Answered from first principles (no file change): the task is autoregressive next-token prediction on one stream → decoder-only; walked the three archetypes (encoder-only / encoder–decoder / decoder-only); argued the causal mask (not the block name) is load-bearing; induction heads are inherently causal; ladder/GPT-2 consistency; microscope minimalism. Offered to add a one-line justification to the plan.
+- **Result**: Conceptual clarification; led directly to the Conversation-5 fold request.
+- **Findings**: The clarifying framing — a "decoder-only" block *is* the original decoder block minus cross-attention; the distinguishing feature is the causal mask + autoregressive objective, not the word "decoder".
+
+## Conversation 5
+- **Request**: Fold the whole "why decoder-only" answer into surveys/llms-for-coding/appendix-c-toy-transformer.md **fully**.
+- **Actions**: Ran survey-explainer-fold in `full` mode ("fully" overrode the user's usual lighter default). Inline Note at the end of §C.1 (host = the causal cross-entropy objective) + a dedicated §C.7 "Why the Toy Is Decoder-Only" appended at file end (cascade-free), wired both ways (Note→§C.7, §C.7→§C.1). §C.7 = a three-archetype comparison table + four point-by-point paragraphs + "what it buys" + "intuition"; secxref §A.2/§A.9, ref (3), no new numbered equations, no external citations. Ran the mandatory sweep: sections/paragraphs --init → all --check clean; equations --check 0 tag updates (no cascade); validate-refs 0 err / 120 links valid; citation-sources 0 err.
+- **Result**: Fold landed clean. Cross-link sign-off: the folded content produced 0 gaps; one pre-existing low-cosine (0.125) §C.2→§A.15 candidate (not from §C.7) appended to the existing appendix-a-crosslink-candidates todo.
+- **Findings**: build-index exit 1 is benign (file below the 1000-line per-file-index threshold). Git Bash `python3` resolves to the Windows Store stub — must probe interpreters like py-launcher.sh does (`python` is the real one here), not trust `command -v python3`.
+## Conversation 6
+- **Request**: Grokking isn't in the survey — what is it, and how would you integrate it from toy to SOTA?
+- **Actions**: Explained grokking (delayed generalization on modular arithmetic; weight-decay-driven memorize→generalize; the Fourier-multiplication circuit; progress measures; circuit-efficiency). Mapped integration across the ladder: native at the toy (mod-add, a 2nd ground-truth circuit + training-time phase change), methodology-transfers at mini-GPT-2/NL (progress measures for H2), lens-only at pretrained GPT-2, emergent-abilities analog + mirage caveat at SOTA; Omnigrok as the beyond-toy bridge. Offered to fold + expand.
+- **Result**: Led to the Conversation-7 "do both" request.
+- **Findings**: Honest scope caveat — grokking is a small-model/algorithmic-task phenomenon; what scales is the *concept* + *methodology*, not the clean curve; overclaiming grokking at frontier scale would be wrong.
+
+## Conversation 7
+- **Request**: Do both — fold a grokking subsection into the survey with the "why" in full first-principles detail, and expand the plan's grokking task.
+- **Actions**: Full survey-explainer-fold into appendix-c: inline Note at §C.5 + new **§C.8** written as a self-contained first-principles derivation (Fourier-multiplication circuit via the roots-of-unity/Dirichlet-kernel resonance; the delay as a minimum-norm-interpolant selection under weight decay — deriving the weight-decay dependence; a Fourier-concentration progress measure). 8 new equations (11–18) appended at file end → cascade-free. Expanded the plan: H7 + rung-applicability line + a grokking second-circuit sub-study in §6 + refs. Deferred the empirical citations (§C.8 is self-contained) → decision 2026-07-01-02 + todo source-fetch-grokking-citations.
+- **Result**: Survey + plan updated, all gates green (18 sequential eq tags in appendix-c, 90 markers survey-wide, 0 errors; crosslink 0 new gaps — only the pre-existing §C.2→§A.15 candidate). Citation pass tracked.
+- **Findings**: The no-cascade rule permits *new* numbered equations when they're the highest-numbered (appended at file end extends tags 11–18); only mid-document insertion cascades. renumber-equations must run in apply mode (not just --check) when equations are added.
+## Conversation 8
+- **Request**: What is weight decay? → then: fold the weight-decay answer fully into §C.4.
+- **Actions**: Answered weight decay from first principles (L2 penalty ⇔ multiplicative (1−ηλ) shrink; the Adam-vs-AdamW decoupling; the grokking-selection tie). Then a full survey-explainer-fold into appendix-c: inline Note at §C.4 (after the Adam scale-free paragraph) + new **§C.9** "Weight Decay, and the AdamW Decoupling" appended at file end — self-contained (L2-penalty → shrink-factor Eq 19; Adam→AdamW decoupled step Eq 20; Gaussian-prior/MAP + the min-norm-interpolant grokking tie referencing Eqs 11/16/17 and §C.8). 2 new equations (19–20), cascade-free.
+- **Result**: Sweep clean — 20 sequential eq tags in appendix-c, 92 markers survey-wide, 0 errors; crosslink 0 new gaps (only the pre-existing §C.2→§A.15). No decision/todo needed (mechanical full-mode fold; §C.9 self-contained, no new external citations).
+- **Findings**: Caught myself hand-writing a paragraph anchor on the Note (violates the skill's "let renumber-paragraphs --init inject anchors" rule); removed it before the sweep so --init assigned the correct p-c4-…-N anchor.
+<!-- LOG-END -->

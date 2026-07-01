@@ -24,6 +24,7 @@ directional `secxref` syntax:
 - `appendix-a §A.5` → `appendix-b §B.6` (cosine 0.242) — attention-as-kernel-regression ↔ the kernel-regression-family appendix; the most plausible of the three.
 - `appendix-a §A.5` → `appendix-b §B.7` (cosine 0.131).
 - `appendix-a §A.13` → `appendix-e §E.5` (cosine 0.124) — concrete-dimensions ↔ modern-dense anatomy.
+- `appendix-c §C.2` → `appendix-a §A.15` (cosine 0.125) — surfaced during the §C.7 "why decoder-only" fold (2026-07-01); a pre-existing §C.2 (forward-pass) gap, **not** from the new §C.7, which is already linked (secxref §A.2/§A.9, secref §C.1).
 
 ## Acceptance
 
