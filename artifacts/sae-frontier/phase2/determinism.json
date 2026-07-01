@@ -1,0 +1,22 @@
+{
+  "relu": {
+    "hash_run1": "5c9a9e7303a0d918",
+    "hash_run2": "5c9a9e7303a0d918",
+    "deterministic": true
+  },
+  "gated": {
+    "hash_run1": "417a7606f021b3e9",
+    "hash_run2": "417a7606f021b3e9",
+    "deterministic": true
+  },
+  "topk": {
+    "hash_run1": "b2f44bc9ef7adc51",
+    "hash_run2": "b2f44bc9ef7adc51",
+    "deterministic": true
+  },
+  "jumprelu": {
+    "hash_run1": "c403545f30494098",
+    "hash_run2": "c403545f30494098",
+    "deterministic": true
+  }
+}

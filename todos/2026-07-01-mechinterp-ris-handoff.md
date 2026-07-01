@@ -1,8 +1,14 @@
 ---
 slug: mechinterp-ris-handoff
 date_filed: 2026-07-01
-status: open
+status: in-progress
 ---
+
+**Update 2026-07-02.** Candidate 1 (SAE fidelity–sparsity frontier) **COMPLETE** via
+`reference-implementation-study` → study `sae-frontier` (`docs/sae-frontier-implementation-study.md`;
+gates G1–G4 PASS; H1–H4 confirmed; **TopK recommended**). Scoped to synthetic-oracle + GPT-2-small
+(decision 2026-07-02-01); Gemma-scale port + more in `todos/2026-07-02-sae-frontier-followups.md`.
+Candidates 2 (EAP-IG faithfulness) and 3 (steering head-to-head) remain open.
 
 # Mechanistic-interpretability survey → reference-implementation-study handoff
 

@@ -1,0 +1,150 @@
+{
+  "doe": "precision {bf16,fp16,int8} x structure {per-tensor, per-channel}; weight-only PTQ",
+  "operating_point": {
+    "relu": {
+      "l1_coeff": 0.2
+    },
+    "gated": {
+      "l1_coeff": 0.2
+    },
+    "jumprelu": {
+      "l1_coeff": 0.1
+    },
+    "topk": {
+      "k": 8
+    }
+  },
+  "modes": [
+    "fp32",
+    "bf16",
+    "fp16",
+    "int8_per_tensor",
+    "int8_per_channel"
+  ],
+  "per_variant": {
+    "relu": {
+      "fp32": {
+        "ev": 0.7910124331042562,
+        "saturation_events": 0,
+        "ev_drop_vs_fp32": 0.0
+      },
+      "bf16": {
+        "ev": 0.7910463017826417,
+        "saturation_events": 0,
+        "ev_drop_vs_fp32": -3.386867838550689e-05
+      },
+      "fp16": {
+        "ev": 0.7910132122662161,
+        "saturation_events": 0,
+        "ev_drop_vs_fp32": -7.791619599517574e-07
+      },
+      "int8_per_tensor": {
+        "ev": 0.7906055447820378,
+        "saturation_events": 8,
+        "ev_drop_vs_fp32": 0.00040688832221835725
+      },
+      "int8_per_channel": {
+        "ev": 0.7900559703536698,
+        "saturation_events": 91,
+        "ev_drop_vs_fp32": 0.0009564627505863621
+      }
+    },
+    "gated": {
+      "fp32": {
+        "ev": 0.8841515887777053,
+        "saturation_events": 0,
+        "ev_drop_vs_fp32": 0.0
+      },
+      "bf16": {
+        "ev": 0.884207489503851,
+        "saturation_events": 0,
+        "ev_drop_vs_fp32": -5.5900726145696744e-05
+      },
+      "fp16": {
+        "ev": 0.884166508900342,
+        "saturation_events": 0,
+        "ev_drop_vs_fp32": -1.4920122636707944e-05
+      },
+      "int8_per_tensor": {
+        "ev": 0.8840805938608254,
+        "saturation_events": 8,
+        "ev_drop_vs_fp32": 7.099491687989623e-05
+      },
+      "int8_per_channel": {
+        "ev": 0.8840896205350206,
+        "saturation_events": 92,
+        "ev_drop_vs_fp32": 6.196824268467349e-05
+      }
+    },
+    "topk": {
+      "fp32": {
+        "ev": 0.8175293205279162,
+        "saturation_events": 0,
+        "ev_drop_vs_fp32": 0.0
+      },
+      "bf16": {
+        "ev": 0.8175055146433535,
+        "saturation_events": 0,
+        "ev_drop_vs_fp32": 2.3805884562633217e-05
+      },
+      "fp16": {
+        "ev": 0.8175418865867592,
+        "saturation_events": 0,
+        "ev_drop_vs_fp32": -1.256605884303319e-05
+      },
+      "int8_per_tensor": {
+        "ev": 0.8171580249871435,
+        "saturation_events": 8,
+        "ev_drop_vs_fp32": 0.0003712955407726426
+      },
+      "int8_per_channel": {
+        "ev": 0.8174462983343996,
+        "saturation_events": 97,
+        "ev_drop_vs_fp32": 8.302219351652429e-05
+      }
+    },
+    "jumprelu": {
+      "fp32": {
+        "ev": 0.7631827075118739,
+        "saturation_events": 0,
+        "ev_drop_vs_fp32": 0.0
+      },
+      "bf16": {
+        "ev": 0.7630423920474323,
+        "saturation_events": 0,
+        "ev_drop_vs_fp32": 0.00014031546444159826
+      },
+      "fp16": {
+        "ev": 0.7631589347831393,
+        "saturation_events": 0,
+        "ev_drop_vs_fp32": 2.3772728734550164e-05
+      },
+      "int8_per_tensor": {
+        "ev": 0.7628508176727763,
+        "saturation_events": 8,
+        "ev_drop_vs_fp32": 0.00033188983909759884
+      },
+      "int8_per_channel": {
+        "ev": 0.76274757042413,
+        "saturation_events": 89,
+        "ev_drop_vs_fp32": 0.0004351370877438976
+      }
+    }
+  },
+  "mean_ev_drop_by_structure": {
+    "fp32": 0.0,
+    "bf16": 1.858798611825696e-05,
+    "fp16": -1.123153676285682e-06,
+    "int8_per_tensor": 0.00029526715474212373,
+    "int8_per_channel": 0.00038414756863286437
+  },
+  "saturation_events_by_structure": {
+    "fp32": 0,
+    "bf16": 0,
+    "fp16": 0,
+    "int8_per_tensor": 32,
+    "int8_per_channel": 369
+  },
+  "most_graceful": "fp16",
+  "least_graceful": "int8_per_channel"
+}

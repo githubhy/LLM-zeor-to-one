@@ -1,0 +1,143 @@
+{
+  "study": "sae-frontier",
+  "iterations": [
+    {
+      "phase": 2,
+      "name": "implementation",
+      "environment": {
+        "os": "macOS-26.3-arm64-arm-64bit",
+        "python": "3.12.3",
+        "numpy": "2.0.0",
+        "torch": "2.3.1",
+        "transformers": "4.49.0",
+        "datasets": "4.8.5",
+        "git_commit": "e9f4857",
+        "git_dirty": true
+      },
+      "gate": "G1",
+      "candidates": [
+        "relu",
+        "gated",
+        "topk",
+        "jumprelu"
+      ],
+      "oracle_check_all_passed": true,
+      "determinism_all_passed": true,
+      "artifacts": [
+        "phase2/oracle_checks.json",
+        "phase2/determinism.json"
+      ]
+    },
+    {
+      "phase": 3,
+      "name": "baseline",
+      "environment": {
+        "os": "macOS-26.3-arm64-arm-64bit",
+        "python": "3.12.3",
+        "numpy": "2.0.0",
+        "torch": "2.3.1",
+        "transformers": "4.49.0",
+        "datasets": "4.8.5",
+        "git_commit": "e9f4857",
+        "git_dirty": true
+      },
+      "gate": "G2",
+      "substrate": "S1",
+      "artifacts": [
+        "baseline/summary.json",
+        "baseline/scores.npz",
+        "baseline/frontier.html"
+      ],
+      "H1_ev_at_matched_L0_mean": {
+        "relu": 0.3133820148161156,
+        "gated": 0.6740822808910483,
+        "topk": 0.8207396403384897,
+        "jumprelu": 0.758549124451983
+      }
+    },
+    {
+      "phase": 4,
+      "name": "sensitivity",
+      "environment": {
+        "os": "macOS-26.3-arm64-arm-64bit",
+        "python": "3.12.3",
+        "numpy": "2.0.0",
+        "torch": "2.3.1",
+        "transformers": "4.49.0",
+        "datasets": "4.8.5",
+        "git_commit": "e9f4857",
+        "git_dirty": true
+      },
+      "gate": "G3",
+      "artifacts": [
+        "sensitivity/sensitivity.json",
+        "sensitivity/sensitivity.html"
+      ],
+      "H4_gap_monotone_in_R": true,
+      "morris_top_factor": "lr"
+    },
+    {
+      "phase": 5,
+      "name": "precision",
+      "environment": {
+        "os": "macOS-26.3-arm64-arm-64bit",
+        "python": "3.12.3",
+        "numpy": "2.0.0",
+        "torch": "2.3.1",
+        "transformers": "4.49.0",
+        "datasets": "4.8.5",
+        "git_commit": "e9f4857",
+        "git_dirty": true
+      },
+      "gate": "G4",
+      "artifacts": [
+        "precision/precision.json",
+        "precision/precision_sweep.npz"
+      ],
+      "mean_ev_drop_by_structure": {
+        "fp32": 0.0,
+        "bf16": 1.858798611825696e-05,
+        "fp16": -1.123153676285682e-06,
+        "int8_per_tensor": 0.00029526715474212373,
+        "int8_per_channel": 0.00038414756863286437
+      },
+      "saturation_events": {
+        "fp32": 0,
+        "bf16": 0,
+        "fp16": 0,
+        "int8_per_tensor": 32,
+        "int8_per_channel": 369
+      }
+    },
+    {
+      "phase": 6,
+      "name": "report",
+      "environment": {
+        "os": "macOS-26.3-arm64-arm-64bit",
+        "python": "3.12.3",
+        "numpy": "2.0.0",
+        "torch": "2.3.1",
+        "transformers": "4.49.0",
+        "datasets": "4.8.5",
+        "git_commit": "e9f4857",
+        "git_dirty": true
+      },
+      "gate": "REPORT",
+      "report": "docs/sae-frontier-implementation-study.md",
+      "gates": {
+        "G1": "PASS",
+        "G2": "PASS",
+        "G3": "PASS",
+        "G4": "PASS",
+        "REPORT": "PASS"
+      },
+      "recommendation": "TopK",
+      "hypotheses": {
+        "H1": "confirmed",
+        "H2": "confirmed(closed-form)",
+        "H3": "confirmed",
+        "H4": "confirmed"
+      }
+    }
+  ]
+}

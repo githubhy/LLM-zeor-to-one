@@ -1,0 +1,5 @@
+  done relu
+  done gated
+  done topk
+  done jumprelu
+Phase 3 (S1) complete. EV@L0=8: {'relu': np.float64(0.313), 'gated': np.float64(0.674), 'topk': np.float64(0.821), 'jumprelu': np.float64(0.759)}
