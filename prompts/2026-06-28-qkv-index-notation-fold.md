@@ -102,4 +102,9 @@
 - **Result**: All gates green — **18 eq tags sequential** (eq 18 appended, 1–17 untouched), 115 .md links valid, bare-refs + citation-sources clean. Crosslink: A.17 no new gap. Committed + pushed (below).
 - **Findings**: The symmetric/skew decomposition is the crisp "to what extent" answer — $M_{\mathrm{sym}}$ is the only part that could be a $\Sigma^{-1}$ (and even it is low-rank/possibly-indefinite), while $M_{\mathrm{skew}}$ is qualitatively outside the matched-filter picture; this is the same SPD caveat §A.5's kernel reading already carries.
 
+## Conversation 19
+- **Request**: `/check-survey llms-for-coding` — full validation gate.
+- **Actions**: Ran all 8 steps across the 28-file survey. (Gotcha: macOS bash 3.2 lacks `mapfile`, and zsh doesn't word-split unquoted vars — first attempts looped over an empty file list / scanned the whole repo; redone with `while read` array population scoped to `order.json`.)
+- **Result**: **All green.** lint-math 0 errors (28 files); renumber-equations/paragraphs/sections `--check` clean; link-references up to date; validate-refs 0 errors/0 warnings (115 .md links, 65 eq markers + anchors, 32 image refs); bare-refs (error) exit 0; citation-sources 0 errors (66 entries: 56 local / 9 web / 1 abstract-only). Totals: 65 numbered equations, 66 references. Survey signs off clean; no changes made.
+
 <!-- LOG-END -->
