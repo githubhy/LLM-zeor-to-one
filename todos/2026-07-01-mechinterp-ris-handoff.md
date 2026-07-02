@@ -25,9 +25,15 @@ Run a `reference-implementation-study` (or `method-eval` viability gate first) o
    Scope [ref 65]). Baseline: ReLU SAE at matched L0. Hypothesis (Quantitative): JumpReLU/TopK
    Pareto-dominate ReLU; loss-recovered gap grows with dictionary width (Gao [11], Rajamanoharan
    [12]). Settles: reproduces the L1-shrinkage-fix claim on an open suite.
-2. **Attribution vs. exact patching faithfulness** — IOI + Greater-Than on GPT-2 small. Baseline:
-   plain EAP. Hypothesis: EAP-IG lifts IOI circuit faithfulness from ~0% toward the exact-patching
-   curve (Hanna et al. [41]). Settles: quantifies the first-order linearization error and the IG fix.
+2. **Attribution vs. exact patching faithfulness** — IOI + Greater-Than + SVA on GPT-2 small.
+   Baseline: plain EAP. Hypothesis (paper-accurate, read from `download/hanna-eap-ig-faithfulness-2024.pdf`
+   §4.3, Fig 3 — the earlier "EAP-IG lifts IOI from ~0%" framing was a memory drift, see
+   bug `2026-07-02-04`): the EAP→EAP-IG faithfulness gap is **large on SVA** (EAP finds a
+   completely-unfaithful, pruned-to-nothing circuit until n≈1000; EAP-IG repairs it via the essential
+   embed→MLP0 edge) and Capital-Country (≥0.2), **~0.1 on Greater-Than**, and **≈0 on IOI** (both EAP
+   and EAP-IG plateau ~0.6, below activation-patching's >0.8). Activation-patching is the ground-truth
+   oracle both scores approximate. Settles: quantifies the first-order linearization error, the IG fix,
+   and its task-dependence.
 3. **Steering head-to-head** — prompting vs. difference-in-means vs. SAE-feature clamp on Gemma 2
    2B/9B. Baseline: prompting. Hypothesis: prompting ≥ diff-in-means ≥ naive SAE steering at
    matched coherence (AxBench [66]). Settles: replicates the SAE-debate result on a fixed harness.
