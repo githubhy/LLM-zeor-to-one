@@ -31,3 +31,7 @@ viewer/dist/
 # OS / editor
 .DS_Store
 *.swp
+
+# Regenerable connector SigLIP feature cache (1.4GB) — reproduce recomputes it
+artifacts/connector-ablation/features.npz
+artifacts/**/features.npz

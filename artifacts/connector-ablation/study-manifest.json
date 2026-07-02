@@ -1,0 +1,25 @@
+{
+  "environment": {
+    "git_commit": "c21eae941d1b-dirty",
+    "numpy": "2.0.0",
+    "os": "macOS-26.3-arm64-arm-64bit",
+    "python": "3.12.3",
+    "scipy": "1.14.0",
+    "torch": "2.3.1",
+    "transformers": "4.49.0"
+  },
+  "git_commit": "c21eae941d1b-dirty",
+  "iterations": [
+    {
+      "detail_gap": {
+        "1": 0.0078125,
+        "4": 0.0078125,
+        "16": 0.00520833333333337,
+        "64": 0.0
+      },
+      "note": "connector ablation MLP vs Q-Former across token budgets",
+      "phase": 3
+    }
+  ],
+  "study": "connector-ablation"
+}
