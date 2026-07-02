@@ -1,14 +1,22 @@
 ---
 slug: mechinterp-ris-handoff
 date_filed: 2026-07-01
-status: in-progress
+status: closed
 ---
 
-**Update 2026-07-02.** Candidate 1 (SAE fidelity–sparsity frontier) **COMPLETE** via
-`reference-implementation-study` → study `sae-frontier` (`docs/sae-frontier-implementation-study.md`;
-gates G1–G4 PASS; H1–H4 confirmed; **TopK recommended**). Scoped to synthetic-oracle + GPT-2-small
-(decision 2026-07-02-01); Gemma-scale port + more in `todos/2026-07-02-sae-frontier-followups.md`.
-Candidates 2 (EAP-IG faithfulness) and 3 (steering head-to-head) remain open.
+**Update 2026-07-02.** **ALL THREE candidates now have studies** (offline GPT-2-small scope,
+decision 2026-07-02-04):
+- Candidate 1 (SAE frontier) **COMPLETE** → `sae-frontier` (G1–G4 PASS; TopK recommended) +
+  Track-C extension `sae-frontier-ext` (BatchTopK/Matryoshka red-team refuted).
+- Candidate 2 (EAP-IG faithfulness) **COMPLETE** → `eap-ig-faithfulness`
+  (`docs/eap-ig-faithfulness-implementation-study.md`; G1/G2/G3/G4/REPORT PASS; EAP-IG > EAP
+  +0.224 p=3.6e-34, ρ=0.92 vs 0.46). Followups `todos/2026-07-02-eap-ig-followups.md`; the earlier
+  "IOI ~0%" framing was a memory drift → bug 2026-07-02-04.
+- Candidate 3 (steering head-to-head) **COMPLETE** → `steering-headtohead`
+  (`docs/steering-headtohead-study.md`; G1 PASS; SAE-clamp worst reproduces AxBench, diff-in-means >
+  prompting flipped — metric/model-dependent). Followups `todos/2026-07-02-steering-followups.md`.
+
+This handoff is now **closed** (status below → all candidates addressed).
 
 # Mechanistic-interpretability survey → reference-implementation-study handoff
 
