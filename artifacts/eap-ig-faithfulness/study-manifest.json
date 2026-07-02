@@ -1,0 +1,106 @@
+{
+  "determinism": {
+    "greater_than": {
+      "hashes_match": true,
+      "run_hashes": [
+        "21eba4af0bc7628c",
+        "21eba4af0bc7628c"
+      ]
+    },
+    "ioi": {
+      "hashes_match": true,
+      "run_hashes": [
+        "a1b0cbfcd781976b",
+        "a1b0cbfcd781976b"
+      ]
+    },
+    "sva": {
+      "hashes_match": true,
+      "run_hashes": [
+        "a57ef028c15ca280",
+        "a57ef028c15ca280"
+      ]
+    }
+  },
+  "environment": {
+    "git_commit": "e9431ba07ef1-dirty",
+    "numpy": "2.0.0",
+    "os": "macOS-26.3-arm64-arm-64bit",
+    "python": "3.12.3",
+    "scipy": "1.14.0",
+    "torch": "2.3.1",
+    "transformers": "4.49.0"
+  },
+  "git_commit": "e9431ba07ef1-dirty",
+  "iterations": [
+    {
+      "det_all_match": true,
+      "note": "G1 prep: determinism + oracles",
+      "oracle_all_pass": true,
+      "phase": 2
+    },
+    {
+      "eap_ig_vs_eap_p": 3.5898591419154977e-34,
+      "faith_at_ref": {
+        "eap": 0.39904264093404185,
+        "eap_ig": 0.6231351681202392,
+        "exact_patch": 0.6268649808939598,
+        "random": -3.0288186583978437e-07
+      },
+      "note": "baseline: 4 candidates x 3 tasks x 3 seeds",
+      "phase": 3
+    },
+    {
+      "interaction_max_gap": {
+        "greater_than": 0.0008682012557983398,
+        "ioi": 0.4683005763217807,
+        "sva": 0.49856556318700385
+      },
+      "note": "sensitivity: m_ig x task grid + size sensitivity",
+      "phase": 4
+    },
+    {
+      "note": "precision: fp16 / bf16 attribution stability",
+      "phase": 5,
+      "saturation": {
+        "bfloat16": true,
+        "float16": true
+      }
+    },
+    {
+      "max_drift": {
+        "bf16_scores": 0.0,
+        "fp16_scores": 0.0
+      },
+      "note": "precision: bf16/fp16 attribution-score storage",
+      "phase": 5,
+      "saturation": {
+        "bf16_scores": false,
+        "fp16_scores": false
+      }
+    }
+  ],
+  "oracle_checks": {
+    "eap": {
+      "detail": "grad scaling ratio under 2x metric = 2.0000 (=2.0)",
+      "passed": true,
+      "type": "metamorphic"
+    },
+    "eap_ig": {
+      "detail": "max|eap_ig(m=1) - eap| = 0.00e+00 (=0)",
+      "passed": true,
+      "type": "analytical"
+    },
+    "exact_patch": {
+      "detail": "faith(full)=1.0000 (=1), faith(empty)=0.0000 (=0)",
+      "passed": true,
+      "type": "analytical"
+    },
+    "random": {
+      "detail": "faith(random circuit, n=40) = -0.0000 (~0 floor)",
+      "passed": true,
+      "type": "reference"
+    }
+  },
+  "study": "eap-ig-faithfulness"
+}

@@ -11,6 +11,15 @@ The `sae-frontier` reference-implementation study (docs/sae-frontier-implementat
 G1–G4 PASS) confirmed H1–H4 and recommends TopK, at commodity scale (synthetic + GPT-2-small). These
 are the deferred items named in its roadmap (Sec. 11) and red-team (Sec. 10).
 
+## Update 2026-07-02 (Track C, `docs/sae-frontier-ext-study.md`)
+**Resolved** here: (a) **JumpReLU STE robustness** — added `AdaptiveJumpReLU` (bandwidth = 0.5·std(pre))
++ regression test asserting θ responds to the sparsity penalty (`tests/sae_frontier/test_ext.py`);
+(b) **BatchTopK + Matryoshka** — implemented, added to the frontier, and evaluated: the red-team
+prediction that they beat exact-k TopK is **refuted** (BatchTopK significantly worse, Matryoshka
+indistinguishable, on both sparse and dense substrates); (c) **orthonormal shrinkage curve** — a
+cleaner H2 curve (ReLU 0.96 shrinks; threshold methods ≥1; AdaptiveJumpReLU closest to unbiased).
+**Still open** (below): Gemma-scale port; widen-S2. A fuller multi-seed orthonormal curve also remains.
+
 ## What is left
 - **Gemma-scale port.** Reproduce the frontier on Gemma-2-2B via **pretrained Gemma Scope** SAEs on a
   GPU host (the survey's original target; infeasible on the 17 GB Mac — decision 2026-07-02-01). Test

@@ -1,0 +1,386 @@
+{
+  "cost": [
+    {
+      "asymptotic_claim": "O(1)",
+      "measured_scaling": {
+        "n20_p50": 0.00011041713878512383,
+        "n40_p50": 0.00011420808732509613,
+        "ratio": 1.0343329720520076
+      },
+      "method": "random",
+      "op_count": {
+        "bwd": 0,
+        "fwd": 0
+      },
+      "percentiles": {
+        "p50": 0.00011420808732509613,
+        "p90": 0.00014300793409347535
+      },
+      "repeats": 3
+    },
+    {
+      "asymptotic_claim": "O(1) passes (2 fwd + 1 bwd)",
+      "measured_scaling": {
+        "n20_p50": 1.1433648329693824,
+        "n40_p50": 3.159127375110984,
+        "ratio": 2.7630090448965037
+      },
+      "method": "eap",
+      "op_count": {
+        "bwd": 1,
+        "fwd": 2
+      },
+      "percentiles": {
+        "p50": 3.159127375110984,
+        "p90": 3.236810307763517
+      },
+      "repeats": 3
+    },
+    {
+      "asymptotic_claim": "O(m) passes (m=5)",
+      "measured_scaling": {
+        "n20_p50": 4.020396291045472,
+        "n40_p50": 9.24783654208295,
+        "ratio": 2.3002300948989594
+      },
+      "method": "eap_ig",
+      "op_count": {
+        "bwd": 5,
+        "fwd": 6
+      },
+      "percentiles": {
+        "p50": 9.24783654208295,
+        "p90": 10.102186141861603
+      },
+      "repeats": 3
+    },
+    {
+      "asymptotic_claim": "O(nodes) passes (=157)",
+      "measured_scaling": {
+        "n20_p50": 43.68149733310565,
+        "n40_p50": 50.576654749922454,
+        "ratio": 1.157850756905969
+      },
+      "method": "exact_patch",
+      "op_count": {
+        "bwd": 0,
+        "fwd": 157
+      },
+      "percentiles": {
+        "p50": 50.576654749922454,
+        "p90": 50.9018151499331
+      },
+      "repeats": 3
+    }
+  ],
+  "methods": {
+    "eap": {
+      "metrics": {
+        "auc_faithfulness": 0.4770422448455223,
+        "corr_to_exact_pearson": 0.45688045318412546,
+        "faith_at_ref": 0.39904264093404185,
+        "faith_at_ref_std": 0.5285627487729112,
+        "recovery_rate": 0.3277777777777778
+      },
+      "per_task": {
+        "greater_than": {
+          "auc": 0.6296269769126714,
+          "faith_at_ref_ci95": [
+            0.9437949586411317,
+            0.9728625306859613
+          ],
+          "faith_at_ref_mean": 0.9595230758190155,
+          "recovery_ci95": [
+            0.8533762622701224,
+            0.9541068451832697
+          ],
+          "recovery_rate": 0.9166666666666666
+        },
+        "ioi": {
+          "auc": 0.38215350208050347,
+          "faith_at_ref_ci95": [
+            -0.06171509628350274,
+            0.12605427622038406
+          ],
+          "faith_at_ref_mean": 0.030801374120104204,
+          "recovery_ci95": [
+            0.03416489747129058,
+            0.12605267077718166
+          ],
+          "recovery_rate": 0.06666666666666667
+        },
+        "sva": {
+          "auc": 0.4193462555433923,
+          "faith_at_ref_ci95": [
+            0.1630509537699739,
+            0.25167436139825444
+          ],
+          "faith_at_ref_mean": 0.2068034728630058,
+          "recovery_ci95": [
+            0.0,
+            0.031020271055929513
+          ],
+          "recovery_rate": 0.0
+        }
+      }
+    },
+    "eap_ig": {
+      "metrics": {
+        "auc_faithfulness": 0.5506518921280076,
+        "corr_to_exact_pearson": 0.9243175868674633,
+        "faith_at_ref": 0.6231351681202392,
+        "faith_at_ref_std": 0.4334824878292003,
+        "recovery_rate": 0.425
+      },
+      "per_task": {
+        "greater_than": {
+          "auc": 0.6729204976752953,
+          "faith_at_ref_ci95": [
+            0.9534215689450503,
+            0.9741156418745717
+          ],
+          "faith_at_ref_mean": 0.9644657264153162,
+          "recovery_ci95": [
+            0.9174184205147198,
+            0.9869626598330794
+          ],
+          "recovery_rate": 0.9666666666666667
+        },
+        "ioi": {
+          "auc": 0.5043452327380822,
+          "faith_at_ref_ci95": [
+            0.43808301895284485,
+            0.6403098251093373
+          ],
+          "faith_at_ref_mean": 0.5386936077168988,
+          "recovery_ci95": [
+            0.21781442705981954,
+            0.3784440192134845
+          ],
+          "recovery_rate": 0.2916666666666667
+        },
+        "sva": {
+          "auc": 0.47468994597064534,
+          "faith_at_ref_ci95": [
+            0.3256046930141747,
+            0.40698086662062755
+          ],
+          "faith_at_ref_mean": 0.3662461702285024,
+          "recovery_ci95": [
+            0.004582468541151394,
+            0.058737126812913806
+          ],
+          "recovery_rate": 0.016666666666666666
+        }
+      }
+    },
+    "exact_patch": {
+      "metrics": {
+        "auc_faithfulness": 0.5501435893610636,
+        "corr_to_exact_pearson": 1.0,
+        "faith_at_ref": 0.6268649808939598,
+        "faith_at_ref_std": 0.4450119834380507,
+        "recovery_rate": 0.41944444444444445
+      },
+      "per_task": {
+        "greater_than": {
+          "auc": 0.6570488987315046,
+          "faith_at_ref_ci95": [
+            0.9597619052914282,
+            0.9851501653778056
+          ],
+          "faith_at_ref_mean": 0.9737391822040081,
+          "recovery_ci95": [
+            0.9061578707045692,
+            0.9820735474941622
+          ],
+          "recovery_rate": 0.9583333333333334
+        },
+        "ioi": {
+          "auc": 0.5207181605873692,
+          "faith_at_ref_ci95": [
+            0.45667332517424564,
+            0.6572337545554425
+          ],
+          "faith_at_ref_mean": 0.5563291691651102,
+          "recovery_ci95": [
+            0.1956834035411147,
+            0.35212605628498583
+          ],
+          "recovery_rate": 0.26666666666666666
+        },
+        "sva": {
+          "auc": 0.4726637087643169,
+          "faith_at_ref_ci95": [
+            0.3044317378860433,
+            0.39712356866880627
+          ],
+          "faith_at_ref_mean": 0.3505265913127611,
+          "recovery_ci95": [
+            0.013037340166920576,
+            0.0825815794852803
+          ],
+          "recovery_rate": 0.03333333333333333
+        }
+      }
+    },
+    "random": {
+      "metrics": {
+        "auc_faithfulness": 0.14285704824504367,
+        "corr_to_exact_pearson": 0.006376019402386052,
+        "faith_at_ref": -3.0288186583978437e-07,
+        "faith_at_ref_std": 0.37523785104737617,
+        "recovery_rate": 0.025
+      },
+      "per_task": {
+        "greater_than": {
+          "auc": 0.14285731388566394,
+          "faith_at_ref_ci95": [
+            -0.060148831745512624,
+            0.0652171010877161
+          ],
+          "faith_at_ref_mean": 1.0974472388625145e-07,
+          "recovery_ci95": [
+            0.00853802009878548,
+            0.07093123740434756
+          ],
+          "recovery_rate": 0.025
+        },
+        "ioi": {
+          "auc": 0.14285679619378286,
+          "faith_at_ref_ci95": [
+            -0.09147726275536114,
+            0.09274322982355443
+          ],
+          "faith_at_ref_mean": -7.440561603289098e-07,
+          "recovery_ci95": [
+            0.023114049304474235,
+            0.10480419464586234
+          ],
+          "recovery_rate": 0.05
+        },
+        "sva": {
+          "auc": 0.14285703465568422,
+          "faith_at_ref_ci95": [
+            -0.028948260242019994,
+            0.02956130477496723
+          ],
+          "faith_at_ref_mean": -2.743341610766947e-07,
+          "recovery_ci95": [
+            0.0,
+            0.031020271055929513
+          ],
+          "recovery_rate": 0.0
+        }
+      }
+    }
+  },
+  "metric_keys": [
+    "auc_faithfulness",
+    "faith_at_ref",
+    "recovery_rate",
+    "corr_to_exact_pearson"
+  ],
+  "n_examples_per_seed": 40,
+  "pairwise": {
+    "eap_ig_vs_eap__greater_than": {
+      "cliffs_delta": -0.029305555555555557,
+      "effect_size": 0.13613285786544796,
+      "mean_diff": 0.004942650596300761,
+      "p_value": 0.1385391717246433,
+      "test": "paired_t"
+    },
+    "eap_ig_vs_eap__ioi": {
+      "cliffs_delta": 0.4926388888888889,
+      "effect_size": 2.051602136957315,
+      "mean_diff": 0.5078922335967946,
+      "p_value": 1.2196801650373616e-44,
+      "test": "paired_t"
+    },
+    "eap_ig_vs_eap__overall": {
+      "cliffs_delta": 0.22458333333333333,
+      "effect_size": 0.7155202073338696,
+      "mean_diff": 0.2240925271861973,
+      "p_value": 3.5898591419154977e-34,
+      "test": "paired_t"
+    },
+    "eap_ig_vs_eap__sva": {
+      "cliffs_delta": 0.35638888888888887,
+      "effect_size": 0.5056160335068303,
+      "mean_diff": 0.15944269736549663,
+      "p_value": 1.852037087026279e-07,
+      "test": "paired_t"
+    }
+  },
+  "rate_metrics": [
+    {
+      "ci95": [
+        0.013207082162958558,
+        0.04682343661224472
+      ],
+      "ci_method": "wilson",
+      "error_count": 351,
+      "name": "recovery@0.85__random__ref20",
+      "rate": 0.025,
+      "stop_reason": "fixed_n",
+      "total_trials": 360
+    },
+    {
+      "ci95": [
+        0.28132871061143183,
+        0.37786364122519156
+      ],
+      "ci_method": "wilson",
+      "error_count": 242,
+      "name": "recovery@0.85__eap__ref20",
+      "rate": 0.3277777777777778,
+      "stop_reason": "fixed_n",
+      "total_trials": 360
+    },
+    {
+      "ci95": [
+        0.37498985501906934,
+        0.47659391110333116
+      ],
+      "ci_method": "wilson",
+      "error_count": 207,
+      "name": "recovery@0.85__eap_ig__ref20",
+      "rate": 0.425,
+      "stop_reason": "fixed_n",
+      "total_trials": 360
+    },
+    {
+      "ci95": [
+        0.3695818923681464,
+        0.4710080786522097
+      ],
+      "ci_method": "wilson",
+      "error_count": 209,
+      "name": "recovery@0.85__exact_patch__ref20",
+      "rate": 0.41944444444444445,
+      "stop_reason": "fixed_n",
+      "total_trials": 360
+    }
+  ],
+  "ref_size": 20,
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "sizes": [
+    3,
+    5,
+    10,
+    20,
+    40,
+    80,
+    157
+  ],
+  "study": "eap-ig-faithfulness",
+  "tasks": [
+    "ioi",
+    "greater_than",
+    "sva"
+  ]
+}

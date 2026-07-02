@@ -1,0 +1,35 @@
+{
+  "environment": {
+    "git_commit": "a64a9001c18c-dirty",
+    "numpy": "2.0.0",
+    "os": "macOS-26.3-arm64-arm-64bit",
+    "python": "3.12.3",
+    "scipy": "1.14.0",
+    "torch": "2.3.1",
+    "transformers": "4.49.0"
+  },
+  "git_commit": "a64a9001c18c-dirty",
+  "iterations": [
+    {
+      "note": "ext frontier: topk vs batchtopk vs matryoshka + orthonormal shrinkage",
+      "phase": 3,
+      "redteam_verdict": {
+        "dense": {
+          "batchtopk_vs_topk_mean_ev_gap": -0.019035382343786805,
+          "matryoshka_vs_topk_mean_ev_gap": -0.003414172747164749
+        },
+        "sparse": {
+          "batchtopk_vs_topk_mean_ev_gap": -0.017354554675758454,
+          "matryoshka_vs_topk_mean_ev_gap": -0.0035313303057356027
+        }
+      },
+      "shrinkage": {
+        "adaptive_jumprelu": 1.0871580137762913,
+        "jumprelu": 1.166357965391373,
+        "relu": 0.9627504649145876,
+        "topk": 1.4499620429705828
+      }
+    }
+  ],
+  "study": "sae-frontier-ext"
+}

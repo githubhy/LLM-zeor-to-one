@@ -1,0 +1,29 @@
+{
+  "environment": {
+    "git_commit": "87a6574dd0ee-dirty",
+    "numpy": "2.0.0",
+    "os": "macOS-26.3-arm64-arm-64bit",
+    "python": "3.12.3",
+    "scipy": "1.14.0",
+    "torch": "2.3.1",
+    "transformers": "4.49.0"
+  },
+  "git_commit": "87a6574dd0ee-dirty",
+  "iterations": [
+    {
+      "matched_success": {
+        "diff_in_means": 3.972226158845149,
+        "prompting": 1.2981374263763428,
+        "sae_clamp": -0.9344018697738647
+      },
+      "note": "steering head-to-head Pareto + matched-coherence ranking",
+      "phase": 3,
+      "ranking": [
+        "diff_in_means",
+        "prompting",
+        "sae_clamp"
+      ]
+    }
+  ],
+  "study": "steering-headtohead"
+}

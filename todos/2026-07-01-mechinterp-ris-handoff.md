@@ -1,14 +1,22 @@
 ---
 slug: mechinterp-ris-handoff
 date_filed: 2026-07-01
-status: in-progress
+status: closed
 ---
 
-**Update 2026-07-02.** Candidate 1 (SAE fidelity–sparsity frontier) **COMPLETE** via
-`reference-implementation-study` → study `sae-frontier` (`docs/sae-frontier-implementation-study.md`;
-gates G1–G4 PASS; H1–H4 confirmed; **TopK recommended**). Scoped to synthetic-oracle + GPT-2-small
-(decision 2026-07-02-01); Gemma-scale port + more in `todos/2026-07-02-sae-frontier-followups.md`.
-Candidates 2 (EAP-IG faithfulness) and 3 (steering head-to-head) remain open.
+**Update 2026-07-02.** **ALL THREE candidates now have studies** (offline GPT-2-small scope,
+decision 2026-07-02-04):
+- Candidate 1 (SAE frontier) **COMPLETE** → `sae-frontier` (G1–G4 PASS; TopK recommended) +
+  Track-C extension `sae-frontier-ext` (BatchTopK/Matryoshka red-team refuted).
+- Candidate 2 (EAP-IG faithfulness) **COMPLETE** → `eap-ig-faithfulness`
+  (`docs/eap-ig-faithfulness-implementation-study.md`; G1/G2/G3/G4/REPORT PASS; EAP-IG > EAP
+  +0.224 p=3.6e-34, ρ=0.92 vs 0.46). Followups `todos/2026-07-02-eap-ig-followups.md`; the earlier
+  "IOI ~0%" framing was a memory drift → bug 2026-07-02-04.
+- Candidate 3 (steering head-to-head) **COMPLETE** → `steering-headtohead`
+  (`docs/steering-headtohead-study.md`; G1 PASS; SAE-clamp worst reproduces AxBench, diff-in-means >
+  prompting flipped — metric/model-dependent). Followups `todos/2026-07-02-steering-followups.md`.
+
+This handoff is now **closed** (status below → all candidates addressed).
 
 # Mechanistic-interpretability survey → reference-implementation-study handoff
 
@@ -25,9 +33,15 @@ Run a `reference-implementation-study` (or `method-eval` viability gate first) o
    Scope [ref 65]). Baseline: ReLU SAE at matched L0. Hypothesis (Quantitative): JumpReLU/TopK
    Pareto-dominate ReLU; loss-recovered gap grows with dictionary width (Gao [11], Rajamanoharan
    [12]). Settles: reproduces the L1-shrinkage-fix claim on an open suite.
-2. **Attribution vs. exact patching faithfulness** — IOI + Greater-Than on GPT-2 small. Baseline:
-   plain EAP. Hypothesis: EAP-IG lifts IOI circuit faithfulness from ~0% toward the exact-patching
-   curve (Hanna et al. [41]). Settles: quantifies the first-order linearization error and the IG fix.
+2. **Attribution vs. exact patching faithfulness** — IOI + Greater-Than + SVA on GPT-2 small.
+   Baseline: plain EAP. Hypothesis (paper-accurate, read from `download/hanna-eap-ig-faithfulness-2024.pdf`
+   §4.3, Fig 3 — the earlier "EAP-IG lifts IOI from ~0%" framing was a memory drift, see
+   bug `2026-07-02-04`): the EAP→EAP-IG faithfulness gap is **large on SVA** (EAP finds a
+   completely-unfaithful, pruned-to-nothing circuit until n≈1000; EAP-IG repairs it via the essential
+   embed→MLP0 edge) and Capital-Country (≥0.2), **~0.1 on Greater-Than**, and **≈0 on IOI** (both EAP
+   and EAP-IG plateau ~0.6, below activation-patching's >0.8). Activation-patching is the ground-truth
+   oracle both scores approximate. Settles: quantifies the first-order linearization error, the IG fix,
+   and its task-dependence.
 3. **Steering head-to-head** — prompting vs. difference-in-means vs. SAE-feature clamp on Gemma 2
    2B/9B. Baseline: prompting. Hypothesis: prompting ≥ diff-in-means ≥ naive SAE steering at
    matched coherence (AxBench [66]). Settles: replicates the SAE-debate result on a fixed harness.
