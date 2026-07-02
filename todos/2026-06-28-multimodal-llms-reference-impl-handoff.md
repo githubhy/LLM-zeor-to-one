@@ -6,6 +6,14 @@ status: open
 
 # Multimodal-LLMs survey → reference-implementation study handoff
 
+**Update 2026-07-02.** Candidate 1 (**FastV vision-token pruning**) **COMPLETE** → study
+`fastv-pruning` (`docs/fastv-vision-token-pruning-implementation-study.md`, G1 PASS) on real
+SmolVLM-256M (downloaded via proxy, decision 2026-07-02-04): H1 attention-collapse confirmed (68×),
+H4 Eq-5 FLOP confirmed, **H3 refuted** on the redundant synthetic task (attn-ranked < random) —
+follow-ups `todos/2026-07-02-fastv-followups.md`. Candidate 2 (**connector ablation**) scoped in
+`docs/connector-ablation-implementation-study.md`; execution real-but-tiny-or-defer per
+`todos/2026-07-02-connector-ablation.md`.
+
 ## Context
 The `surveys/multimodal-llms/` deep-research survey (mode: proposed, scale: wide,
 audience: learner) names two study-ready methods in its §13.2 roadmap

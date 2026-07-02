@@ -11,8 +11,17 @@ survey `surveys/multimodal-llms/inference-and-serving.md` §8.2, `open-problems-
 
 ## 0. Executive summary
 
-> **Status: Phase 1 (scenario) — pending compute.** Verdict reserved for the FLOP-reduction @
-> accuracy-knee headline with CI once G2 lands.
+**Verdict (mixed): the attention-collapse *phenomenon* (H1) reproduces strongly on a real VLM,
+but attention-ranked pruning (H3) does NOT beat random on this task — a boundary condition on
+FastV's premise.** On SmolVLM-256M (320 image tokens, 91% of the sequence), image-token attention
+efficiency collapses from 0.82 (layer 0) to ~0.11 (layer 5), while text tokens hold ~9–10 — a **68×
+deep-layer text/image attention ratio** (Chen's core finding, confirmed). The Eq-5 FLOP model (H4)
+reproduces (monotone; K=2,R=0.5 → 0.45). **But** on the uniformly-redundant synthetic color task,
+**random pruning stays at 100% accuracy even at 90% pruning, while attention-ranked pruning drops
+to 0%** — because FastV retains high-attention *sink* tokens that carry no color, whereas random
+keeps a mix of the redundant color-bearing tokens. FastV's "keep high-attention tokens" premise
+needs query-localized tasks (its own VQA benchmarks), not this redundant one (§7, root-caused; masking
+verified effective — R=0.9-attn=0.00). Do-not-cite absolute numbers (§2).
 
 ## 1. Problem, scope & candidates (Phase 1)
 
@@ -79,8 +88,77 @@ $$
 
 Attention-efficiency of image tokens in layer $j$ (Chen Eq 4): $\varepsilon_{\text{img}}^{j} = \tfrac{1}{\lvert \text{img} \rvert}\sum_{i} \alpha_{\text{img}}^{i,j}$.
 
-## 4.–13. Phases 2–6
+## 4. Implementation & verification anchors (G1 PASS 7/7)
 
-Pending compute (Phase 2 implementation on the downloaded SmolVLM-256M; verification anchors =
-FLOP closed form + attention-mass conservation; baseline/sensitivity/precision/report). Audit trail:
-decision `2026-07-02-04`. Reproduce recipe + seeds and per-cell CIs land with each phase.
+`implementation/fastv/` — SmolVLM-256M (Idefics3) via `AutoProcessor(do_image_splitting=True,
+size={"longest_edge":768})` → 320 image tokens (the memory/redundancy sweet spot: full 1088-token
+split materialises ~42 GB of attention over 30 layers; 64-token no-split has too little redundancy).
+Pruning = mask the bottom-R% image tokens as keys with explicit `position_ids=arange` (keeps RoPE
+correct for survivors — a conservative all-layers approximation of FastV's after-K removal, §7).
+Anchors (`tests/fastv/`, 6 green): Eq-5 FLOP reduction = 0 at R=0, strictly increasing in R,
+larger for smaller K; the model answers synthetic colors correctly (baseline 100%).
+
+## 5. Baseline results (G2)
+
+**H1 — attention-efficiency collapse (Chen Eq 4)**, mean over 4 examples:
+
+| Layer | 0 | 2 | 5 | 20 |
+|---|---|---|---|---|
+| image ε_img | 0.82 | 0.27 | 0.11 | 0.14 |
+| text ε_txt | 2.84 | 8.33 | 9.90 | 9.59 |
+
+Deep-layer text/image ratio ≈ **68×** — image tokens are attention-starved after layer 0
+(**H1 confirmed**; Chen report ~472× system-prompt/image on LLaVA — same phenomenon, smaller model).
+
+**H2/H3 — accuracy vs prune ratio** (16 synthetic color examples, Wilson-CI'd; K=2):
+
+| R (prune frac) | 0.0 | 0.3 | 0.5 | 0.7 | 0.9 |
+|---|---|---|---|---|---|
+| acc (attention-ranked) | 1.00 | 0.94 | 0.62 | 0.19 | 0.00 |
+| acc (random) | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 |
+| FLOP reduction (Eq 5, H4) | 0.00 | 0.28 | 0.45 | 0.62 | 0.78 |
+
+**H3 refuted on this task:** random ≥ attention-ranked at every R; random is perfectly robust to 90%
+pruning. **H4 confirmed:** the Eq-5 FLOP curve is monotone and matches the closed form (test-anchored).
+
+## 6. Recommendation
+
+**Do not apply attention-ranked FastV pruning to tasks with uniformly-redundant visual content** —
+random pruning dominates there. FastV's value is on **query-localized** tasks (VQA/OCR, where the
+retained high-attention tokens carry the answer region); reproduce that regime before adopting
+(follow-on). The attention-collapse phenomenon (H1) is real and model-general — a sound basis for
+*some* token-reduction, but the ranking criterion must match task locality.
+
+## 7. Limitations, root cause & flip
+
+- **Flip (H3):** attention-ranked pruning *loses* to random on the redundant color task.
+- **Root cause:** (1) **task redundancy** — a uniform colored shape encodes its color in nearly every
+  image token, so random keeps enough while attention-ranking concentrates the loss; (2)
+  **attention-sink retention** — the high-attention deep-layer tokens FastV keeps are positional
+  sinks, not color-bearing regions (a known LVLM attention artifact). Masking is *not* the culprit:
+  R=0.9-attention → 0% accuracy proves the mask removes token influence.
+- **Substrate caveats (disclosed):** 320-token resolution (not 1088); synthetic color eval (not
+  Flickr30K/A-OKVQA/MMMU); all-layers masking approximation of after-K removal.
+
+## 8. Roadmap → todos/
+
+`todos/2026-07-02-fastv-followups.md`: a **query-localized** eval (multi-object "what colour is the
+circle?", counting) where H3 should hold; real VQA benchmarks; K-sweep; physical token removal
+(true FLOP realisation, not just analytic Eq 5); the inverse-ranking control (prune *highest*-attention
+to confirm the sink hypothesis).
+
+## 9. Reproduce
+
+```bash
+export PYTHONPATH=$PWD HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
+python3 -m implementation.fastv.run_baseline     # H1 efficiency + H2/H3 accuracy + H4 FLOP curves
+python3 -m pytest tests/fastv/ -q                # 6 tests incl. Eq-5 anchors
+```
+Deterministic. Env + git pinned in `artifacts/fastv-pruning/study-manifest.json`.
+
+## 10. Audit trail
+
+- `decisions/2026-07-02-04` — offline substrate scope; SmolVLM downloaded via the local proxy.
+- **Citation-integrity:** FastV mechanism (φ_attn, Eq 5, attention-collapse) read from
+  `download/chen-fastv-2024.pdf` §3–4; not from memory.
+- Follow-ups: `todos/2026-07-02-fastv-followups.md`.
