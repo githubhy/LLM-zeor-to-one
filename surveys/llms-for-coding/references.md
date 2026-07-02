@@ -206,3 +206,75 @@
 
 <a id="ref-69"></a><!-- bib:69 -->
 [69] V. Varma, R. Shah, Z. Kenton, J. Kramár, R. Kumar, "Explaining Grokking through Circuit Efficiency." 2023. arXiv:2309.02390. (local: download/varma-grokking-circuit-efficiency-2023.pdf)
+
+<a id="ref-70"></a><!-- bib:70 -->
+[70] H. Cunningham, A. Ewart, L. Riggs, R. Huben, L. Sharkey, "Sparse Autoencoders Find Highly Interpretable Features in Language Models." *ICLR 2024.* arXiv:2309.08600. (local: download/cunningham-sae-interpretable-features-2023.pdf)
+
+<a id="ref-71"></a><!-- bib:71 -->
+[71] L. Gao, G. Goh, I. Sutskever, T. Dupré la Tour, R. Troll, J. Leike, H. Tillman, A. Radford, J. Wu, "Scaling and Evaluating Sparse Autoencoders." 2024. arXiv:2406.04093. (local: download/gao-scaling-sparse-autoencoders-2024.pdf)
+
+<a id="ref-72"></a><!-- bib:72 -->
+[72] S. Rajamanoharan, A. Conmy, L. Smith, T. Lieberum, V. Varma, J. Kramár, R. Shah, N. Nanda, "Improving Dictionary Learning with Gated Sparse Autoencoders." 2024. arXiv:2404.16014. (local: download/rajamanoharan-gated-sae-2024.pdf)
+
+<a id="ref-73"></a><!-- bib:73 -->
+[73] S. Rajamanoharan, T. Lieberum, N. Sonnerat, A. Conmy, V. Varma, J. Kramár, N. Nanda, "Jumping Ahead: Improving Reconstruction Fidelity with JumpReLU Sparse Autoencoders." 2024. arXiv:2407.14435. (local: download/rajamanoharan-jumprelu-sae-2024.pdf)
+
+<a id="ref-74"></a><!-- bib:74 -->
+[74] K. Meng, D. Bau, A. Andonian, Y. Belinkov, "Locating and Editing Factual Associations in GPT." *NeurIPS 2022.* arXiv:2202.05262. (local: download/meng-rome-2022.pdf)
+
+<a id="ref-75"></a><!-- bib:75 -->
+[75] K. Wang, A. Variengien, A. Conmy, B. Shlegeris, J. Steinhardt, "Interpretability in the Wild: a Circuit for Indirect Object Identification in GPT-2 Small." *ICLR 2023.* arXiv:2211.00593. (local: download/wang-ioi-interpretability-in-the-wild-2022.pdf)
+
+<a id="ref-76"></a><!-- bib:76 -->
+[76] N. Belrose, I. Ostrovsky, L. McKinney, Z. Furman, L. Smith, D. Halawi, S. Biderman, J. Steinhardt, "Eliciting Latent Predictions from Transformers with the Tuned Lens." 2023. arXiv:2303.08112. (local: download/belrose-tuned-lens-2023.pdf)
+
+<a id="ref-77"></a><!-- bib:77 -->
+[77] A. Conmy, A. N. Mavor-Parker, A. Lynch, S. Heimersheim, A. Garriga-Alonso, "Towards Automated Circuit Discovery for Mechanistic Interpretability." *NeurIPS 2023.* arXiv:2304.14997. (local: download/conmy-acdc-2023.pdf)
+
+<a id="ref-78"></a><!-- bib:78 -->
+[78] A. Geiger, Z. Wu, C. Potts, T. Icard, N. D. Goodman, "Finding Alignments Between Interpretable Causal Variables and Distributed Neural Representations." *CLeaR 2024.* arXiv:2303.02536. (local: download/geiger-das-2023.pdf)
+
+<a id="ref-79"></a><!-- bib:79 -->
+[79] C. Olsson, N. Elhage, N. Nanda, N. Joseph, et al., "In-context Learning and Induction Heads." *Transformer Circuits Thread,* 2022. arXiv:2209.11895. (local: download/olsson-induction-heads-2022.pdf)
+
+<a id="ref-80"></a><!-- bib:80 -->
+[80] M. Hanna, O. Liu, A. Variengien, "How Does GPT-2 Compute Greater-Than?: Interpreting Mathematical Abilities in a Pre-trained Language Model." *NeurIPS 2023.* arXiv:2305.00586. (local: download/hanna-greater-than-2023.pdf)
+
+<a id="ref-81"></a><!-- bib:81 -->
+[81] R. Gould, E. Ong, G. Ogden, A. Conmy, "Successor Heads: Recurring, Interpretable Attention Heads In The Wild." *ICLR 2024.* arXiv:2312.09230. (local: download/gould-successor-heads-2024.pdf)
+
+<a id="ref-82"></a><!-- bib:82 -->
+[82] C. McDougall, A. Conmy, C. Rushing, T. McGrath, N. Nanda, "Copy Suppression: Comprehensively Understanding an Attention Head." 2023. arXiv:2310.04625. (local: download/mcdougall-copy-suppression-2023.pdf)
+
+<a id="ref-83"></a><!-- bib:83 -->
+[83] K. Li, A. K. Hopkins, D. Bau, F. Viégas, H. Pfister, M. Wattenberg, "Emergent World Representations: Exploring a Sequence Model Trained on a Synthetic Task." *ICLR 2023.* arXiv:2210.13382. (local: download/li-emergent-world-representations-2023.pdf)
+
+<a id="ref-84"></a><!-- bib:84 -->
+[84] N. Nanda, A. Lee, M. Wattenberg, "Emergent Linear Representations in World Models of Self-Supervised Sequence Models." *BlackboxNLP 2023.* arXiv:2309.00941. (local: download/nanda-emergent-linear-representations-2023.pdf)
+
+<a id="ref-85"></a><!-- bib:85 -->
+[85] C. Jin, M. Rinard, "Emergent Representations of Program Semantics in Language Models Trained on Programs." *ICML 2024.* arXiv:2305.11169. (local: download/jin-evidence-of-meaning-2023.pdf)
+
+<a id="ref-86"></a><!-- bib:86 -->
+[86] S. Troshin, N. Chirkova, "Probing Pretrained Models of Source Code." 2022. arXiv:2202.08975. (local: download/troshin-probing-source-code-2022.pdf)
+
+<a id="ref-87"></a><!-- bib:87 -->
+[87] Y. Wan, W. Zhao, H. Zhang, Y. Sui, G. Xu, H. Jin, "What Do They Capture? — A Structural Analysis of Pre-Trained Language Models for Source Code." *ICSE 2022.* arXiv:2202.06840. (local: download/wan-structural-analysis-code-2022.pdf)
+
+<a id="ref-88"></a><!-- bib:88 -->
+[88] A. M. Turner, L. Thiergart, G. Leech, D. Udell, J. J. Vazquez, U. Mini, M. MacDiarmid, "Steering Language Models With Activation Engineering." 2023. arXiv:2308.10248. (local: download/turner-activation-addition-2023.pdf)
+
+<a id="ref-89"></a><!-- bib:89 -->
+[89] A. Zou, L. Phan, S. Chen, J. Campbell, et al., "Representation Engineering: A Top-Down Approach to AI Transparency." 2023. arXiv:2310.01405. (local: download/zou-representation-engineering-2023.pdf)
+
+<a id="ref-90"></a><!-- bib:90 -->
+[90] K. Meng, A. Sen Sharma, A. Andonian, Y. Belinkov, D. Bau, "Mass-Editing Memory in a Transformer." *ICLR 2023.* arXiv:2210.07229. (local: download/meng-memit-2022.pdf)
+
+<a id="ref-91"></a><!-- bib:91 -->
+[91] T. Bolukbasi, A. Pearce, A. Yuan, A. Coenen, E. Reif, F. Viégas, M. Wattenberg, "An Interpretability Illusion for BERT." 2021. arXiv:2104.07143. (local: download/bolukbasi-interpretability-illusion-2021.pdf)
+
+<a id="ref-92"></a><!-- bib:92 -->
+[92] S. Jain, B. C. Wallace, "Attention is not Explanation." *NAACL 2019.* arXiv:1902.10186. (local: download/jain-attention-not-explanation-2019.pdf)
+
+<a id="ref-93"></a><!-- bib:93 -->
+[93] S. Wiegreffe, Y. Pinter, "Attention is not not Explanation." *EMNLP 2019.* arXiv:1908.04626. (local: download/wiegreffe-attention-not-not-explanation-2019.pdf)
