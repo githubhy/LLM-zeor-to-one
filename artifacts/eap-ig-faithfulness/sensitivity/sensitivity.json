@@ -1,0 +1,95 @@
+{
+  "eap_baseline_faith_at_ref": {
+    "greater_than": 0.965154767036438,
+    "ioi": 0.010057066567242146,
+    "sva": -3.837049078470045e-08
+  },
+  "grid": {
+    "greater_than": {
+      "1": {
+        "eap_ig_faith_at_ref": 0.965154767036438,
+        "gap_vs_eap": 0.0
+      },
+      "3": {
+        "eap_ig_faith_at_ref": 0.9660229682922363,
+        "gap_vs_eap": 0.0008682012557983398
+      },
+      "5": {
+        "eap_ig_faith_at_ref": 0.9660229682922363,
+        "gap_vs_eap": 0.0008682012557983398
+      },
+      "10": {
+        "eap_ig_faith_at_ref": 0.9660229682922363,
+        "gap_vs_eap": 0.0008682012557983398
+      }
+    },
+    "ioi": {
+      "1": {
+        "eap_ig_faith_at_ref": 0.010057066567242146,
+        "gap_vs_eap": 0.0
+      },
+      "3": {
+        "eap_ig_faith_at_ref": 0.4783576428890228,
+        "gap_vs_eap": 0.4683005763217807
+      },
+      "5": {
+        "eap_ig_faith_at_ref": 0.44944754242897034,
+        "gap_vs_eap": 0.4393904758617282
+      },
+      "10": {
+        "eap_ig_faith_at_ref": 0.44944754242897034,
+        "gap_vs_eap": 0.4393904758617282
+      }
+    },
+    "sva": {
+      "1": {
+        "eap_ig_faith_at_ref": -3.837049078470045e-08,
+        "gap_vs_eap": 0.0
+      },
+      "3": {
+        "eap_ig_faith_at_ref": 0.07437656819820404,
+        "gap_vs_eap": 0.07437660656869483
+      },
+      "5": {
+        "eap_ig_faith_at_ref": 0.49856552481651306,
+        "gap_vs_eap": 0.49856556318700385
+      },
+      "10": {
+        "eap_ig_faith_at_ref": 0.3258763253688812,
+        "gap_vs_eap": 0.325876363739372
+      }
+    }
+  },
+  "interaction_max_gap_by_task": {
+    "greater_than": 0.0008682012557983398,
+    "ioi": 0.4683005763217807,
+    "sva": 0.49856556318700385
+  },
+  "m_ig_values": [
+    1,
+    3,
+    5,
+    10
+  ],
+  "note": "2-factor (m_ig x task) sweep, not OFAT: the EAP-IG advantage over EAP is task-dependent (interaction) and saturates in m \u2014 consistent with Hanna's m=5 default. Global/variance SA (P0-3) is report-only; the grid exposes the interaction OFAT would miss.",
+  "primary_factor": "m_ig",
+  "secondary_factor": "task",
+  "size_sensitivity_eap_ig_m5": {
+    "greater_than": {
+      "10": 0.6174658536911011,
+      "20": 0.9660229682922363,
+      "40": 0.962853729724884
+    },
+    "ioi": {
+      "10": 0.2161525934934616,
+      "20": 0.44944754242897034,
+      "40": 0.7745828032493591
+    },
+    "sva": {
+      "10": -0.0014058451633900404,
+      "20": 0.49856552481651306,
+      "40": 0.9782155752182007
+    }
+  },
+  "study": "eap-ig-faithfulness"
+}

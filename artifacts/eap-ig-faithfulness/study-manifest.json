@@ -23,7 +23,7 @@
     }
   },
   "environment": {
-    "git_commit": "dc88e4d66088-dirty",
+    "git_commit": "e9431ba07ef1-dirty",
     "numpy": "2.0.0",
     "os": "macOS-26.3-arm64-arm-64bit",
     "python": "3.12.3",
@@ -31,7 +31,7 @@
     "torch": "2.3.1",
     "transformers": "4.49.0"
   },
-  "git_commit": "dc88e4d66088-dirty",
+  "git_commit": "e9431ba07ef1-dirty",
   "iterations": [
     {
       "det_all_match": true,
@@ -49,6 +49,35 @@
       },
       "note": "baseline: 4 candidates x 3 tasks x 3 seeds",
       "phase": 3
+    },
+    {
+      "interaction_max_gap": {
+        "greater_than": 0.0008682012557983398,
+        "ioi": 0.4683005763217807,
+        "sva": 0.49856556318700385
+      },
+      "note": "sensitivity: m_ig x task grid + size sensitivity",
+      "phase": 4
+    },
+    {
+      "note": "precision: fp16 / bf16 attribution stability",
+      "phase": 5,
+      "saturation": {
+        "bfloat16": true,
+        "float16": true
+      }
+    },
+    {
+      "max_drift": {
+        "bf16_scores": 0.0,
+        "fp16_scores": 0.0
+      },
+      "note": "precision: bf16/fp16 attribution-score storage",
+      "phase": 5,
+      "saturation": {
+        "bf16_scores": false,
+        "fp16_scores": false
+      }
     }
   ],
   "oracle_checks": {
