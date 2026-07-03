@@ -33,7 +33,7 @@ def repeated_batch(model, n_seq=16, T=120, seed=0):
     """VARIABLE per-sequence offset (random prefix + repeated random block), so a
     fixed-relative-offset positional head cannot solve it — content-matching
     induction is required. Fixes the fixed-offset confound the sim-audit flagged
-    (same class as bug 2026-07-02-04). Returns (toks[B,T], attend[B,T], ind_mask[B,T]).
+    (same class as bug 2026-07-02-05). Returns (toks[B,T], attend[B,T], ind_mask[B,T]).
     """
     rng = np.random.default_rng(seed)
     bos = model.tokenizer.bos_token_id

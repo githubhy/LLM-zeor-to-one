@@ -1,5 +1,5 @@
 ---
-id: 2026-07-02-04
+id: 2026-07-02-05
 title: Tiny-transformer study execution — torch model for the toy + GPT-2 rungs (numpy Appendix-C toy as the hand-derived-math reference), background install, MVP scope
 status: accepted
 date: 2026-07-02

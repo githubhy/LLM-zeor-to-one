@@ -24,7 +24,7 @@ def make_induction_batch(rng, batch: int, n_ctx: int, d_vocab: int,
     per sequence** — so a fixed relative-offset positional head cannot solve it
     and genuine content-matching induction is required (a 1-layer attention-only
     model fails, H1; the fixed-offset version had a positional shortcut — bug
-    2026-07-02-04).
+    2026-07-02-05).
 
     Returns tokens[B,T] int64, targets[B,T] (next-token, IGNORE at last pos),
     ind_mask[B,T] (True at induction query positions), attend_pos[B,T] (the

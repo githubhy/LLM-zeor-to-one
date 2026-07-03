@@ -23,11 +23,11 @@ def _tiny():
                         d_vocab=8, n_ctx=8, seed=0)
 
 
-# ---------- data: the fixed-offset-shortcut regression (bug 2026-07-02-04) ----------
+# ---------- data: the fixed-offset-shortcut regression (bug 2026-07-02-05) ----------
 
 def test_variable_offset():
     """Repeat offset must vary across sequences (else a 1-layer positional head
-    solves induction — bug 2026-07-02-04)."""
+    solves induction — bug 2026-07-02-05)."""
     rng = np.random.default_rng(0)
     toks, tgt, ind, ap = make_induction_batch(rng, batch=64, n_ctx=64, d_vocab=32)
     offsets = []

@@ -38,7 +38,7 @@ The survey's Appendix A derives the QK circuit `M = W_Qᵀ W_K` ("where to look"
 
 ## 2. Task, dataset & protocol anchors
 
-**Task — synthetic induction (`data.py::make_induction_batch`).** Each sequence is a random-length prefix followed by a repeated random block, so the **repeat offset varies per sequence** (block length is a hidden function of the random prefix). A fixed-relative-offset positional head therefore cannot copy the correct token; genuine content-matching induction is required. (An earlier fixed-offset version let a 1-layer positional head "solve" the task — bug `2026-07-02-04`, high; caught by the H1 sanity check and fixed.) At an induction query the target is the token after the earlier occurrence of the current token.
+**Task — synthetic induction (`data.py::make_induction_batch`).** Each sequence is a random-length prefix followed by a repeated random block, so the **repeat offset varies per sequence** (block length is a hidden function of the random prefix). A fixed-relative-offset positional head therefore cannot copy the correct token; genuine content-matching induction is required. (An earlier fixed-offset version let a 1-layer positional head "solve" the task — bug `2026-07-02-05`, high; caught by the H1 sanity check and fixed.) At an induction query the target is the token after the earlier occurrence of the current token.
 
 **Protocol-vs-eval conformance.** This is a bespoke reproduction task (no external benchmark to conform to), so the matrix is short:
 
@@ -56,7 +56,7 @@ The survey's Appendix A derives the QK circuit `M = W_Qᵀ W_K` ("where to look"
 
 ## 3. Task model, candidates & conventions
 
-**Model.** TransformerLens `HookedTransformer` (standard, GPT-2-compatible; full hook/cache access = the uniform analysis path with the GPT-2 rung, per plan §8.1), trained by a first-party torch AdamW loop. The hand-derived fwd/bwd/AdamW *math* is verified by the numpy Appendix-C toy (H5 reference, gradient-check rel-err 1.6e-9); decision `2026-07-02-04`.
+**Model.** TransformerLens `HookedTransformer` (standard, GPT-2-compatible; full hook/cache access = the uniform analysis path with the GPT-2 rung, per plan §8.1), trained by a first-party torch AdamW loop. The hand-derived fwd/bwd/AdamW *math* is verified by the numpy Appendix-C toy (H5 reference, gradient-check rel-err 1.6e-9); decision `2026-07-02-05`.
 
 **Configuration (toy, `config.py::PRESETS['induction']`).**
 
@@ -90,7 +90,7 @@ The survey's Appendix A derives the QK circuit `M = W_Qᵀ W_K` ("where to look"
 
 ## 5. Verification & sanity anchors
 
-**G1 gate — 9/9 tests pass** (`tests/tiny_transformer/test_core.py`): autograd-vs-finite-difference gradient check (H5); QK & OV gauge invariance (§A.4); softmax-Jacobian identity (Eq 12); residual-decomposition reconstruction to float tolerance (H11, §A.1/§A.20); QK rank ≤ d_head (§A.8, algebraic); the variable-offset regression for bug `2026-07-02-04`; Wilson CI. The hand-derived-math reference (the numpy Appendix-C toy) independently gradient-checks at rel-err 1.6e-9.
+**G1 gate — 9/9 tests pass** (`tests/tiny_transformer/test_core.py`): autograd-vs-finite-difference gradient check (H5); QK & OV gauge invariance (§A.4); softmax-Jacobian identity (Eq 12); residual-decomposition reconstruction to float tolerance (H11, §A.1/§A.20); QK rank ≤ d_head (§A.8, algebraic); the variable-offset regression for bug `2026-07-02-05`; Wilson CI. The hand-derived-math reference (the numpy Appendix-C toy) independently gradient-checks at rel-err 1.6e-9.
 
 **Published-baseline anchor.** The empirically-located GPT-2 induction heads coincide exactly with the literature's canonical set — an external validity check the study did not tune toward.
 
@@ -151,7 +151,7 @@ Post-training weight-only quantization (fake-quant: quantize→dequantize weight
 
 The adversarial audit surfaced these; the cheap fixes were applied, the rest are disclosed:
 
-**Fixed (this pass).** (1) GPT-2 probe was fixed-offset (same confound class as bug `2026-07-02-04`) → now variable-offset. (2) 1-layer control was n=1 → now 5 seeds (CI [0.143, 0.147]). (3) doc drift (800 steps).
+**Fixed (this pass).** (1) GPT-2 probe was fixed-offset (same confound class as bug `2026-07-02-05`) → now variable-offset. (2) 1-layer control was n=1 → now 5 seeds (CI [0.143, 0.147]). (3) doc drift (800 steps).
 
 **Load-bearing caveats (disclosed, not fully resolved at the toy rung).**
 - **H10 localization is weak at toy scale.** Ablating *either* the 4-head induction set *or* the 4-head feeder set collapses accuracy to chance — nothing is spared, so set-level necessity does not localize a specific head. The single-head "specificity control" is one head (not size-matched to the 4-head set) and drops accuracy slightly *more* than the top induction head. The strong, size-matched specificity evidence is the **GPT-2 H8 result** (5 located heads → +5.36 vs 5 random heads → +0.03), not the toy.
@@ -191,8 +191,8 @@ Raw results: `artifacts/induction-tiny/phase{3,4,4b,5}/*.json`; manifest `artifa
 
 ## 13. Audit trail
 
-- **Bugs:** `2026-07-02-04` (fixed-offset positional shortcut, high, fixed).
-- **Decisions:** `2026-07-02-03` (full MI-observable coverage amendments), `2026-07-02-04` (execution approach: torch model + numpy H5 reference; MVP scope).
+- **Bugs:** `2026-07-02-05` (fixed-offset positional shortcut, high, fixed).
+- **Decisions:** `2026-07-02-03` (full MI-observable coverage amendments), `2026-07-02-05` (execution approach: torch model + numpy H5 reference; MVP scope).
 - **Todos:** `2026-07-02-tiny-transformer-gpu-host-rungs` (deferred rungs).
 - **Verification:** `tiny-transformer-sim-audit` workflow (6 adversarial lenses) — 0 flaws survive the fixes; all remaining findings disclosed in §10.
 - **Citation integrity:** the only external anchors are the survey's own §A.9/§A.18 (derived in-repo) and the GPT-2 induction-head set (`olsson-induction-heads-2022`, acquired) — which this study *locates empirically* rather than asserting from memory. No external value is recalled.

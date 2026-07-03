@@ -1,5 +1,5 @@
 ---
-id: 2026-07-02-04
+id: 2026-07-02-05
 title: Induction task had a fixed-offset positional shortcut — a 1-layer model solved it, defeating H1
 severity: high
 status: fixed
@@ -49,4 +49,4 @@ training-level H1 (2L ≫ 1L accuracy) is re-confirmed in Phase 3.
 ## Refs
 
 - Plan H1 (§A.18); appendix-c §C.10 (positional / memorization confounds).
-- decision `2026-07-02-04` (execution approach); conversation log Conversation 65.
+- decision `2026-07-02-05` (execution approach); conversation log Conversation 65.

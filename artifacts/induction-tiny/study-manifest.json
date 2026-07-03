@@ -30,6 +30,6 @@
   "H2_emergence": "induction head forms; ind_loss 4.47 -> 0.14; prev-token head 0.374 in L0 (K-composition)",
   "H5_gradient_check": "autograd vs finite-diff median rel-err < 1e-2; numpy toy reference 1.6e-9"
  },
- "bugs": ["2026-07-02-04 (induction fixed-offset positional shortcut; fixed, high)"],
- "decisions": ["2026-07-02-03 (coverage amendments H10-H19)", "2026-07-02-04 (execution approach)"]
+ "bugs": ["2026-07-02-05 (induction fixed-offset positional shortcut; fixed, high)"],
+ "decisions": ["2026-07-02-03 (coverage amendments H10-H19)", "2026-07-02-05 (execution approach)"]
 }

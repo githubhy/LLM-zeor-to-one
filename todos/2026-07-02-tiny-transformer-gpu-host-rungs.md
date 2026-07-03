@@ -8,7 +8,7 @@ status: open
 
 ## Context
 
-Per decision `2026-07-02-04`, the tiny-transformer study is being implemented on a
+Per decision `2026-07-02-05`, the tiny-transformer study is being implemented on a
 no-GPU Windows laptop (18 CPU cores). Rung 1 (the toy) runs in-session on CPU; the
 compute-heavy pieces below are impractical on CPU and are deferred to a GPU host.
 
@@ -34,6 +34,6 @@ into the Phase-6 report with the CPU-pass results superseded/compared.
 
 ## Refs
 
-- Plan §3 (rungs), §6 (stretch); decision `2026-07-02-04`.
+- Plan §3 (rungs), §6 (stretch); decision `2026-07-02-05`.
 - Separate: `todos/2026-07-01-gpt2-training-reproduction.md` (124M from scratch).
 - Study manifest: `artifacts/induction-tiny/study-manifest.json`.
