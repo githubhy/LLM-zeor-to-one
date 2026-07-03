@@ -1,0 +1,226 @@
+{
+ "model": "gpt2",
+ "n_layers": 12,
+ "n_heads": 12,
+ "probe": "variable-offset (audit-hardened)",
+ "H6_transfer": {
+  "located_induction_heads": [
+   "5.5",
+   "6.9",
+   "7.10",
+   "5.1",
+   "7.2"
+  ],
+  "induction_scores": [
+   0.9176038503646851,
+   0.9140223860740662,
+   0.8938965201377869,
+   0.8868356943130493,
+   0.8122890591621399
+  ],
+  "matches_literature": "5.1/5.5/6.9/7.2/7.10 are the canonical GPT-2 induction heads (Olsson et al.)",
+  "ov_copy_sampled": {
+   "frac_top1_self": 0.02,
+   "median_self_rank": 511.5,
+   "n_sample": 300,
+   "vocab": 50257
+  },
+  "ov_eig_copying_mean": 0.5177083333333334,
+  "copy_evidence": "E.W_OV.U sampled median-self-rank 511 / 50257 (top ~1.0%) is the copy signal; the residual-basis eigenvalue fraction (0.518) sits at random-matrix chance (~0.5) and is NOT copy evidence",
+  "verdict": "PASS"
+ },
+ "H8_scale_icl_ablation": {
+  "base_icl_loss": 0.5171365380287171,
+  "induction_ablation_delta": [
+   5.359238088130951,
+   5.284736561775207,
+   5.434157919883728
+  ],
+  "control_ablation_delta": [
+   0.028982144594192506,
+   0.020029288530349732,
+   0.037500202655792236
+  ],
+  "control_heads": [
+   "11.1",
+   "5.4",
+   "0.4",
+   "11.4",
+   "9.9"
+  ],
+  "n_probe_batches": 5,
+  "verdict": "PASS"
+ },
+ "head_zoo": {
+  "0.5": {
+   "role": "duplicate-token",
+   "induction": 1.1350833119649906e-05,
+   "prev": 7.794901648594532e-06,
+   "dup": 0.6172581911087036
+  },
+  "2.2": {
+   "role": "previous-token",
+   "induction": 7.936866089483172e-14,
+   "prev": 0.5004449486732483,
+   "dup": 1.7286136579216724e-14
+  },
+  "2.5": {
+   "role": "previous-token",
+   "induction": 6.81920031553318e-09,
+   "prev": 0.3165476322174072,
+   "dup": 1.7823702513908302e-09
+  },
+  "2.9": {
+   "role": "previous-token",
+   "induction": 8.237037718572537e-09,
+   "prev": 0.33941981196403503,
+   "dup": 1.3237647644714912e-09
+  },
+  "3.0": {
+   "role": "duplicate-token",
+   "induction": 0.00244400673545897,
+   "prev": 0.0006586150848306715,
+   "dup": 0.6471258401870728
+  },
+  "3.2": {
+   "role": "previous-token",
+   "induction": 5.8488240917142775e-09,
+   "prev": 0.407589316368103,
+   "dup": 3.3556133427481427e-09
+  },
+  "3.3": {
+   "role": "previous-token",
+   "induction": 2.7572480409965294e-10,
+   "prev": 0.3797907829284668,
+   "dup": 1.0950469420123454e-09
+  },
+  "3.6": {
+   "role": "previous-token",
+   "induction": 1.612258557770474e-07,
+   "prev": 0.3096475601196289,
+   "dup": 1.1416770462346904e-07
+  },
+  "3.7": {
+   "role": "previous-token",
+   "induction": 1.0545218032120829e-09,
+   "prev": 0.4902437925338745,
+   "dup": 5.844496553386591e-10
+  },
+  "3.8": {
+   "role": "previous-token",
+   "induction": 4.009250531566977e-08,
+   "prev": 0.34188440442085266,
+   "dup": 2.700958567913858e-08
+  },
+  "4.11": {
+   "role": "previous-token",
+   "induction": 4.2233939723107435e-21,
+   "prev": 0.9892922639846802,
+   "dup": 4.307518638041821e-18
+  },
+  "5.0": {
+   "role": "induction",
+   "induction": 0.450484961271286,
+   "prev": 0.011922232806682587,
+   "dup": 0.01034026499837637
+  },
+  "5.1": {
+   "role": "induction",
+   "induction": 0.8868356943130493,
+   "prev": 2.0976953237550333e-05,
+   "dup": 0.0023055928759276867
+  },
+  "5.5": {
+   "role": "induction",
+   "induction": 0.9176038503646851,
+   "prev": 0.0005009469459764659,
+   "dup": 0.0014194825198501348
+  },
+  "5.6": {
+   "role": "previous-token",
+   "induction": 2.2012266072124476e-06,
+   "prev": 0.434512734413147,
+   "dup": 7.760760126984678e-06
+  },
+  "6.8": {
+   "role": "previous-token",
+   "induction": 8.507679467584239e-07,
+   "prev": 0.6396686434745789,
+   "dup": 9.055348755282466e-07
+  },
+  "6.9": {
+   "role": "induction",
+   "induction": 0.9140223860740662,
+   "prev": 5.5655327741988e-05,
+   "dup": 0.0025993005838245153
+  },
+  "7.0": {
+   "role": "previous-token",
+   "induction": 1.6862871916600852e-06,
+   "prev": 0.32168686389923096,
+   "dup": 1.6612237914159778e-06
+  },
+  "7.2": {
+   "role": "induction",
+   "induction": 0.8122890591621399,
+   "prev": 0.00021099964214954525,
+   "dup": 0.021961478516459465
+  },
+  "7.10": {
+   "role": "induction",
+   "induction": 0.8938965201377869,
+   "prev": 0.00020625436445698142,
+   "dup": 0.0067517017014324665
+  },
+  "8.1": {
+   "role": "induction",
+   "induction": 0.35601943731307983,
+   "prev": 0.001488393871113658,
+   "dup": 0.019964957609772682
+  },
+  "8.7": {
+   "role": "previous-token",
+   "induction": 1.3881854101782665e-05,
+   "prev": 0.3105680048465729,
+   "dup": 1.0689843293221202e-05
+  },
+  "9.6": {
+   "role": "induction",
+   "induction": 0.37747177481651306,
+   "prev": 0.0012546302750706673,
+   "dup": 0.007654811721295118
+  },
+  "9.9": {
+   "role": "induction",
+   "induction": 0.41900670528411865,
+   "prev": 0.000852480879984796,
+   "dup": 0.012298347428441048
+  },
+  "10.1": {
+   "role": "induction",
+   "induction": 0.4373796880245209,
+   "prev": 0.0016716787358745933,
+   "dup": 0.008368958719074726
+  },
+  "10.7": {
+   "role": "induction",
+   "induction": 0.44065016508102417,
+   "prev": 0.002656273078173399,
+   "dup": 0.0011559638660401106
+  },
+  "11.10": {
+   "role": "induction",
+   "induction": 0.3344832956790924,
+   "prev": 0.003580536926165223,
+   "dup": 0.0021851921919733286
+  }
+ },
+ "deferred": [
+  "IOI circuit (H18)",
+  "automated discovery ACDC/EAP/EAP-IG/AtP* (H15)",
+  "DAS/IIA (H16)",
+  "logit-lens (H11@scale)",
+  "probing/steering (H13@scale)"
+ ],
+ "deferred_ref": "todos/2026-07-02-tiny-transformer-gpu-host-rungs.md"
+}

@@ -1,0 +1,209 @@
+{
+ "seed": 0,
+ "sets": {
+  "ind_set": [
+   [
+    1,
+    0
+   ],
+   [
+    1,
+    1
+   ],
+   [
+    1,
+    2
+   ],
+   [
+    1,
+    3
+   ]
+  ],
+  "top_ind": [
+   1,
+   1
+  ],
+  "feeder_set": [
+   [
+    0,
+    0
+   ],
+   [
+    0,
+    1
+   ],
+   [
+    0,
+    2
+   ],
+   [
+    0,
+    3
+   ]
+  ],
+  "top_prev": [
+   0,
+   3
+  ]
+ },
+ "role_census": {
+  "0L0": {
+   "role": "positional",
+   "prev_token": 0.14931796491146088,
+   "induction": 0.005353456363081932,
+   "bos": 0.03454340994358063,
+   "diag": 0.37569954991340637,
+   "entropy": 2.1443674564361572
+  },
+  "0L1": {
+   "role": "diffuse",
+   "prev_token": 0.13986214995384216,
+   "induction": 0.004502477124333382,
+   "bos": 0.04149040952324867,
+   "diag": 0.24426667392253876,
+   "entropy": 2.367831230163574
+  },
+  "0L2": {
+   "role": "diffuse",
+   "prev_token": 0.16865505278110504,
+   "induction": 0.003380729816854,
+   "bos": 0.0378459170460701,
+   "diag": 0.23554526269435883,
+   "entropy": 2.244128465652466
+  },
+  "0L3": {
+   "role": "previous-token",
+   "prev_token": 0.295125275850296,
+   "induction": 0.0008796578040346503,
+   "bos": 0.040636323392391205,
+   "diag": 0.26071715354919434,
+   "entropy": 1.9554357528686523
+  },
+  "1L0": {
+   "role": "induction",
+   "prev_token": 0.00034086694358848035,
+   "induction": 0.7039684057235718,
+   "bos": 0.162221759557724,
+   "diag": 0.021514559164643288,
+   "entropy": 1.3630871772766113
+  },
+  "1L1": {
+   "role": "induction",
+   "prev_token": 0.00011483596608741209,
+   "induction": 0.7292733788490295,
+   "bos": 0.15170441567897797,
+   "diag": 0.022626906633377075,
+   "entropy": 1.323769450187683
+  },
+  "1L2": {
+   "role": "induction",
+   "prev_token": 6.356248195515946e-05,
+   "induction": 0.7289764285087585,
+   "bos": 0.1585184931755066,
+   "diag": 0.02344963699579239,
+   "entropy": 1.3735860586166382
+  },
+  "1L3": {
+   "role": "induction",
+   "prev_token": 0.0010532137239351869,
+   "induction": 0.5646827816963196,
+   "bos": 0.1691318154335022,
+   "diag": 0.022746339440345764,
+   "entropy": 1.6460609436035156
+  }
+ },
+ "circuit_match": {
+  "top_induction_head": [
+   1,
+   1
+  ],
+  "n_induction_heads": 4,
+  "top_prev_head": [
+   0,
+   3
+  ],
+  "ov_copying_frac_positive": 0.484375,
+  "ov_copying_mass": 0.27170947194099426,
+  "copy_diag_top_head": {
+   "frac_top1_self": 1.0,
+   "mean_self_rank": 0.0,
+   "diag_positive_frac": 1.0
+  },
+  "copy_diag_induction_set": {
+   "frac_top1_self": 1.0,
+   "mean_self_rank": 0.0,
+   "diag_positive_frac": 1.0
+  },
+  "qk_effective_rank": 30,
+  "d_head": 32,
+  "rank_cliff_holds": true
+ },
+ "composition": {
+  "K": 0.09052551025524735,
+  "Q": 0.09115004492923617,
+  "V": 0.08806502213701606,
+  "dominant": "Q"
+ },
+ "patching": {
+  "base_ind_acc": 0.9648008241758241,
+  "chance": 0.015625,
+  "acc_ablate_induction_set": 0.016311813186813188,
+  "acc_ablate_feeder_set": 0.042582417582417584,
+  "acc_ablate_single_top": 0.9447115384615384,
+  "acc_ablate_control": 0.9232486263736264,
+  "control_head": [
+   0,
+   2
+  ],
+  "necessity_induction_set_drop": 0.948489010989011,
+  "necessity_feeder_set_drop": 0.9222184065934066,
+  "single_head_drop": 0.0200892857142857,
+  "control_drop": 0.041552197802197766,
+  "total_effect": 9.820685386657715,
+  "indirect_effect_set": 9.422718048095703,
+  "ie_over_te": 0.9594766227719008,
+  "note": "distributed circuit: single-head ablation is a lower bound (H14); subset faithfulness/completeness/minimality at the GPT-2 rung (Phase 4b)"
+ },
+ "self_repair": {
+  "single_drops": {
+   "1L0": 0.018372252747252737,
+   "1L1": 0.0200892857142857,
+   "1L2": 0.02060439560439553,
+   "1L3": 0.0063530219780219
+  },
+  "sum_of_single_drops": 0.06541895604395587,
+  "joint_drop": 0.948489010989011,
+  "redundancy": -0.8830700549450551,
+  "note": "joint << sum(singles) => heavy redundancy / self-repair"
+ },
+ "logit_lens": {
+  "resid_pre_0": {
+   "mean_correct_rank": 31.391998626373628,
+   "top1_acc": 0.016311813186813188
+  },
+  "resid_post_0": {
+   "mean_correct_rank": 31.258585164835164,
+   "top1_acc": 0.01510989010989011
+  },
+  "resid_post_1": {
+   "mean_correct_rank": 0.06078296703296703,
+   "top1_acc": 0.9648008241758241
+  }
+ },
+ "probing": {
+  "resid_post_0": {
+   "probe_acc": 0.930419921875,
+   "control_acc": 0.643310546875,
+   "selectivity": 0.287109375
+  },
+  "resid_post_1": {
+   "probe_acc": 0.9664306640625,
+   "control_acc": 0.6453857421875,
+   "selectivity": 0.321044921875
+  }
+ },
+ "privileged_basis": {
+  "note": "attention-only: residual-basis invariance holds by construction; the post-GELU privileged-basis contrast (H17) runs on the +MLP variant",
+  "has_mlp": true
+ }
+}

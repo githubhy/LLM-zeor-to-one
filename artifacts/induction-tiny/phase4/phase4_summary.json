@@ -1,0 +1,760 @@
+{
+ "n_seeds": 5,
+ "chance": 0.015625,
+ "H3_circuit_match": {
+  "copy_diag_frac_top1_self": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "rank_cliff_all": true,
+  "n_induction_heads": [
+   4,
+   4,
+   4,
+   4,
+   4
+  ],
+  "verdict": "PASS"
+ },
+ "H4b_role_census": {
+  "induction_top_layer": [
+   1,
+   1,
+   1,
+   1,
+   1
+  ],
+  "feeder_layer": [
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "n_induction_heads": [
+   4,
+   4,
+   4,
+   4,
+   4
+  ],
+  "verdict": "PASS"
+ },
+ "H10_patching": {
+  "acc_ablate_induction_set": [
+   0.015075549450549449,
+   0.01407967032967033,
+   0.01607142857142857
+  ],
+  "acc_ablate_feeder_set": [
+   0.04642857142857143,
+   0.04251373626373626,
+   0.05010302197802198
+  ],
+  "control_drop": [
+   0.02901785714285716,
+   0.021737637362637362,
+   0.03629807692307696
+  ],
+  "single_head_drop": [
+   0.01418269230769229,
+   0.011263736263736246,
+   0.017616758241758214
+  ],
+  "set_drop": [
+   0.9662431318681319,
+   0.9567651098901099,
+   0.9726648351648353
+  ],
+  "ie_over_te": [
+   0.9602699139062623,
+   0.9552777416072751,
+   0.9652620862052492
+  ],
+  "verdict": "PASS"
+ },
+ "H11_decode_lens": {
+  "correct_rank_pre": [
+   31.277026098901096,
+   31.19745879120879,
+   31.347973901098904
+  ],
+  "correct_rank_post": [
+   0.046668956043956045,
+   0.03739697802197802,
+   0.05594093406593407
+  ],
+  "verdict": "PASS"
+ },
+ "H12_composition": {
+  "dominant": [
+   "Q",
+   "Q",
+   "Q",
+   "Q",
+   "Q"
+  ],
+  "verdict": "PARTIAL"
+ },
+ "H13_probing": {
+  "selectivity_L0": [
+   0.2903076171875,
+   0.2882568359375,
+   0.2923095703125
+  ],
+  "selectivity_L1": [
+   0.3228759765625,
+   0.32099609375,
+   0.3251220703125
+  ],
+  "verdict": "PASS"
+ },
+ "H14_self_repair": {
+  "redundancy": [
+   -0.9262706043956044,
+   -0.9405219780219778,
+   -0.9042925824175825
+  ],
+  "mean_single_drop": 0.01418269230769229,
+  "mean_set_drop": 0.9662431318681319,
+  "note": "single-head ablation ~0.014 vs set ablation ~0.966 => strong redundancy"
+ },
+ "per_seed": [
+  {
+   "seed": 0,
+   "sets": {
+    "ind_set": [
+     [
+      1,
+      0
+     ],
+     [
+      1,
+      1
+     ],
+     [
+      1,
+      2
+     ],
+     [
+      1,
+      3
+     ]
+    ],
+    "top_ind": [
+     1,
+     1
+    ],
+    "feeder_set": [
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      1
+     ],
+     [
+      0,
+      2
+     ],
+     [
+      0,
+      3
+     ]
+    ],
+    "top_prev": [
+     0,
+     3
+    ]
+   },
+   "circuit_match": {
+    "top_induction_head": [
+     1,
+     1
+    ],
+    "n_induction_heads": 4,
+    "top_prev_head": [
+     0,
+     3
+    ],
+    "ov_copying_frac_positive": 0.484375,
+    "ov_copying_mass": 0.27170947194099426,
+    "copy_diag_top_head": {
+     "frac_top1_self": 1.0,
+     "mean_self_rank": 0.0,
+     "diag_positive_frac": 1.0
+    },
+    "copy_diag_induction_set": {
+     "frac_top1_self": 1.0,
+     "mean_self_rank": 0.0,
+     "diag_positive_frac": 1.0
+    },
+    "qk_effective_rank": 30,
+    "d_head": 32,
+    "rank_cliff_holds": true
+   },
+   "composition": {
+    "K": 0.09052551025524735,
+    "Q": 0.09115004492923617,
+    "V": 0.08806502213701606,
+    "dominant": "Q"
+   },
+   "patching": {
+    "base_ind_acc": 0.9648008241758241,
+    "chance": 0.015625,
+    "acc_ablate_induction_set": 0.016311813186813188,
+    "acc_ablate_feeder_set": 0.042582417582417584,
+    "acc_ablate_single_top": 0.9447115384615384,
+    "acc_ablate_control": 0.9232486263736264,
+    "control_head": [
+     0,
+     2
+    ],
+    "necessity_induction_set_drop": 0.948489010989011,
+    "necessity_feeder_set_drop": 0.9222184065934066,
+    "single_head_drop": 0.0200892857142857,
+    "control_drop": 0.041552197802197766,
+    "total_effect": 9.820685386657715,
+    "indirect_effect_set": 9.422718048095703,
+    "ie_over_te": 0.9594766227719008,
+    "note": "distributed circuit: single-head ablation is a lower bound (H14); subset faithfulness/completeness/minimality at the GPT-2 rung (Phase 4b)"
+   },
+   "self_repair": {
+    "single_drops": {
+     "1L0": 0.018372252747252737,
+     "1L1": 0.0200892857142857,
+     "1L2": 0.02060439560439553,
+     "1L3": 0.0063530219780219
+    },
+    "sum_of_single_drops": 0.06541895604395587,
+    "joint_drop": 0.948489010989011,
+    "redundancy": -0.8830700549450551,
+    "note": "joint << sum(singles) => heavy redundancy / self-repair"
+   },
+   "logit_lens": {
+    "resid_pre_0": {
+     "mean_correct_rank": 31.391998626373628,
+     "top1_acc": 0.016311813186813188
+    },
+    "resid_post_0": {
+     "mean_correct_rank": 31.258585164835164,
+     "top1_acc": 0.01510989010989011
+    },
+    "resid_post_1": {
+     "mean_correct_rank": 0.06078296703296703,
+     "top1_acc": 0.9648008241758241
+    }
+   }
+  },
+  {
+   "seed": 1,
+   "sets": {
+    "ind_set": [
+     [
+      1,
+      0
+     ],
+     [
+      1,
+      1
+     ],
+     [
+      1,
+      2
+     ],
+     [
+      1,
+      3
+     ]
+    ],
+    "top_ind": [
+     1,
+     0
+    ],
+    "feeder_set": [
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      1
+     ],
+     [
+      0,
+      2
+     ],
+     [
+      0,
+      3
+     ]
+    ],
+    "top_prev": [
+     0,
+     0
+    ]
+   },
+   "circuit_match": {
+    "top_induction_head": [
+     1,
+     0
+    ],
+    "n_induction_heads": 4,
+    "top_prev_head": [
+     0,
+     0
+    ],
+    "ov_copying_frac_positive": 0.453125,
+    "ov_copying_mass": 0.25330689549446106,
+    "copy_diag_top_head": {
+     "frac_top1_self": 1.0,
+     "mean_self_rank": 0.0,
+     "diag_positive_frac": 1.0
+    },
+    "copy_diag_induction_set": {
+     "frac_top1_self": 1.0,
+     "mean_self_rank": 0.0,
+     "diag_positive_frac": 1.0
+    },
+    "qk_effective_rank": 29,
+    "d_head": 32,
+    "rank_cliff_holds": true
+   },
+   "composition": {
+    "K": 0.09047917695716023,
+    "Q": 0.09398692334070802,
+    "V": 0.08849585242569447,
+    "dominant": "Q"
+   },
+   "patching": {
+    "base_ind_acc": 0.9862637362637363,
+    "chance": 0.015625,
+    "acc_ablate_induction_set": 0.01407967032967033,
+    "acc_ablate_feeder_set": 0.04000686813186813,
+    "acc_ablate_single_top": 0.9699519230769231,
+    "acc_ablate_control": 0.9593063186813187,
+    "control_head": [
+     0,
+     2
+    ],
+    "necessity_induction_set_drop": 0.972184065934066,
+    "necessity_feeder_set_drop": 0.9462568681318682,
+    "single_head_drop": 0.016311813186813184,
+    "control_drop": 0.026957417582417653,
+    "total_effect": 10.97184944152832,
+    "indirect_effect_set": 10.58322286605835,
+    "ie_over_te": 0.9645796656670275,
+    "note": "distributed circuit: single-head ablation is a lower bound (H14); subset faithfulness/completeness/minimality at the GPT-2 rung (Phase 4b)"
+   },
+   "self_repair": {
+    "single_drops": {
+     "1L0": 0.016311813186813184,
+     "1L1": 0.006524725274725363,
+     "1L2": 0.008413461538461564,
+     "1L3": 0.004807692307692402
+    },
+    "sum_of_single_drops": 0.03605769230769251,
+    "joint_drop": 0.972184065934066,
+    "redundancy": -0.9361263736263735,
+    "note": "joint << sum(singles) => heavy redundancy / self-repair"
+   },
+   "logit_lens": {
+    "resid_pre_0": {
+     "mean_correct_rank": 31.29326923076923,
+     "top1_acc": 0.014251373626373626
+    },
+    "resid_post_0": {
+     "mean_correct_rank": 31.858516483516482,
+     "top1_acc": 0.016483516483516484
+    },
+    "resid_post_1": {
+     "mean_correct_rank": 0.031936813186813184,
+     "top1_acc": 0.9862637362637363
+    }
+   }
+  },
+  {
+   "seed": 2,
+   "sets": {
+    "ind_set": [
+     [
+      1,
+      0
+     ],
+     [
+      1,
+      1
+     ],
+     [
+      1,
+      2
+     ],
+     [
+      1,
+      3
+     ]
+    ],
+    "top_ind": [
+     1,
+     2
+    ],
+    "feeder_set": [
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      1
+     ],
+     [
+      0,
+      2
+     ],
+     [
+      0,
+      3
+     ]
+    ],
+    "top_prev": [
+     0,
+     3
+    ]
+   },
+   "circuit_match": {
+    "top_induction_head": [
+     1,
+     2
+    ],
+    "n_induction_heads": 4,
+    "top_prev_head": [
+     0,
+     3
+    ],
+    "ov_copying_frac_positive": 0.4765625,
+    "ov_copying_mass": 0.29545557498931885,
+    "copy_diag_top_head": {
+     "frac_top1_self": 0.953125,
+     "mean_self_rank": 0.0625,
+     "diag_positive_frac": 1.0
+    },
+    "copy_diag_induction_set": {
+     "frac_top1_self": 1.0,
+     "mean_self_rank": 0.0,
+     "diag_positive_frac": 1.0
+    },
+    "qk_effective_rank": 29,
+    "d_head": 32,
+    "rank_cliff_holds": true
+   },
+   "composition": {
+    "K": 0.09074653778225183,
+    "Q": 0.09404636267572641,
+    "V": 0.0878141950815916,
+    "dominant": "Q"
+   },
+   "patching": {
+    "base_ind_acc": 0.9811126373626373,
+    "chance": 0.015625,
+    "acc_ablate_induction_set": 0.016140109890109892,
+    "acc_ablate_feeder_set": 0.04859203296703297,
+    "acc_ablate_single_top": 0.9696085164835165,
+    "acc_ablate_control": 0.9599931318681318,
+    "control_head": [
+     0,
+     2
+    ],
+    "necessity_induction_set_drop": 0.9649725274725274,
+    "necessity_feeder_set_drop": 0.9325206043956044,
+    "single_head_drop": 0.011504120879120783,
+    "control_drop": 0.021119505494505475,
+    "total_effect": 10.968363761901855,
+    "indirect_effect_set": 10.626559257507324,
+    "ie_over_te": 0.9688372384601452,
+    "note": "distributed circuit: single-head ablation is a lower bound (H14); subset faithfulness/completeness/minimality at the GPT-2 rung (Phase 4b)"
+   },
+   "self_repair": {
+    "single_drops": {
+     "1L0": 0.001717032967032961,
+     "1L1": 0.009615384615384581,
+     "1L2": 0.011504120879120783,
+     "1L3": 0.012706043956043911
+    },
+    "sum_of_single_drops": 0.035542582417582236,
+    "joint_drop": 0.9649725274725274,
+    "redundancy": -0.9294299450549451,
+    "note": "joint << sum(singles) => heavy redundancy / self-repair"
+   },
+   "logit_lens": {
+    "resid_pre_0": {
+     "mean_correct_rank": 31.296875,
+     "top1_acc": 0.013736263736263736
+    },
+    "resid_post_0": {
+     "mean_correct_rank": 31.475274725274726,
+     "top1_acc": 0.015281593406593406
+    },
+    "resid_post_1": {
+     "mean_correct_rank": 0.046875,
+     "top1_acc": 0.9811126373626373
+    }
+   }
+  },
+  {
+   "seed": 3,
+   "sets": {
+    "ind_set": [
+     [
+      1,
+      0
+     ],
+     [
+      1,
+      1
+     ],
+     [
+      1,
+      2
+     ],
+     [
+      1,
+      3
+     ]
+    ],
+    "top_ind": [
+     1,
+     2
+    ],
+    "feeder_set": [
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      1
+     ],
+     [
+      0,
+      2
+     ],
+     [
+      0,
+      3
+     ]
+    ],
+    "top_prev": [
+     0,
+     3
+    ]
+   },
+   "circuit_match": {
+    "top_induction_head": [
+     1,
+     2
+    ],
+    "n_induction_heads": 4,
+    "top_prev_head": [
+     0,
+     3
+    ],
+    "ov_copying_frac_positive": 0.4921875,
+    "ov_copying_mass": 0.32485276460647583,
+    "copy_diag_top_head": {
+     "frac_top1_self": 1.0,
+     "mean_self_rank": 0.0,
+     "diag_positive_frac": 1.0
+    },
+    "copy_diag_induction_set": {
+     "frac_top1_self": 1.0,
+     "mean_self_rank": 0.0,
+     "diag_positive_frac": 1.0
+    },
+    "qk_effective_rank": 30,
+    "d_head": 32,
+    "rank_cliff_holds": true
+   },
+   "composition": {
+    "K": 0.09026906592771411,
+    "Q": 0.09249535109847784,
+    "V": 0.08820197451859713,
+    "dominant": "Q"
+   },
+   "patching": {
+    "base_ind_acc": 0.9876373626373627,
+    "chance": 0.015625,
+    "acc_ablate_induction_set": 0.015453296703296704,
+    "acc_ablate_feeder_set": 0.05099587912087912,
+    "acc_ablate_single_top": 0.9773351648351648,
+    "acc_ablate_control": 0.9519230769230769,
+    "control_head": [
+     0,
+     2
+    ],
+    "necessity_induction_set_drop": 0.9721840659340659,
+    "necessity_feeder_set_drop": 0.9366414835164836,
+    "single_head_drop": 0.010302197802197877,
+    "control_drop": 0.03571428571428581,
+    "total_effect": 11.246867179870605,
+    "indirect_effect_set": 10.730064392089844,
+    "ie_over_te": 0.9540491783609106,
+    "note": "distributed circuit: single-head ablation is a lower bound (H14); subset faithfulness/completeness/minimality at the GPT-2 rung (Phase 4b)"
+   },
+   "self_repair": {
+    "single_drops": {
+     "1L0": 0.006353021978022011,
+     "1L1": 0.003434065934066033,
+     "1L2": 0.010302197802197877,
+     "1L3": 0.006868131868131955
+    },
+    "sum_of_single_drops": 0.026957417582417875,
+    "joint_drop": 0.9721840659340659,
+    "redundancy": -0.945226648351648,
+    "note": "joint << sum(singles) => heavy redundancy / self-repair"
+   },
+   "logit_lens": {
+    "resid_pre_0": {
+     "mean_correct_rank": 31.270604395604394,
+     "top1_acc": 0.018543956043956044
+    },
+    "resid_post_0": {
+     "mean_correct_rank": 31.479567307692307,
+     "top1_acc": 0.01665521978021978
+    },
+    "resid_post_1": {
+     "mean_correct_rank": 0.03811813186813187,
+     "top1_acc": 0.9876373626373627
+    }
+   }
+  },
+  {
+   "seed": 4,
+   "sets": {
+    "ind_set": [
+     [
+      1,
+      0
+     ],
+     [
+      1,
+      1
+     ],
+     [
+      1,
+      2
+     ],
+     [
+      1,
+      3
+     ]
+    ],
+    "top_ind": [
+     1,
+     3
+    ],
+    "feeder_set": [
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      1
+     ],
+     [
+      0,
+      2
+     ],
+     [
+      0,
+      3
+     ]
+    ],
+    "top_prev": [
+     0,
+     0
+    ]
+   },
+   "circuit_match": {
+    "top_induction_head": [
+     1,
+     3
+    ],
+    "n_induction_heads": 4,
+    "top_prev_head": [
+     0,
+     0
+    ],
+    "ov_copying_frac_positive": 0.4921875,
+    "ov_copying_mass": 0.23203669488430023,
+    "copy_diag_top_head": {
+     "frac_top1_self": 1.0,
+     "mean_self_rank": 0.0,
+     "diag_positive_frac": 1.0
+    },
+    "copy_diag_induction_set": {
+     "frac_top1_self": 1.0,
+     "mean_self_rank": 0.0,
+     "diag_positive_frac": 1.0
+    },
+    "qk_effective_rank": 30,
+    "d_head": 32,
+    "rank_cliff_holds": true
+   },
+   "composition": {
+    "K": 0.09184175403788686,
+    "Q": 0.09205102548003197,
+    "V": 0.08800913253799081,
+    "dominant": "Q"
+   },
+   "patching": {
+    "base_ind_acc": 0.9867788461538461,
+    "chance": 0.015625,
+    "acc_ablate_induction_set": 0.013392857142857142,
+    "acc_ablate_feeder_set": 0.049965659340659344,
+    "acc_ablate_single_top": 0.9740728021978022,
+    "acc_ablate_control": 0.967032967032967,
+    "control_head": [
+     0,
+     1
+    ],
+    "necessity_induction_set_drop": 0.973385989010989,
+    "necessity_feeder_set_drop": 0.9368131868131868,
+    "single_head_drop": 0.012706043956043911,
+    "control_drop": 0.019745879120879106,
+    "total_effect": 11.189225196838379,
+    "indirect_effect_set": 10.679073333740234,
+    "ie_over_te": 0.9544068642713266,
+    "note": "distributed circuit: single-head ablation is a lower bound (H14); subset faithfulness/completeness/minimality at the GPT-2 rung (Phase 4b)"
+   },
+   "self_repair": {
+    "single_drops": {
+     "1L0": 0.010473901098901117,
+     "1L1": 0.00463598901098905,
+     "1L2": 0.008070054945054972,
+     "1L3": 0.012706043956043911
+    },
+    "sum_of_single_drops": 0.03588598901098905,
+    "joint_drop": 0.973385989010989,
+    "redundancy": -0.9375,
+    "note": "joint << sum(singles) => heavy redundancy / self-repair"
+   },
+   "logit_lens": {
+    "resid_pre_0": {
+     "mean_correct_rank": 31.13238324175824,
+     "top1_acc": 0.014938186813186814
+    },
+    "resid_post_0": {
+     "mean_correct_rank": 31.876717032967033,
+     "top1_acc": 0.01459478021978022
+    },
+    "resid_post_1": {
+     "mean_correct_rank": 0.05563186813186813,
+     "top1_acc": 0.9867788461538461
+    }
+   }
+  }
+ ]
+}

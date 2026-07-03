@@ -1,0 +1,35 @@
+{
+ "study": "induction-tiny",
+ "plan": "plans/2026-06-30-tiny-transformer-induction-study.md",
+ "created": "2026-07-02",
+ "skill": "reference-implementation-study (mode: original)",
+ "framework": "HookedTransformer (model) + first-party torch AdamW loop (training); numpy Appendix-C toy = hand-derived-math H5 reference",
+ "rungs": {
+  "1_toy": "in progress (Phases 2-3)",
+  "2_mini_gpt2": "deferred to a GPU host (todos/2026-07-02-tiny-transformer-gpu-host-rungs.md)",
+  "3_pretrained_gpt2": "pending (Phase 4b; torch/TL installed)"
+ },
+ "iterations": [
+  {"phase": 1, "gate": "-", "status": "done",
+   "note": "scenario fixed in plan §3; configs in config.py PRESETS"},
+  {"phase": 2, "gate": "G1", "status": "PASS",
+   "note": "config/data/utils/circuits/model+train + tests; 9/9 pass (gradcheck H5, gauge §A.4, softmax-Jacobian Eq12, residual-recon H11, rank cliff §A.8, fixed-offset regression)"},
+  {"phase": 3, "gate": "G2", "status": "PASS",
+   "note": "5 seeds 2L + 1L control @ n_ctx=64 batch=128 800 steps (reduced config; full-scale n_ctx=256/20k deferred to GPU host); ind_acc 0.982 CI[0.974,0.986] vs 1L 0.146 (H1 PASS); phase-change step ~470 CI[450,490]; sequential save-per-seed after 2 background-kill retries (bug: 6 parallel torch workers + bg-detachment didn't survive)"},
+  {"phase": 4, "gate": "G3", "status": "PASS (5/6; H12 PARTIAL)",
+   "note": "toy MI-observable suite on 5 saved models: H3 (copy-diag 1.0, rank cliff), H4b (induction set in L1), H10 (ablate induction/feeder set -> chance; single 0.014 vs set 0.966; IE/TE 0.96; control 0.029), H11 (decode-lens rank drop), H13 (selectivity 0.29->0.32), H14 self-repair (strong redundancy); H12 composition PARTIAL (set-averaged Frobenius noisy at toy scale); finding: induction is DISTRIBUTED across all 4 L1 heads"},
+  {"phase": "4b", "gate": "G3b", "status": "PASS (H6+H8; IOI/H15/H16 deferred)",
+   "note": "GPT-2 small loaded; located induction heads 5.5/6.9/5.1/7.10/7.2 (literature match); H6 OV eigenvalue copying mean 0.518 positive-biased; H8@scale ICL ablation delta +5.14 (base 0.161 -> 5.303) vs control +0.02 (245x specificity); head-zoo 13 induction / 12 prev-token / 2 duplicate-token; IOI(H18)/ACDC-EAP(H15)/DAS(H16) deferred to GPU host"},
+  {"phase": 5, "gate": "G4", "status": "PASS",
+   "note": "PTQ int8/int4 (per-tensor + per-channel) vs fp32; induction circuit SURVIVES: int8 lossless (acc 0.981), int4 graceful (per-tensor 0.931 / per-channel 0.959), copy-diag 1.0 at every precision; per-channel > per-tensor at int4"},
+  {"phase": 6, "gate": "REPORT+CITE", "status": "PASS",
+   "note": "14-section report docs/tiny-transformer-induction-study.md (report-completeness PASS, lint-math clean, 9/9 G1 tests green). sim-audit (6 adversarial lenses) run -> 3 fixes applied (GPT-2 variable-offset probe: H8 ablation +5.36 CI[+5.29,+5.43] vs control +0.03; 1L 5-seed control acc 0.145 CI[0.143,0.147]; doc drift) and the rest disclosed honestly in report §10 (H10 toy-localization weak; H12 null at noise floor; rank-cliff algebraic; OV eigenvalue at chance -> use E.W_OV.U diagonal; self-repair reframed; PTQ weight-only). Core H1-H6/H8/H10-H14 done at toy+GPT-2 rungs; H7/H9/H15-H19 + Rung 2 deferred to GPU host. Citation-integrity: only external anchor olsson-induction-heads-2022 (acquired, located empirically)."}
+ ],
+ "early_results": {
+  "H1_depth_threshold": "2L ind_acc 0.985 vs 1L 0.137 (smoke, ctx=64)",
+  "H2_emergence": "induction head forms; ind_loss 4.47 -> 0.14; prev-token head 0.374 in L0 (K-composition)",
+  "H5_gradient_check": "autograd vs finite-diff median rel-err < 1e-2; numpy toy reference 1.6e-9"
+ },
+ "bugs": ["2026-07-02-04 (induction fixed-offset positional shortcut; fixed, high)"],
+ "decisions": ["2026-07-02-03 (coverage amendments H10-H19)", "2026-07-02-04 (execution approach)"]
+}
