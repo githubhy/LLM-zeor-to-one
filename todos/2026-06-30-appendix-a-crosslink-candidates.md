@@ -1,7 +1,7 @@
 ---
 slug: appendix-a-crosslink-candidates
 date_filed: 2026-06-30
-status: open
+status: closed
 ---
 
 # appendix-a — pre-existing cross-link candidates surfaced during the §A.21 fold
@@ -37,3 +37,7 @@ advisory `warn`-severity, below any block-score, so they do not gate a push.)
 - Detector: `crosslink.py check surveys/llms-for-coding --changed`
 - Rule: `.claude/rules/cross-linking.md` (Tier-2 on-demand insertion)
 - Conversation log: `prompts/2026-06-29-viewer-serve-launcher.md` Conversation 31
+
+## Resolution
+
+**Resolved 2026-07-03.** Added the one high-value link — A.5 (attention-as-kernel-regression) → §B.6 (kernel-regression appendix), cosine 0.24 — as a `secxref` in §A.5's Nadaraya-Watson paragraph (validate-refs clean). The remaining advisory candidates (10.3->14.3, 2.1->3.7, H.5->F.4; cosine <=0.22) are triaged as below the value bar: generic topic overlap, not precise cross-references, and the gate treats them as advisory/non-blocking.

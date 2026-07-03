@@ -75,3 +75,7 @@ sweep green; cross-link sign-off cleared.
 - `.claude/rules/citation-integrity.md`; `.claude/skills/source-fetch/SKILL.md`
 - Plan H9: `plans/2026-06-30-tiny-transformer-induction-study.md` §2 (H9), §6; decision `decisions/2026-07-01-03-fold-icl-inspection-into-tiny-transformer-plan.md`
 - Conversation log: `prompts/2026-06-28-qkv-index-notation-fold.md` (Conversation 17); `prompts/2026-06-29-viewer-serve-launcher.md`
+
+## Progress
+
+**2026-07-03 — source-fetch gate cleared.** Acquired + content-verified the four ICL-as-optimization papers: `vonoswald-transformers-icl-gradient-descent-2023`, `akyurek-what-learning-algorithm-icl-2022`, `dai-gpt-icl-meta-optimizers-2022`, `garg-transformers-learn-icl-function-classes-2022` (all `local: download/`). The hard citation gate is now satisfied; the remaining work — writing the §A.6-area intuition note + the plan-H9 in-context-regression sub-study — is unblocked (and part of the deferred-hypothesis extension).
