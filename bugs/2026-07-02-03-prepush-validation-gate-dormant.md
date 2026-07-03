@@ -2,7 +2,7 @@
 id: 2026-07-02-03
 title: Pre-push validation gate dormant — git-lfs hook holds .git/hooks/pre-push, core.hooksPath unset
 severity: med
-status: open
+status: fixed
 date: 2026-07-02
 component: git-hooks / validation
 plan: (none — infra)
@@ -45,18 +45,23 @@ validated by hand.
 
 ## Fix
 
-Deferred — re-wiring is a design choice, tracked in
-`todos/2026-07-02-fix-prepush-hook-wiring.md`. Sketch: make `.githooks/pre-push`
-chain `git lfs pre-push "$@"` (guarded by a `command -v git-lfs` check, as the
-stock git-lfs hook does) so both LFS upload and validation run, then set
-`core.hooksPath .githooks`. Until then, run `/check-survey` (or the manual
-validators, invoked with the real `…/Python313/python.exe`, since git-bash
-`python3` is the Store stub) before every push.
+**Fixed 2026-07-03.** Rewrote `.githooks/pre-push` to (a) chain
+`git lfs pre-push "$@"` up front (guarded by `command -v git-lfs`) so LFS objects
+still upload when this hook is the active pre-push hook, and (b) auto-detect a
+working python (`python3` → `python` → `py -3`) — git-bash's `python3` is the
+Store stub, so without this the validators silently no-op on Windows. Then set
+`git config core.hooksPath .githooks`. Because `core.hooksPath` makes git read
+`.githooks/pre-push` directly, a later `git lfs install` overwriting
+`.git/hooks/pre-push` no longer disables validation (the original failure mode is
+structurally closed). The install-git-hooks copy-installer needs no change — it
+copies the now-self-contained hook.
 
 ## Regression test
 
-none yet — will be a hook-presence assertion once the wiring is fixed (verify a
-`git push` invokes both `git lfs pre-push` and the survey validators).
+A live `git push` with `core.hooksPath=.githooks` runs both `git lfs pre-push`
+(LFS upload) and the survey validators (verified). Standalone dry-run:
+`bash .githooks/pre-push origin <url> < /dev/null` — LFS no-ops on empty stdin,
+validators run, exit 0.
 
 ## Refs
 

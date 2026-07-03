@@ -1,45 +1,57 @@
 #!/bin/bash
-# Pre-push hook: full survey-wide validation gate.
+# Pre-push hook: git-lfs object upload + full survey-wide validation gate.
 # Activated via: git config core.hooksPath .githooks
 # To bypass for an explicit reason, use `git push --no-verify`.
-
+#
+# This hook REPLACES the stock .git/hooks/pre-push (the git-lfs hook) once
+# core.hooksPath points here, so it must itself chain `git lfs pre-push` or LFS
+# pointers would be pushed without their blobs (bug 2026-07-02-03).
 set -uo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
-echo "[pre-push] Running survey-wide validation..."
+# --- 1. Git LFS: upload objects for the refs being pushed (reads the ref list
+# from this hook's stdin, exactly as the stock git-lfs hook does). ---
+if command -v git-lfs >/dev/null 2>&1; then
+    git lfs pre-push "$@" || exit 1
+fi
 
+# --- 2. Pick a python that actually runs. git-bash on Windows aliases python3
+# and python to a non-functional Microsoft-Store stub (exit 49); the py launcher
+# resolves the real interpreter. On Linux/macOS python3 works and is chosen first. ---
+PY=""
+for c in python3 python "py -3"; do
+    if $c -c "import sys" >/dev/null 2>&1; then PY="$c"; break; fi
+done
+if [ -z "$PY" ]; then
+    echo "[pre-push] no working python found — LFS uploaded, skipping validators." >&2
+    exit 0
+fi
+
+echo "[pre-push] Running survey-wide validation (python: $PY)..."
 fail=0
-
-# This repo holds multiple surveys, each in its own surveys/<slug>/ dir with an
-# order.json. The validators resolve a survey from its directory (not from the
-# surveys/ parent), so iterate over every dir that has an order.json — the same
-# per-survey target /check-survey uses.
 SURVEY_DIRS=$(find surveys -maxdepth 2 -name order.json -exec dirname {} \; | sort -u)
 if [ -z "$SURVEY_DIRS" ]; then
     echo "[pre-push] No survey dirs (surveys/*/order.json) found — nothing to validate."
 else
     for d in $SURVEY_DIRS; do
         echo "[pre-push]   validating $d"
-        python3 viewer/tools/validate-refs.py "$d" || fail=1
-        python3 viewer/tools/renumber-equations.py --check "$d" || fail=1
-        python3 viewer/tools/renumber-paragraphs.py --check "$d" || fail=1
-        python3 viewer/tools/renumber-sections.py --check "$d" || fail=1
-        # Bare-ref severity for push-gate: always error (the per-edit hook may be
-        # in warn mode during migration, but push to remote is the strict gate).
-        python3 viewer/tools/validate-refs.py --bare-refs-only --severity=error "$d" || fail=1
+        $PY viewer/tools/validate-refs.py "$d" || fail=1
+        $PY viewer/tools/renumber-equations.py --check "$d" || fail=1
+        $PY viewer/tools/renumber-paragraphs.py --check "$d" || fail=1
+        $PY viewer/tools/renumber-sections.py --check "$d" || fail=1
+        # Bare-ref severity for the push gate: always error (the per-edit hook may
+        # be in warn mode during migration, but push to remote is the strict gate).
+        $PY viewer/tools/validate-refs.py --bare-refs-only --severity=error "$d" || fail=1
     done
 fi
 
-# Cross-link gap check (corpus-level). Advisory at 'warn' (lists gaps, never
-# blocks); blocks only at 'error' severity when a gap is at/above the
-# block-score. Severity from .claude/crosslink-severity, corpus from
-# .claude/crosslink-scope.
+# Cross-link gap check (corpus-level). Advisory at 'warn'; blocks only at 'error'.
 XSEV=$(cat .claude/crosslink-severity 2>/dev/null || echo warn)
 if [ "$XSEV" != "off" ] && [ -f .claude/crosslink-scope ]; then
     XSCOPE=$(grep -vE '^[[:space:]]*#|^[[:space:]]*$' .claude/crosslink-scope | tr '\n' ' ')
-    python3 viewer/tools/crosslink.py check $XSCOPE --severity="$XSEV" \
+    $PY viewer/tools/crosslink.py check $XSCOPE --severity="$XSEV" \
         --min-score 0.18 || fail=1
 fi
 

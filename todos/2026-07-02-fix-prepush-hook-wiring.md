@@ -1,7 +1,7 @@
 ---
 slug: fix-prepush-hook-wiring
 date_filed: 2026-07-02
-status: open
+status: closed
 ---
 
 # Re-wire the pre-push gate so validation AND git-lfs both run
@@ -33,6 +33,18 @@ break LFS upload, because `.githooks/pre-push` does not chain
 A `git push` on a clone set up per the README both (a) uploads pending LFS
 objects and (b) runs the survey-wide validators, blocking on error.
 `core.hooksPath` is set and the documented state matches reality.
+
+## Resolution
+
+**Resolved 2026-07-03.** Rewrote `.githooks/pre-push` to chain
+`git lfs pre-push "$@"` (guarded) + auto-detect a working python
+(`python3`→`python`→`py -3`, dodging the git-bash Store stub), then set
+`git config core.hooksPath .githooks`. With `core.hooksPath` set, git reads
+`.githooks/pre-push` directly, so a later `git lfs install` can no longer clobber
+the gate — the two-claimant conflict is structurally closed. The copy-installer
+needs no change (it copies the now-self-contained hook). Verified via a hook
+dry-run (LFS no-op on empty stdin, validators run, exit 0) and a live push. Bug
+`2026-07-02-03` marked fixed.
 
 ## Refs
 
