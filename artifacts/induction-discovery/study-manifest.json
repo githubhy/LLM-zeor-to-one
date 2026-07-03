@@ -1,0 +1,27 @@
+{
+  "env": {
+    "git_commit": "6bfbb670a74b-dirty",
+    "numpy": "2.0.0",
+    "os": "macOS-26.3-arm64-arm-64bit",
+    "python": "3.12.3",
+    "scipy": "1.14.0",
+    "torch": "2.3.1",
+    "transformers": "4.49.0"
+  },
+  "oracle_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "study": "induction-discovery",
+  "verdict": "PASS"
+}

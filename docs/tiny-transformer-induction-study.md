@@ -111,7 +111,8 @@ The survey's Appendix A derives the QK circuit `M = W_Qᵀ W_K` ("where to look"
 | **H11** | decode-lens | correct-token rank drops sharply after the induction layer | **PASS** |
 | **H13** | representation probing | is-repeat linearly decodable; control-task selectivity 0.29 (L0) → 0.32 (L1) | **PASS** |
 | **H12** | composition census | K/Q/V normalized-Frobenius scores 0.088–0.094 ≈ 1/√d noise floor | **INCONCLUSIVE (null; §10)** |
-| H7, H9, H15, H16, H17(+MLP), H18, H19 | grokking / algorithmic-ICL / automated-discovery / DAS / privileged-basis / IOI / illusion | — | **DEFERRED (§11)** |
+| **H15** | automated discovery (GPT-2 rung) | EAP/EAP-IG recover the induction heads {5.1,5.5,6.9,7.2,7.10} (AUROC 0.97 vs 0.52 floor); EAP-IG rank-consistent with exact patching (ρ=0.99) and more faithful than EAP (+0.109, p=5e-29) | **PASS** — see [h15-automated-discovery-study.md](h15-automated-discovery-study.md) |
+| H7, H9, H16, H17(+MLP), H18, H19 | grokking / algorithmic-ICL / DAS / privileged-basis / IOI / illusion | — | **DEFERRED (§11)** |
 
 The headline causal claim (H8) is anchored on the **non-reduced pretrained GPT-2**, so it does not inherit the toy's reduced-scale caveat.
 
@@ -168,7 +169,9 @@ The adversarial audit surfaced these; the cheap fixes were applied, the rest are
 
 ## 11. Roadmap → `todos/`
 
-Deferred, tracked in `todos/2026-07-02-tiny-transformer-gpu-host-rungs.md` (GPU host) and the plan's §6: **Rung 2** mini-GPT-2 from scratch; **full-scale Rung 1** (n_ctx=256/20k, ≥5 seeds); **H7** grokking sub-study (modular addition + Fourier circuit); **H9** algorithmic ICL (source-gated); **H15** automated discovery (ACDC/EAP/EAP-IG/AtP*); **H16** DAS/IIA; **H17** privileged-basis contrast on the +MLP variant; **H18** IOI; **H19** interpretability-illusion cross-corpus; the auto-interp source-fetch (Bundle K). The GPT-2 rung already gives the causal specificity these will sharpen.
+**H15 (automated discovery) is resolved** at the GPT-2 rung — node-level EAP/EAP-IG recover the induction heads; see `docs/h15-automated-discovery-study.md`. Its edge-level K-edge, ACDC/AtP\*, and toy-rung remainder are tracked in `todos/2026-07-03-h15-automated-discovery-followups.md`.
+
+Still deferred, tracked in `todos/2026-07-02-tiny-transformer-gpu-host-rungs.md` (GPU host) and the plan's §6: **Rung 2** mini-GPT-2 from scratch; **full-scale Rung 1** (n_ctx=256/20k, ≥5 seeds); **H7** grokking sub-study (modular addition + Fourier circuit); **H9** algorithmic ICL (source-gated); **H16** DAS/IIA; **H17** privileged-basis contrast on the +MLP variant; **H18** IOI; **H19** interpretability-illusion cross-corpus; the auto-interp source-fetch (Bundle K). The GPT-2 rung already gives the causal specificity these will sharpen.
 
 ---
 
