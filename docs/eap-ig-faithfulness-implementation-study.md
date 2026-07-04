@@ -244,6 +244,15 @@ The reproduced invariants — EAP-IG ≥ EAP faithfulness (overall p=3.6e-34), �
 ρ_EAP(0.46), exact ≥ eap_ig ≥ eap ordering, ~3× cost — are granularity-robust; the absolute
 per-task magnitudes are not, and are disclosed do-not-cite (§2).
 
+**Resolved (2026-07-04) — the divergence is closed at edge granularity.** A follow-on built the
+edge-level engine (32,491 q/k/v-split edges + greedy search) and re-ran IOI + SVA: the per-task
+ordering flips to Hanna Fig 3's — **IOI EAP≈EAP-IG** (gap 0.024, both plateau ~0.5, the
+node-level catastrophic IOI gap gone) and **SVA EAP catastrophic** (pruned to 0 edges at n=50,
+faithful only by n≈700) **vs EAP-IG faithful** (0.809 at n=400), with the paper's `embed→m0`
+smoking gun reproduced (EAP-IG ranks it 1, EAP 74). All three §7 root-causes (granularity,
+search, operating-point) are confirmed as the drivers. See
+[eap-ig-edge-level-study.md](eap-ig-edge-level-study.md).
+
 ## 8. Reduced precision (G4 PASS 7/7)
 
 **≥2 realisation structures** (P2-3) over the attribution artifact — storing the edge scores at
