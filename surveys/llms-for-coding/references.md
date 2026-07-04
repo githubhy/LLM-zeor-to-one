@@ -278,3 +278,15 @@
 
 <a id="ref-93"></a><!-- bib:93 -->
 [93] S. Wiegreffe, Y. Pinter, "Attention is not not Explanation." *EMNLP 2019.* arXiv:1908.04626. (local: download/wiegreffe-attention-not-not-explanation-2019.pdf)
+
+<a id="ref-94"></a><!-- bib:94 -->
+[94] J. von Oswald, E. Niklasson, E. Randazzo, J. Sacramento, A. Mordvintsev, A. Zhmoginov, M. Vladymyrov, "Transformers Learn In-Context by Gradient Descent." *ICML 2023.* arXiv:2212.07677. (local: download/vonoswald-transformers-icl-gradient-descent-2023.pdf)
+
+<a id="ref-95"></a><!-- bib:95 -->
+[95] S. Garg, D. Tsipras, P. Liang, G. Valiant, "What Can Transformers Learn In-Context? A Case Study of Simple Function Classes." *NeurIPS 2022.* arXiv:2208.01066. (local: download/garg-transformers-learn-icl-function-classes-2022.pdf)
+
+<a id="ref-96"></a><!-- bib:96 -->
+[96] E. Akyürek, D. Schuurmans, J. Andreas, T. Ma, D. Zhou, "What Learning Algorithm Is In-Context Learning? Investigations with Linear Models." *ICLR 2023.* arXiv:2211.15661. (local: download/akyurek-what-learning-algorithm-icl-2022.pdf)
+
+<a id="ref-97"></a><!-- bib:97 -->
+[97] D. Dai, Y. Sun, L. Dong, Y. Hao, S. Ma, Z. Sui, F. Wei, "Why Can GPT Learn In-Context? Language Models Implicitly Perform Gradient Descent as Meta-Optimizers." *Findings of ACL 2023.* arXiv:2212.10559. (local: download/dai-gpt-icl-meta-optimizers-2022.pdf)

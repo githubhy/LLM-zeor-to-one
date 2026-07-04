@@ -1,8 +1,17 @@
 ---
 slug: icl-as-online-learning-intuition
 date_filed: 2026-06-28
-status: open
+status: closed
 ---
+
+> **Resolution (2026-07-04).** Both consumers satisfied. (1) The Appendix-A intuition subsection
+> was written as **§A.23** ("The Forward Pass as an Online Optimizer") in
+> `surveys/llms-for-coding/appendix-a-qkv-first-principles.md`, citing [94] von Oswald / [95] Garg
+> / [96] Akyürek / [97] Dai (all acquired, `local:` tags), with the mechanism-vs-behavior boundary
+> stated explicitly and a `secref` back to §A.22 and §A.6/§A.16. (2) Plan **H9** was executed as
+> the `docs/h9-algorithmic-icl-study.md` sub-study (`implementation/icl_regression/`): the
+> in-context-regression task, the model-vs-online-learner overlay, and the construction/behavioral
+> contrast. Follow-ons in `todos/2026-07-04-h9-followups.md`; decision `2026-07-04-02`.
 
 # Add the in-context-learning-as-online-optimization intuition to Appendix A
 
