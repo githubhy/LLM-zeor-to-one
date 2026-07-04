@@ -6,6 +6,16 @@ status: open
 
 # H9 algorithmic-ICL — follow-on work
 
+> **Two-head-softmax *mechanism* DONE (2026-07-04).** The constructive reproduction of von Oswald
+> §A.9 is built and verified (`docs/h9-softmax-two-head-gd-study.md`,
+> `implementation/icl_regression/softmax_*.py`, 7 G1 tests): idealized two-head `= GD` to
+> `3.1e-15`; single-head floor `0.587` (offset-dominated); two-head `0.130` (4.5×), an `O(1/N)`
+> centering floor explained to `98.3%`; ratio widens `3.1×→15.1×` over `N`. Decision
+> `2026-07-04-04`. **Still deferred here:** the *trained* single-layer 1-head-vs-2-head run (literal
+> Fig 12 — the `DEVIATED` conformance row); the full-sequence-softmax variant. The other items
+> (seed envelope, mechanistic probing, GD++, Garg-scale, kernel MLP+LSA, reduced-precision, OOD)
+> are unchanged.
+
 ## Context
 
 The H9 sub-study (`docs/h9-algorithmic-icl-study.md`, `implementation/icl_regression/`) closed
@@ -23,9 +33,10 @@ construction = one GD step, exact) and Part B (a small trained *softmax* transfo
   step? Akyürek §5 (nonlinear probes for the moment matrix $X^\top Y$ early, $w_{\text{OLS}}$
   late) and the von Oswald weight-space analysis. This would connect Part B (behavioral) toward
   Part A (mechanistic) — currently deliberately kept apart.
-- **Two-head-softmax approximate-GD reproduction.** von Oswald §A.9 shows a *single* softmax
-  head fails GD but a *two-head* layer approximately matches via Taylor offset-cancellation.
-  Reproducing that (single-head fails, two-head recovers) is the softmax-side mechanistic story.
+- **Two-head-softmax approximate-GD reproduction.** ~~von Oswald §A.9: single softmax head fails
+  GD, two-head recovers via Taylor offset-cancellation.~~ **DONE (2026-07-04, constructive** —
+  `docs/h9-softmax-two-head-gd-study.md`). *Residual:* the **trained** Fig-12 1-head-vs-2-head run
+  (emergence, not just construction) + the full-sequence-softmax variant.
 - **GD++ / preconditioned GD.** von Oswald §A.10 / Fig 3: stacked *identical* constructed layers
   implement GD++ (curvature-corrected), not plain $K$-step GD. `construction.k_step_via_construction`
   threads the explicit iterate (plain GD); the un-threaded stacked-layer GD++ behavior is not

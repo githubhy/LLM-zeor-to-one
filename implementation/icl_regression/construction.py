@@ -72,10 +72,15 @@ def gd_step_prediction(X: np.ndarray, y: np.ndarray, x_q: np.ndarray,
     W1 . x_q. The (1/2N) loss convention (no factor of 2 in the gradient) is shared with
     task.gd_predict and with the layer's P = (eta/N) I, so eta here == that lr."""
     N = X.shape[0]
-    resid = X @ W0 - y                       # (N,)  W0 x_i - y_i
-    dW = (eta / N) * (X.T @ resid)           # (d,)  gradient step
-    W1 = W0 - dW
-    return float(x_q @ W1)
+    # Guard the spurious Apple Accelerate/vecLib matmul FPE flags (finite in -> finite out;
+    # numpy-on-macOS-arm64 quirk), same as linear_self_attention above; numerics unchanged.
+    with np.errstate(divide="ignore", over="ignore", under="ignore", invalid="ignore"):
+        resid = X @ W0 - y                   # (N,)  W0 x_i - y_i
+        dW = (eta / N) * (X.T @ resid)       # (d,)  gradient step
+        W1 = W0 - dW
+        pred = float(x_q @ W1)
+    assert np.isfinite(pred), "non-finite one-GD-step prediction"
+    return pred
 
 
 def construct_and_predict(X: np.ndarray, y: np.ndarray, x_q: np.ndarray,
