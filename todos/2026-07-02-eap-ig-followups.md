@@ -1,8 +1,19 @@
 ---
 slug: eap-ig-followups
 date_filed: 2026-07-02
-status: open
+status: in-progress
 ---
+
+> **In progress (2026-07-04).** Edge-level build started (plan `plans/2026-07-04-eap-ig-edge-level.md`,
+> MVP scope = edge EAP/EAP-IG + greedy + IOI/SVA, deferring the 3 tasks / EAP-IG-KL / TransformerLens /
+> reduced-precision). **Done so far:** the 32,491-edge q/k/v-split graph (`implementation/eap_ig/edges.py`)
+> built + verified (`tests/eap_ig_edge/test_edges.py`, 7/7 — count 32,491 with split vs 11,611 without,
+> causal upstream counts, no intra-layer head→head edges). **Remaining (high-risk core, best done with
+> the plan reviewed):** the per-slot residual-input gradient surface (reimplement GPT-2 attention for
+> split q/k/v residual copies, LN via autograd), the recursive edge-ablation forward
+> (`input(v)=Σ[i_e·z_u+(1−i_e)·z'_u]`), greedy search (Hanna App E), the IOI/SVA re-run, and a
+> `sim-audit`. Verified against the plan's §3 gates (gradient recomposition, all-in==clean /
+> all-out==corrupt, m=1==EAP, the SVA input→MLP0 smoking gun).
 
 # EAP-IG faithfulness study — follow-on work
 
