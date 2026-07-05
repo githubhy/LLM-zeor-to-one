@@ -1,8 +1,16 @@
 ---
 slug: land-viewer-fixes-upstream-via-back-sync
 date_filed: 2026-07-05
-status: open
+status: in-progress
 ---
+
+**Update 2026-07-05.** `/sync-upstream --back` prepared the branch
+`sync-viewer-fixes-from-llm-zero-to-one` (@ `444aeb0d`) off upstream `main` in an
+isolated worktree — 1 commit, 5 files, HERE provenance stripped, 28 affected specs
+green on the branch. **Awaiting explicit user go-ahead to push + open the PR** to
+`FenLinger/data-channel-receiver` (separate remote). See decision `2026-07-05-02`.
+Remaining: push, `gh pr create`, then (on merge) advance the upstream-sync mark and
+revert the now-redundant disk edits in the owner's `wcm-tdl-cdl-calibration` tree.
 
 # Land the three viewer fixes upstream via /sync-upstream --back
 
