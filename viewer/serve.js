@@ -574,7 +574,11 @@ const server = http.createServer((req, res) => {
   if (pathname.startsWith('/api/md/')) {
     const file = pathname.slice('/api/md/'.length);
     const filePath = markdownPathFor(file);
-    if (!filePath || !fs.existsSync(filePath)) {
+    // A target that resolves to a directory (or an empty id) passes the
+    // existsSync check but is not a readable markdown file: readFileSync(dir)
+    // throws an uncaught EISDIR that would terminate the process. Require a
+    // regular file so any non-file target is a clean 404 (bug 2026-06-17-01).
+    if (!filePath || !fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
       res.writeHead(404);
       res.end('Not found');
       return;

@@ -1,8 +1,20 @@
 ---
 slug: citation-t12-e2e-timeout
 date_filed: 2026-06-28
-status: open
+status: closed
 ---
+
+**Resolution.** 2026-07-05 (Mac host — a working Playwright e2e harness, the
+blocker that parked this). Root cause confirmed **environmental, not a defect**:
+`citation.spec.js -g "T12"` passes deterministically here — 5/5 isolated + 3/3
+after hardening + green inside the full 16/16 `citation.spec.js` run. The original
+failure was the Windows host under repeated back-to-back Playwright load, where the
+PWA `load` event (service worker + KaTeX fonts) failed to settle. Applied the
+todo's recommended resilience nudge: T12's initial `page.goto` now uses
+`waitUntil: 'domcontentloaded'` plus an explicit `#content p` content-visible wait
+(the same content-based pattern T12's reload path already used) — robust against
+the `load`-never-settles symptom without loosening any assertion. Mirrored to the
+byte-identical upstream `citation.spec.js`.
 
 # Investigate pre-existing citation T12 e2e timeout (page.goto "load" never settles)
 

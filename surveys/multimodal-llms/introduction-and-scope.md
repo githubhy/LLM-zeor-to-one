@@ -13,7 +13,7 @@
 <!-- sec:1.2 -->
 ### <a id="sec-1.2"></a>1.2 The three design axes
 
-<a id="p-12-the-three-design-axes-1"></a><!-- para:12-the-three-design-axes-1 --> Almost every architectural choice in a multimodal LLM can be placed on one of three axes, and this triple is the organizing spine of the whole survey.
+<a id="p-12-the-three-design-axes-1"></a><!-- para:12-the-three-design-axes-1 --> Almost every architectural choice in a multimodal LLM can be placed on one of three axes, and this triple is the organizing spine of the whole survey. (<!-- secxref:3.4 -->[§3.4](architecture-building-blocks.md#sec-3.4))
 
 <a id="p-12-the-three-design-axes-2"></a><!-- para:12-the-three-design-axes-2 --> The first axis is the **entry point**: *where* the non-text signal is turned into vectors. Nearly all systems use a dedicated *encoder* — a vision transformer pretrained on images, an audio encoder pretrained on speech — to convert the raw signal into a short sequence of feature vectors before the LLM ever sees it; this is the lineage of CLIP <!-- cite:1 -->[[1]](#ref-1) and the Vision Transformer <!-- cite:2 -->[[2]](#ref-2). A minority feed raw patches straight into the LLM with no separate encoder at all, letting the language model's own first layer do the embedding, as in Fuyu <!-- cite:14 -->[[14]](#ref-14).
 

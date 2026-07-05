@@ -454,7 +454,11 @@ test('T12: settings panel radio persists citation mode to localStorage and survi
   const dir = createFixtureDir({ 'doc.md': BASIC_DOC });
   const server = await startServer(dir, port);
   try {
-    await page.goto(`http://localhost:${port}?file=doc.md`);
+    await page.goto(`http://localhost:${port}?file=doc.md`, { waitUntil: 'domcontentloaded' });
+    // Wait on rendered content, not the PWA 'load' event: under host load 'load'
+    // can fail to settle (service worker + KaTeX fonts), the foreign-host flake in
+    // todo citation-t12-e2e-timeout. This mirrors the reload path's content wait below.
+    await expect(page.locator('#content p').first()).toBeVisible();
 
     // Open settings panel
     await page.locator('#settings-btn').click();

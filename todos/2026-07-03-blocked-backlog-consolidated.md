@@ -49,16 +49,19 @@ host lacks. Owned/tracked by their own todos:
   - *Unblock:* the owning session picks them up (or an explicit handoff) + GPU /
     Gemma-2 / real-VQA-dataset access.
 
-### 3. Upstream-repo ports — need `../data-channel-receiver` and/or the viewer e2e env
+### 3. Upstream-repo ports — ✅ CLEARED 2026-07-05 (Mac host)
 
-- **`port-multispan-highlight-fix-upstream`** — port the local `viewer.js` multi-span
-  inline-math highlight fix (bug `2026-06-19-01`) to the upstream viewer.
-- **`fix-serve-api-md-eisdir-crash`** — `serve.js /api/md/<dir>` EISDIR crash (bug
-  `2026-06-17-01`); fix upstream then re-sync.
-- **`citation-t12-e2e-timeout`** — a viewer e2e test whose `page.goto` never settles
-  (likely env, not a regression).
-  - *Unblock:* the upstream repo checked out (for the ports) + a working Playwright
-    viewer e2e harness (for the timeout).
+**Unblocked** by the Windows→Mac host move: `../data-channel-receiver` is now
+checked out and the Playwright viewer e2e harness works. All three resolved this
+session:
+
+- **`port-multispan-highlight-fix-upstream`** — ✅ closed; ported to upstream
+  `viewer.js` (branch byte-identical to local), spec green, proven red-without-port.
+- **`fix-serve-api-md-eisdir-crash`** — ✅ closed; `/api/md/` isFile() guard applied
+  to both copies (byte-convergent), regression test proven red-without-fix (bug
+  `2026-06-17-01` → fixed).
+- **`citation-t12-e2e-timeout`** — ✅ closed; confirmed environmental (deterministic
+  on Mac), hardened T12 goto → `domcontentloaded` + content wait, mirrored upstream.
 
 ## Acceptance
 

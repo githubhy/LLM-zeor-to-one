@@ -88,6 +88,30 @@ test('sandbox: namespace isolation + escape above all roots are rejected (404)',
   }
 });
 
+test('a directory (or empty) markdown id returns 404 and does NOT crash the server (EISDIR guard)', async ({ page }) => {
+  // Regression for bug 2026-06-17-01: GET /api/md/<dir> passed the existsSync 404
+  // guard (directories exist), then readFileSync(dir,'utf8') threw an uncaught
+  // EISDIR that terminated the dev-server process. The guard now rejects any
+  // non-regular-file target as 404 and the server stays alive.
+  const { dir, extraArgs } = twoRootFixture();
+  const p = nextPort();
+  const server = await startServer(dir, p, { extraArgs });
+  try {
+    // roota/sub is a real directory inside a root — the exact EISDIR trigger.
+    const asDir = await page.request.get(`http://localhost:${p}/api/md/roota/sub`);
+    expect(asDir.status()).toBe(404);
+    // Empty id (`GET /api/md/`) must also be a clean 404, not a 500 / crash.
+    const empty = await page.request.get(`http://localhost:${p}/api/md/`);
+    expect(empty.status()).toBe(404);
+    // The server survived both malformed reads: a normal fetch still succeeds.
+    const alive = await page.request.get(`http://localhost:${p}/api/md/roota/a.md`);
+    expect(alive.ok()).toBeTruthy();
+    expect(await alive.text()).toContain('Doc A');
+  } finally {
+    await stopServer(server, dir);
+  }
+});
+
 test('an old flat ?file= id resolves to its namespaced doc and rewrites the URL', async ({ page }) => {
   const { dir, extraArgs } = twoRootFixture();
   const p = nextPort();

@@ -2,7 +2,7 @@
 id: 2026-06-17-01
 title: "serve.js /api/md/<empty-or-dir> crashes the whole server process (unhandled EISDIR)"
 severity: med
-status: open
+status: fixed
 date: 2026-06-17
 component: viewer/serve.js
 plan: (viewer sync from data-channel-receiver)
@@ -49,20 +49,34 @@ upstream code — the whole `serve.js` was synced from
 
 ## Fix
 
-Not yet applied. Minimal fix: tighten the guard to require a regular file
-(`!fs.statSync(filePath).isFile()` → 404) and/or wrap `readUtf8WithRevision`
-in try/catch returning a 404/500 instead of throwing. Because `serve.js` is
-synced verbatim from upstream, the durable fix belongs in
-`../data-channel-receiver/viewer/serve.js` first, then re-synced here, to keep
-the two copies convergent (see decision `2026-06-17-01`). **Deferred** by user
-direction (2026-06-17) — tracked in `todos/2026-06-17-fix-serve-api-md-eisdir-crash.md`.
+Applied 2026-07-05 (on the Mac host, where `../data-channel-receiver` is checked
+out — the blocker in `todos/2026-07-03-blocked-backlog-consolidated.md`). The
+`/api/md/` 404 guard now requires a regular file:
+
+```js
+if (!filePath || !fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
+  res.writeHead(404); res.end('Not found'); return;
+}
+```
+
+Any directory (or empty-id) target now returns a clean 404 instead of reaching
+`fs.readFileSync(dir)` → EISDIR. Because the handler was byte-identical in both
+copies, the same edit was applied in place to **both** `viewer/serve.js` and
+`../data-channel-receiver/viewer/serve.js` (a surgical same-edit rather than a
+wholesale re-sync, which would have clobbered the local `artifacts/` figure-asset
+divergence). The handler region is now byte-convergent across the two repos; the
+only remaining serve.js divergence is the intended local `artifacts/` addition.
+Commit: (this session).
 
 ## Regression test
 
-none yet — when fixed, add a viewer e2e/unit case: `GET /api/md/` and
-`GET /api/md/<dir>` must return 404 (not 200/502) and the server must stay
-alive for a subsequent request. Upstream `tests/` is now present and is the
-natural home for it.
+`viewer/tests/multiroot-serve.spec.js` — new case "a directory (or empty)
+markdown id returns 404 and does NOT crash the server (EISDIR guard)": `GET
+/api/md/roota/sub` (a real dir in the fixture) and `GET /api/md/` both return
+404, then a normal `GET /api/md/roota/a.md` still 200s (server survived).
+**Proven red-without-fix**: with the `isFile()` check removed, the `roota/sub`
+request throws (server crashed) — the test fails exactly at that request.
+Added to both repos' spec (byte-convergent). All 10 multiroot-serve tests pass.
 
 ## Refs
 

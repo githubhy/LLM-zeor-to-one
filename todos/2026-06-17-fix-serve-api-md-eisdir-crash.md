@@ -1,6 +1,17 @@
 # Fix serve.js /api/md/<empty-or-dir> EISDIR crash (upstream + re-sync)
 
-status: open
+status: closed
+
+**Resolution.** 2026-07-05 (Mac host — `../data-channel-receiver` now checked out,
+the blocker that parked this). The `/api/md/` 404 guard now requires
+`fs.statSync(filePath).isFile()`, so any directory/empty-id target returns a clean
+404 instead of reaching `fs.readFileSync(dir)` → EISDIR. The handler was
+byte-identical in both copies, so the same edit was applied in place to both
+`viewer/serve.js` and the upstream copy (preserving the local `artifacts/`
+divergence — a surgical same-edit, not a wholesale re-sync). Regression test added
+to both `multiroot-serve.spec.js` copies and **proven red-without-fix** (removing
+the `isFile()` check crashes the server on `GET /api/md/roota/sub`). All 10
+multiroot-serve tests green. Bug `2026-06-17-01` → fixed.
 
 ## Context
 

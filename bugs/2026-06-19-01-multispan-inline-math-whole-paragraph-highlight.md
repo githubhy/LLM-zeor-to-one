@@ -64,6 +64,19 @@ the first inline-math span and ends after a second span now writes a precise
 bound.` stays outside the close), with no sidecar entry. Test renamed and
 re-pointed at this bug id; the 7-math-span Step 5P test continues to pass.
 
+## Upstream port (2026-07-05)
+
+The local fix was ported to `../data-channel-receiver/viewer/viewer.js` (checked
+out on the Mac host) per the upstream-convergence policy: the buggy `_nKatexM > 1`
+branch there routed to `SIDECAR` + `endBlock = startBlock`; it now routes to
+`PLAIN_SPANNING_MATH` + `blockEl = startBlock`, matching local exactly (the
+classification branch is now byte-identical across the two copies). The repurposed
+`highlights-resolve-inline-math.spec.js` (precise-inline assertion) was copied to
+upstream and passes there. **Proven red-without-port**: reverting the upstream
+branch to `SIDECAR` makes the precise-highlight test fail (source keeps no
+`==blue:` marker — the highlight went to the whole-block sidecar). Closes
+`todos/2026-06-19-port-multispan-highlight-fix-upstream.md`. Commit: (this session).
+
 ## Refs
 
 - viewer.js classification branch (`applyHighlight`, the `startKatex && !endKatex`

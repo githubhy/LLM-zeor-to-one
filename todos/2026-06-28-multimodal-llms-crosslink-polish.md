@@ -1,8 +1,21 @@
 ---
 slug: multimodal-llms-crosslink-polish
 date_filed: 2026-06-28
-status: open
+status: closed
 ---
+
+**Resolution.** 2026-07-05. Ran the `/cross-link` pipeline scoped to the explicit
+path `surveys/multimodal-llms` (NOT by extending `.claude/crosslink-scope` — single
+group would create cross-survey false positives; see decision `2026-07-05-01`). 30
+pre-filtered candidates → 2-batch Sonnet judge kept 19 → 18 applied (1
+anchor-not-found) → **17 landed** after a quality pass (removed 1 orphan stacked
+link, moved 2 links out of emphasis spans). The named body→appendix forward-refs
+are now clickable (§6.3→E.3, §4.13→E.2, §3.4→C.3, §7.1/7.2→F.2/F.3, §4.11→D.1);
+155→172 total links; validate-refs 0 errors, lint 0/0 across all 7 edited files.
+Residual `crosslink.py check` candidates are all ≤ 0.196 (judge-rejected topical
+overlap + reverse-direction duplicates of applied links) → triaged low-value per
+the acceptance. Ongoing gate coverage for multimodal-llms is left for multi-group
+scope support (not re-filed — survey is complete and densely linked).
 
 # Multimodal-LLMs survey — cross-link polish pass
 

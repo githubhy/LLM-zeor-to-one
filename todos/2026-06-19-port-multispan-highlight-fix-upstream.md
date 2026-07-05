@@ -1,8 +1,18 @@
 ---
 date: 2026-06-19
 slug: port-multispan-highlight-fix-upstream
-status: open
+status: closed
 ---
+
+**Resolution.** 2026-07-05 (Mac host — upstream checked out). Ported the local
+`viewer.js` fix to `../data-channel-receiver/viewer/viewer.js`: the `_nKatexM > 1`
+branch now routes to `PLAIN_SPANNING_MATH` + `blockEl = startBlock` (was `SIDECAR`
++ `endBlock = startBlock`), matching local exactly — the classification branch is
+now byte-identical across the two copies. The repurposed
+`highlights-resolve-inline-math.spec.js` (precise-inline assertion) was copied to
+upstream and passes there; **proven red-without-port** (reverting upstream to
+`SIDECAR` fails the precise-highlight test). Bug `2026-06-19-01` updated with the
+port note.
 
 # Port the multi-span inline-math highlight fix to the upstream viewer
 

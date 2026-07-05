@@ -27,7 +27,7 @@
 <!-- sec:11.3 -->
 ### <a id="sec-11.3"></a>11.3 Dominant practice, stage by stage
 
-<a id="p-113-dominant-practice-stage-by-stage-1"></a><!-- para:113-dominant-practice-stage-by-stage-1 --> Stripped to what is *actually preferred* in modern open systems, the stack has converged to a recognizable default at every stage — the practical distillation of §§ 2–8.
+<a id="p-113-dominant-practice-stage-by-stage-1"></a><!-- para:113-dominant-practice-stage-by-stage-1 --> Stripped to what is *actually preferred* in modern open systems, the stack has converged to a recognizable default at every stage (<!-- secxref:12.2 -->[§12.2](design-guidance.md#sec-12.2)) — the practical distillation of §§ 2–8.
 
 - <a id="p-113-dominant-practice-stage-by-stage-2"></a><!-- para:113-dominant-practice-stage-by-stage-2 --> **Encoder**: a CLIP- or SigLIP-pretrained ViT, frozen, increasingly *native-resolution* rather than fixed-grid (§ <!-- secxref:4.7 -->[§4.7](method-inventory.md#sec-4.7)). SigLIP is a common default for its training economy (§ <!-- secxref:4.3 -->[§4.3](method-inventory.md#sec-4.3)).
 - **Connector**: an MLP projector — token-preserving, simple, strong — has displaced the Q-Former as the open default; resamplers persist only where a bounded token budget is the binding constraint (§ <!-- secxref:3.3 -->[§3.3](architecture-building-blocks.md#sec-3.3)).

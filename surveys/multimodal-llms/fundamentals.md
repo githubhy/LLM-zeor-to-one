@@ -110,7 +110,7 @@ $$
 <!-- sec:2.6 -->
 ### <a id="sec-2.6"></a>2.6 From encoder features to LLM tokens: the connector
 
-<a id="p-26-from-encoder-features-to-llm-tokens-the-connector-1"></a><!-- para:26-from-encoder-features-to-llm-tokens-the-connector-1 --> We now have, from § 2.2–2.5, a sequence of $N_v$ language-aligned patch features $f_v(x_v)\in\mathbb{R}^{N_v\times d_v}$. The LLM, however, consumes vectors of *its* width $d$ in *its* embedding geometry, and in general $d_v \neq d$ and the two spaces were trained separately. The last fundamental piece is the **connector** (or projector) $g_\phi$ that maps encoder features into the LLM's token space, producing vectors that stand in the input sequence exactly where text-token embeddings would:
+<a id="p-26-from-encoder-features-to-llm-tokens-the-connector-1"></a><!-- para:26-from-encoder-features-to-llm-tokens-the-connector-1 --> We now have, from § 2.2–2.5, a sequence of $N_v$ language-aligned patch features $f_v(x_v)\in\mathbb{R}^{N_v\times d_v}$. The LLM, however, consumes vectors of *its* width $d$ in *its* embedding geometry, and in general $d_v \neq d$ and the two spaces were trained separately. (<!-- secxref:3.3 -->[§3.3](architecture-building-blocks.md#sec-3.3)) The last fundamental piece is the **connector** (or projector) $g_\phi$ that maps encoder features into the LLM's token space, producing vectors that stand in the input sequence exactly where text-token embeddings would:
 
 <a id="eq-6"></a><!-- eq:2-6 -->
 $$
