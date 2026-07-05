@@ -7,10 +7,16 @@ status: in-progress
 **Update 2026-07-05.** `/sync-upstream --back` prepared the branch
 `sync-viewer-fixes-from-llm-zero-to-one` (@ `444aeb0d`) off upstream `main` in an
 isolated worktree — 1 commit, 5 files, HERE provenance stripped, 28 affected specs
-green on the branch. **Awaiting explicit user go-ahead to push + open the PR** to
-`FenLinger/data-channel-receiver` (separate remote). See decision `2026-07-05-02`.
-Remaining: push, `gh pr create`, then (on merge) advance the upstream-sync mark and
-revert the now-redundant disk edits in the owner's `wcm-tdl-cdl-calibration` tree.
+green on the branch. See decision `2026-07-05-02`.
+
+**Pushed + PR opened 2026-07-05 (user go-ahead):** branch pushed to
+`FenLinger/data-channel-receiver`; **PR #36** —
+https://github.com/FenLinger/data-channel-receiver/pull/36. Remaining (R4, blocked
+on the owner merging): (1) advance `.claude/upstream-sync.json` `last_synced_commit`
+past the merge so the next INBOUND run doesn't re-detect the round-trip (the
+`from llm-zero-to-one` subject filter is the backstop); (2) revert the now-redundant
+disk edits in the owner's `wcm-tdl-cdl-calibration` working tree; (3) close this
+todo. Stays `in-progress` until the PR merges.
 
 # Land the three viewer fixes upstream via /sync-upstream --back
 

@@ -33,8 +33,9 @@ LLM-domain §A.11/Kronecker example in the highlight-spec comment → neutral ma
 example), and committed `444aeb0d` with subject carrying `from llm-zero-to-one`
 (the inbound skip-guard key). The 28 affected specs pass on the branch off main.
 
-**Not pushed** — held for explicit user go-ahead per the `--back` safety rule
-(separate `FenLinger/data-channel-receiver` remote).
+Held for explicit user go-ahead per the `--back` safety rule (separate
+`FenLinger/data-channel-receiver` remote); **on go-ahead (2026-07-05) pushed and
+opened PR #36** — https://github.com/FenLinger/data-channel-receiver/pull/36.
 
 ## Alternatives considered
 
