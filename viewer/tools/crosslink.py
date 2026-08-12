@@ -485,9 +485,27 @@ def link_text_of(title: str) -> str:
 
 
 def short_text(title: str, words: int = 6) -> str:
+    """Link text for a plain (non-`secxref`) target: short, and never mid-phrase.
+
+    A bare `parts[:words]` truncation reads as a TYPO rather than an abbreviation
+    when it lands inside a noun phrase: "A Discovered Circuit: Reverse-Engineering
+    a Real Model" became "...Reverse-Engineering a Real", which looks like the
+    author lost a word. Two guards, in order:
+
+      1. `Name: Subtitle` headings — very common in this corpus — truncate at the
+         COLON when the head alone is a usable label (>=2 words). "A Discovered
+         Circuit" is the right link text; the subtitle is what the link is for.
+      2. Otherwise fall back to the word cap, but mark the elision with an
+         ellipsis so a reader can see the title was shortened deliberately.
+    """
     t = re.sub(r"\s+", " ", link_text_of(title)).strip().rstrip(".")
+    head = t.split(":", 1)[0].strip() if ":" in t else ""
+    if 2 <= len(head.split(" ")) <= words:
+        return head.rstrip(" (")
     parts = t.split(" ")
-    return " ".join(parts[:words]).rstrip(" (")
+    if len(parts) <= words:
+        return t.rstrip(" (")
+    return " ".join(parts[:words]).rstrip(" (").rstrip(",;-") + "…"
 
 
 def tier_of(corpus: str, base: str) -> int:

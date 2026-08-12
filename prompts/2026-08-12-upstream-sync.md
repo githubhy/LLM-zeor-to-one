@@ -33,4 +33,14 @@
   - **`error` on the cross-link gate does not mean "no gaps allowed."** It gates the **block-score** (0.30), not `--min-score` (0.20). Reading the severity without reading which threshold it gates is how a team talks itself out of a gate it could already afford.
   - **Re-domaining can introduce the exact defect it is cleaning up.** Rewriting a comment to match the new domain, without touching the regex under it, produced a comment that lied about its code — the same class as the wrong-but-resolving citations `citation-audit` exists to catch. A re-domain pass should diff *code* separately from *prose*.
 
+## Conversation 3
+- **Request**: "clear the 3 cross-link gaps".
+- **Actions**: Ran the `cross-link` skill over the `llm-methods` group. Shortlist was 3 pairs — far under the ~200 judge threshold — so the **human review-sheet path**, not the agent judge. Read both source and target of each pair in full before deciding; all three were `link` (none rejected, so the rejection ledger stayed empty). Overrode all three default anchors: C002's would have split "speculative | decoding" mid-phrase, C003's was the math-stripped form and sat between a method and its citation. Applied with `--reviewed-by`, verified against `git diff` rather than the tool's report.
+- **Result**: `crosslink.py check` → **no cross-link gaps**. validate-refs 0/0 on both surveys, lint-math 0/0 on all three edited files, 305/305 tool tests (76 crosslink), full pre-push gate green. Updated the now-stale gap counts in `.claude/rules/cross-linking.md` and `CLAUDE.md`, and marked todo item 2 cleared. `temp/` removed (it is not gitignored).
+- **Findings**:
+  - **A tool defect surfaced only at the point of use.** `crosslink.py::short_text` hard-truncated titles at 6 words with no ellipsis, turning "A Discovered Circuit: Reverse-Engineering a Real Model" into link text ending "…a Real" — which reads as a dropped word, not an abbreviation. Fixed to truncate at the subtitle colon when the head is usable (≥2 words), else fall back to the word cap *with* an ellipsis. Four regression tests added.
+  - **`link_markdown` is frozen at Stage 2, not recomputed at apply.** Fixing `short_text` changed nothing until the candidates JSON was regenerated — the applier replays the stored string. Worth knowing: a tool fix mid-pipeline requires re-running `candidates`, not just `apply`.
+  - **The default anchor is a starting point, not a recommendation.** Two of three would have damaged the prose. The skill's "edit the Anchor" affordance is load-bearing, not decorative.
+  - **Two of the three gaps were prose pointers that already existed** — §10.3 literally ended "quantified in Section 14", and §2.2 discussed composition while linking A.2 and A.4 but not A.3. The detector was finding places the author had already gestured at a link and not made one, which is the highest-value class it can find.
+
 <!-- LOG-END -->

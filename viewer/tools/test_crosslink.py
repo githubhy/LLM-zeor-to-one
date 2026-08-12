@@ -1198,3 +1198,36 @@ def test_first_paragraph_prefers_a_sentence_boundary_past_the_floor():
     body = ("word " * 30) + "the end. " + ("y " * 100)   # >320 chars; '. ' at ~157 (> 80)
     s = cl.first_paragraph(body)
     assert s.endswith("the end."), s
+
+
+# -- link text: never truncate mid-phrase ------------------------------------
+
+def test_short_text_truncates_at_the_subtitle_colon_not_mid_phrase():
+    """`Name: Subtitle` headings truncate at the colon, not at a word count.
+
+    A bare `parts[:6]` cut turned "A Discovered Circuit: Reverse-Engineering a
+    Real Model" into "...Reverse-Engineering a Real" — link text that reads as a
+    dropped word rather than a deliberate abbreviation. The head before the colon
+    is the natural label; the subtitle is what the link is FOR.
+    """
+    assert cl.short_text("A Discovered Circuit: Reverse-Engineering a Real Model") \
+        == "A Discovered Circuit"
+
+
+def test_short_text_leaves_a_short_title_intact():
+    for title in ("Latency versus Throughput",
+                  "Composition and the induction head",
+                  "The IOI circuit (GPT-2 small)"):
+        assert cl.short_text(title) == title
+
+
+def test_short_text_marks_a_word_cap_elision_with_an_ellipsis():
+    """No colon to cut at -> fall back to the word cap, but SHOW the elision."""
+    out = cl.short_text("A very long heading with many many words indeed here")
+    assert out.endswith("…"), out
+    assert out == "A very long heading with many…"
+
+
+def test_short_text_ignores_a_one_word_colon_head():
+    """A 1-word head is not a usable label, so the colon rule must not fire."""
+    assert cl.short_text("Scaling: Laws") == "Scaling: Laws"

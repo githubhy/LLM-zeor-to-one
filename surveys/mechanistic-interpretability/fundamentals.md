@@ -75,7 +75,7 @@ Appendix <!-- secxref:A.2 -->[§A.2](appendix-a-transformer-circuits-math.md#sec
 <a id="p-22-qk-and-ov-circuits-3"></a><!-- para:22-qk-and-ov-circuits-3 --> Multi-layer behavior arises from **composition**: because a later head reads the residual stream, and
 the stream already contains an earlier head's OV write, the later head's effective query, key, or value
 is a virtual combination of the raw token and the earlier head's output — **Q-composition**,
-**K-composition**, and **V-composition** respectively. Q- and K-composition change *where* the later
+**K-composition**, and **V-composition** respectively (<!-- secxref:A.3 -->[§A.3](appendix-a-transformer-circuits-math.md#sec-A.3)). Q- and K-composition change *where* the later
 head attends (its pattern can now depend on computed features, not just literal tokens); V-composition
 changes only *what* it moves. The canonical example is the induction head
 (§ <!-- secxref:9.1 -->[§9.1](circuits-across-models.md#sec-9.1)): a previous-token head K-composes with

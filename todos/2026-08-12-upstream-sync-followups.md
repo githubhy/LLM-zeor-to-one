@@ -30,16 +30,24 @@ undeclared uses**, concentrated in `surveys/multimodal-llms` (`N` in scaling-law
   it at `error`.
 - Severity stays `warn` (`.claude/math-basis-severity`) until then.
 
-### 2. Cross-link gaps + reachability (`warn`)
+### 2. Cross-link gaps ✅ CLEARED — reachability + coverage still open (`warn`)
 
-`crosslink.py check` reports **3 unlinked candidates** at cosine ≥ 0.20 in the
-`llm-methods` group; `crosslink.py reach` reports **2 UNREACHABLE wikis**
+**The 3 cross-link gaps are closed** (2026-08-12, `/cross-link` pass on the
+`llm-methods` group; `crosslink.py check` now reports *no cross-link gaps*). All three
+were genuine links, not rejections, so the rejection ledger stayed empty:
+
+| Pair | Link |
+|---|---|
+| mech-interp §2.2 → §A.3 | the composition derivation §2.2's prose already gestured at; A.2 and A.4 were linked, A.3 was the hole |
+| llms-for-coding §10.3 → §14.3 | §10.3 already ended "quantified in Section 14" — an unlinked prose pointer |
+| mech-interp §9.2 → coding §I.5 | cross-survey, so a plain relative link with no glyph (correct per the directional convention) |
+
+Still open, and these are what hold the two companion gates at `warn`:
+
+`crosslink.py reach` reports **2 UNREACHABLE wikis**
 (`wikis/laptop-scale-training-feasibility.md`,
 `wikis/mechanistic-interpretability-coverage-gaps.md`) — no survey links to either by a
 reader-facing link.
-
-- Run `/cross-link` over the group to clear the 3 gaps (recording rejections via
-  `crosslink.py reject`, which is a mandatory step).
 - For the two wikis: link each from the survey section it supports, or — only if it is
   genuinely a process/methodology doc with no survey host — declare it in
   `.claude/reachability-keepout`. Do **not** park a derivation wiki there.
