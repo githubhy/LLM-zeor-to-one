@@ -215,3 +215,38 @@ Custom subagent definitions under `.claude/agents/`, dispatched via the `Agent` 
 - If multiple skills fit, use the smallest set that covers the request and state the order briefly.
 - If a skill cannot be used cleanly, say so briefly and continue with the best fallback.
 - Keep context tight by summarizing large references instead of loading everything.
+
+## Agent skills
+
+Configuration the installed engineering skills (`mattpocock-skills`) read. These files are
+the contract; edit them directly rather than re-running the setup skill.
+
+### Issue tracker
+
+**Two surfaces, one rule.** **GitHub Issues** (`githubhy/LLM-zeor-to-one`, via `gh`) is the
+**intake and triage** surface — where a request or report lands before anyone has decided
+what it is. **`todos/` / `bugs/` / `decisions/` / `field-notes/`** remain the **durable
+record of record**, governed by the Capture sections above and gated by
+`viewer/tools/check-record-ids.py` at pre-push. An issue is transient and **graduates**
+into a record, which is permanent; the two cross-link in both directions and a fact never
+lives in both places unlinked. "Publish to the issue tracker" means create an issue;
+"record this deferral / bug / decision" means write the in-repo record. See
+`docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five canonical labels verbatim on GitHub (`needs-triage`, `needs-info`,
+`ready-for-agent`, `ready-for-human`, `wontfix` — the last already shared with this repo's
+`bugs/` status vocabulary), each with a documented projection onto the in-repo record
+`status` fields for when an issue graduates. No completion or in-progress label: those are
+already carried by the record's own status transition and by GitHub assignment. See
+`docs/agents/triage-labels.md`.
+
+### Domain docs
+
+**Single-context** — `CONTEXT.md` + `docs/adr/` at the repo root, neither of which exists
+yet (created lazily by `/domain-modeling`; their absence is not a defect). Scoped to the
+harness and tooling (`viewer/`, `.claude/`, `.githooks/`, `scripts/`) — **not** to survey
+content under `surveys/**`, which is governed by `order.json`, `references.md`, and
+`.claude/rules/`. For "why we did it this way", prefer a `decisions/` record: that is the
+mandated, mechanically-checked convention here. See `docs/agents/domain.md`.
