@@ -42,12 +42,21 @@ were genuine links, not rejections, so the rejection ledger stayed empty:
 | llms-for-coding §10.3 → §14.3 | §10.3 already ended "quantified in Section 14" — an unlinked prose pointer |
 | mech-interp §9.2 → coding §I.5 | cross-survey, so a plain relative link with no glyph (correct per the directional convention) |
 
-Still open, and these are what hold the two companion gates at `warn`:
+**Reachability is also cleared** (2026-08-12). Both wikis are now linked from the survey
+section each actually supports, not parked in `.claude/reachability-keepout`:
 
-`crosslink.py reach` reports **2 UNREACHABLE wikis**
-(`wikis/laptop-scale-training-feasibility.md`,
-`wikis/mechanistic-interpretability-coverage-gaps.md`) — no survey links to either by a
-reader-facing link.
+- `laptop-scale-training-feasibility.md` ← `appendix-f-scaling.md` §F.2 *The Memory Wall*.
+  §F.2 derives `M_train ≈ 16N`; the wiki is its small-scale counterpoint — at 16 GB the
+  binding constraint inverts from memory to compute time.
+- `mechanistic-interpretability-coverage-gaps.md` ← `appendix-i-mechanistic-interpretability.md`
+  §I.1. The wiki is the gap analysis that *produced* Appendix I, so its home is the
+  appendix opening. (`crosslink.py` ranked §I.4 top on vocabulary overlap, which would
+  have read as "for more on interventions, see…" — the wiki recommended *adding* the
+  intervention toolkit; it is not a deeper treatment of it. Judgment overrode the score.)
+
+`.claude/reachability-severity` promoted `warn` → `error`.
+
+Still open — the one thing holding `coverage` at `warn`:
 - For the two wikis: link each from the survey section it supports, or — only if it is
   genuinely a process/methodology doc with no survey host — declare it in
   `.claude/reachability-keepout`. Do **not** park a derivation wiki there.
@@ -124,7 +133,7 @@ about, and each flips to `error` when its backlog clears:
 |---|---|
 | `math-basis-severity` | the 42 undeclared basis uses (item 1) |
 | `crosslink-coverage-severity` | the one INVISIBLE file (item 2) |
-| `reachability-severity` | the two unreachable wikis (item 2) |
+| ~~`reachability-severity`~~ | ✅ promoted to `error` 2026-08-12 — zero unreachable |
 
 ### 6. Opt-in registries left empty on purpose
 

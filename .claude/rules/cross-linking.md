@@ -205,8 +205,9 @@ obligation has **no owner** in the survey→wiki direction, so it fails identica
 for every such wiki. The prevention is `[opt:RIS-BACKLINK]` (add the back-link in
 the same turn); this gate is the detection.
 
-Config: `.claude/reachability-severity` (`off | warn | error`, currently **`warn`**
-— there is a measured backlog). Deliberately-standalone process/harness wikis are
+Config: `.claude/reachability-severity` (`off | warn | error`, currently **`error`** —
+the backlog reached zero on 2026-08-12, both wikis linked from the survey section each
+supports rather than parked in the keep-out). Deliberately-standalone process/harness wikis are
 declared in `.claude/reachability-keepout` — **do not park a derivation wiki there
 to silence the gate**: a G0 ledger has a survey host *by definition*, so an
 unreachable one is a defect in the survey, not an exemption.

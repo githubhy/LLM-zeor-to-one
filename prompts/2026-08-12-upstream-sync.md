@@ -52,4 +52,13 @@
   - **Rank the sync-back by who it hurts.** The `check-record-ids` fix is the highest-value of the three because it breaks *upstream's own push*: running their viewer suite writes bug IDs into a gitignored `test-results/` file that the gate then reads. They are more exposed than this repo, not less.
   - **The asset-link fix has already survived one sync by luck.** It persisted through the 2026-08-12 inbound only because it was deliberately re-applied after taking upstream's `viewer.js` wholesale. Left unsynced it needs re-applying by hand on every future viewer sync — the exact drift `--back` exists to stop.
 
+## Conversation 5
+- **Request**: "What I wanted to learn before in this repo?", then "link the two unreachable wikis from their survey sections", then "commit, push".
+- **Actions**: Answered the recall question from artifacts (memory files + survey scoping choices in the earliest `prompts/` logs + the 12 `docs/` studies), not from reconstruction. Then cleared the reachability gap: had `crosslink.py candidates --min-score 0.05` propose hosts, read each wiki and each candidate host, and linked both from the section each actually supports. Promoted `.claude/reachability-severity` `warn` → `error` now that the backlog is zero.
+- **Result**: `crosslink.py reach` → **2 reachable, 0 UNREACHABLE**; passes at `error`. lint-math 0/0 on both edited files, validate-refs 0/0, link-fragments 992/0 dangling.
+- **Findings**:
+  - **The top TF-IDF host was the wrong home.** For the MI coverage-gaps wiki the tool ranked §I.4 (*The Intervention Toolkit*) highest on vocabulary overlap — but the wiki is the gap analysis that *recommended adding* that toolkit and produced Appendix I wholesale, so a link there would have read as "for more on interventions, see…". Its home is the appendix opening, §I.1. This is exactly the keep/**where** judgment the pre-filter cannot make.
+  - **`make_link`'s default label is poor for wiki targets.** It uses the target *section's* title, and these wikis' section titles are sentences ("The two limits are not the same limit"), so the label named neither the document nor the topic. The rule's own example uses *descriptive text* (`[softmax derivation](...)`), so the form (plain link, no glyph, `../../wikis/` path) came from the script and the label named the document.
+  - **Caught myself putting a cross-reference inside a figure caption.** The first F.2 insertion landed mid-caption, between "The memory wall." and "Training state is…", which breaks the 4-section caption schema. Moved to the body paragraph. Captions are not general prose.
+
 <!-- LOG-END -->
