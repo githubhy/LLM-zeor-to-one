@@ -78,6 +78,7 @@
     "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/status-line.sh\""
   },
   "enabledPlugins": {
-    "superpowers@claude-plugins-official": true
+    "superpowers@claude-plugins-official": true,
+    "mattpocock-skills@claude-plugins-official": true
   }
 }
