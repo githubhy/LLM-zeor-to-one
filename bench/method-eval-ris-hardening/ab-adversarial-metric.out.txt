@@ -1,0 +1,15 @@
+candidate        tuning_metric   true_quality(bits)
+  honest(b=0)          1.314     0.4855
+  mild(b=2)            2.123     0.0326
+  trivial(b=60)       60.001     0.0000
+  trivial(b=200)     200.001     0.0000
+
+[A - ME-ADVERSARIAL-METRIC OFF] adopt argmax(metric) -> 'trivial(b=200)' (metric=200.0, true_quality=0.0000)
+[B - ME-ADVERSARIAL-METRIC ON ] degenerate (saturating bias) scores metric=200.0 (best=200.0), true_quality=0.0000
+    metric REJECTS the degenerate case? False  -> METRIC DISQUALIFIED: rewards triviality; do not adopt on it
+
+RESULT:
+  A (OFF) adopted a trivial candidate that clears the metric by triviality: True
+  B (ON)  flags the metric as satisfiable-by-triviality: True
+
+A/B VERDICT: PASS -- ME-ADVERSARIAL-METRIC catches the planted degenerate-metric case that the un-toggled rubric adopts

@@ -102,21 +102,37 @@ Do **not** simply mark them skipped: they guard the `snapOutOfInlineSpans()` spl
 fix and the inline-math highlight resolution, both of which this sync imported and
 both of which pass on their merits.
 
-### 5. Opt-in registries left empty on purpose
+### 5. Severity promotions already applied (do not re-litigate)
+
+A post-sync re-check measured each gate at `error` rather than guessing. Three were
+promoted `warn` -> `error` because they are provably non-blocking here and match
+upstream: `crosslink-severity` (it gates the **block-score** 0.30, and the group's open
+candidates are 0.275/0.220/0.208), `derivation-dag-severity`, `reproduce-block-severity`.
+
+Still at `warn` because they DO block today — these are the ones items 1-2 above are
+about, and each flips to `error` when its backlog clears:
+
+| Toggle | Blocks because |
+|---|---|
+| `math-basis-severity` | the 42 undeclared basis uses (item 1) |
+| `crosslink-coverage-severity` | the one INVISIBLE file (item 2) |
+| `reachability-severity` | the two unreachable wikis (item 2) |
+
+### 6. Opt-in registries left empty on purpose
 
 `.claude/rollup-pages`, `.claude/program-manifests`, `.claude/math-basis-strict`,
 `.claude/math-rederive-strict`, and `check-math-oracles.py`'s `ORACLE_DIRS` are all empty
 here. Their gates are no-ops until a first entry is added. Nothing is broken; this is the
 note so a future session knows the emptiness is deliberate, not an omission.
 
-### 5. `check-value-ledger` declaration assertion relaxed
+### 7. `check-value-ledger` declaration assertion relaxed
 
 `viewer/tools/test_check_value_ledger.py::test_the_real_corpus_is_actually_in_scope`
 upstream asserts `n_decl > 0`. The `<!-- val:ID = V -->` ledger is opt-in and this corpus
 has not adopted it, so that assertion would test the corpus's conventions rather than the
 tool's scope. It is scoped down with a comment; re-enable it once the ledger is in use.
 
-### 6. Not imported from upstream `main`
+### 8. Not imported from upstream `main`
 
 - `.claude/hooks/check-hook-wiring.sh` (SessionStart auto-repair of the hook pointer +
   exec bit) lives on an upstream **branch**, not `main`, so it was out of scope for a

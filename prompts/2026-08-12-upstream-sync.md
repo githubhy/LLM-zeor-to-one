@@ -19,4 +19,18 @@
   - **A domain-specific registry left unadapted is worse than no gate.** `check-basis-declarations.py` shipped an ADC/analog symbol registry and fired noise on our corpus. Re-domained to real LLM basis ambiguities — `N` non-embedding vs total, `D` unique vs seen tokens, `B` sequences vs tokens, `pass@k` sampling basis, and loss in **bits vs nats** as the direct analogue of the dB-reference check. It now reports a genuine 42-item backlog at `warn`.
   - **Genericizing has a limit: a measurement record.** `bench/.../RESULTS-2026-05-30.md` names the topics its experiments actually ran on. Rewriting those to LLM topics would falsify a record rather than re-domain a fixture — repaired its dangling refs, left the measured topics, documented the grep hit.
 
+## Conversation 2
+- **Request**: "For things you not imported or changed, check them again" — re-verify the not-imported / deviated set.
+- **Actions**: Re-derived the full 162-file delta and diffed it against the working tree instead of trusting the session's own notes. Four outcomes:
+  1. **One genuine miss**: `bench/method-eval-ris-hardening/` (the A/B backing `[opt:ME-ADVERSARIAL-METRIC]`) — and `.claude/skill-options.json` already cited it, so the registry carried a dangling path. Re-domained (saturating logit bias → mean-confidence metric maxed while mutual information collapses) and **run**; it reproduces upstream's numbers exactly, since only the labels changed.
+  2. **A defect introduced by this session**: the `_SPECNUM_RE` comment in `check-citation-sources.py` was rewritten to claim IETF/RFC coverage while the regex still matched only the 3GPP alternation. Fixed the code to match the claim (`\bRFC\s?\d` added), noted that `_ARXIV_RE` owns arXiv IDs (197 of 229 entries), unit-checked six cases.
+  3. **Three severities promoted `warn` → `error`** after measuring each at `error` rather than guessing: `crosslink` (rc=0 — it gates the 0.30 block-score, and the open candidates are 0.275/0.220/0.208), `derivation-dag` (rc=0 on all four surveys), `reproduce-blocks` (rc=0). The three that genuinely block stay at `warn`.
+  4. **Claims that held, now evidenced**: all 9 "upstream branch-only" files confirmed absent from `origin/main` and present on the branch; `bench/reference-implementation-study/` never ported at bootstrap and already documented as graceful degradation in the RIS skill; `power-gate-severity` has no referencing gate.
+  Added two regression tests pinning the `check-record-ids.py` scan-scope fix (generated output not scanned; an *authored* dangling ref still fails).
+- **Result**: 305/305 tool tests; pre-push gate green with the promoted severities; leakage clean. Committed as the follow-up to c441770.
+- **Findings**:
+  - **The blanket rollout heuristic was weaker than the evidence.** "New gates start at `warn`" is a reasonable prior, but measuring each gate at `error` showed three were already non-blocking — so `warn` was giving up real protection for nothing. Measure, then set the toggle.
+  - **`error` on the cross-link gate does not mean "no gaps allowed."** It gates the **block-score** (0.30), not `--min-score` (0.20). Reading the severity without reading which threshold it gates is how a team talks itself out of a gate it could already afford.
+  - **Re-domaining can introduce the exact defect it is cleaning up.** Rewriting a comment to match the new domain, without touching the regex under it, produced a comment that lied about its code — the same class as the wrong-but-resolving citations `citation-audit` exists to catch. A re-domain pass should diff *code* separately from *prose*.
+
 <!-- LOG-END -->

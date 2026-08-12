@@ -78,10 +78,15 @@ _STOPWORDS = {
 _BOLD_LEAD_RE = re.compile(r'^\*\*(.+?)\*\*', re.S)
 _TITLE_RE = re.compile(r'["“][^"”“]{6,}["”]')
 _DOI_RE = re.compile(r'\b10\.\d{4,9}/\S+')
-# standards numbering: IETF (RFC 8259), W3C/IETF drafts, IEEE (Std 754),
-# ITU-T (Rec. P.863), and the archive IDs PMC/PMID.
+# standards numbering. `RFC` is the form this repo actually cites (a formal spec held
+# under docs/specs/ and tagged `spec:`); IEEE/ITU/PMC are kept as-is, and the
+# TR/TS/RP/... alternation is retained verbatim from upstream so this file stays a
+# near-clean diff against it -- those simply never match here. arXiv IDs are NOT this
+# regex's job: `_ARXIV_RE` owns them, and they are how ~all of this corpus identifies
+# itself (197 of 229 entries), so do not "simplify" by folding the two together.
 _SPECNUM_RE = re.compile(
-    r'\b(?:TR|TS|TP|RP|SP|S[1-6]|R[1-5])[\s‑-]?\d'
+    r'\bRFC\s?\d'
+    r'|\b(?:TR|TS|TP|RP|SP|S[1-6]|R[1-5])[\s‑-]?\d'
     r'|\bITU[\s‑-]?[TR]\b'
     r'|\bIEEE\s+Std\b'
     r'|\bPM(?:C|ID)\s?\d',

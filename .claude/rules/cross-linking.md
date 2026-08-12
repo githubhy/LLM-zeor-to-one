@@ -232,8 +232,13 @@ rewrite, re-examine with `check --ignore-rejections`.
 
 `off` (land, gates are no-ops) → `warn` (observe gap reports, tune
 `--min-score` / `--block-score`) → `error` (block a push only on an obvious
-missing link). Currently `warn`, over the `llm-methods` corpus group; promote to
-`error` once the residual gap count reaches zero and stays there.
+missing link). **Currently `error`**, over the `llm-methods` corpus group. Note what
+that gates: `error` blocks on a gap at or above the **block-score** (cosine 0.30), not
+on every candidate above `--min-score` (0.20). Measured 2026-08-12: the group's 3 open
+candidates sit at 0.275 / 0.220 / 0.208 — all below the block-score — so `error` is
+non-blocking today *and* a genuinely obvious new gap would block. The two companion
+gates stay at `warn` because they DO block today: `coverage` (one INVISIBLE file) and
+`reach` (two unreachable wikis).
 
 ## Cross-references
 

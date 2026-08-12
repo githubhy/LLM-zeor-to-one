@@ -131,6 +131,50 @@ modified — they are `SKIP-domain` for `--back`, not sync-back candidates.
 fixtures, and the two branch-only upstream subsystems (hook-wiring self-heal,
 campaign-execution harness) to revisit when they reach upstream `main`.
 
+## Post-sync re-check (same day, at the user's request)
+
+Re-verifying the "not imported / changed" set against evidence rather than notes moved
+four things:
+
+1. **One genuine miss, now ported.** `bench/method-eval-ris-hardening/` (the A/B harness
+   backing `[opt:ME-ADVERSARIAL-METRIC]`) was in the delta and was not ported —
+   and `.claude/skill-options.json` *cited it*, so the registry carried a dangling path.
+   Re-domained (a saturating logit bias toward one token maximises a mean-confidence
+   metric while mutual information collapses — degenerate repetition, peaked and
+   carrying nothing) and **run**: it reproduces upstream's numbers exactly
+   (1.314/0.4855, 2.123/0.0326, 200.001/0.0000), because the computation is identical
+   and only the labels changed.
+
+2. **A defect I introduced, now fixed.** While re-domaining `check-citation-sources.py`
+   I rewrote the comment above `_SPECNUM_RE` to claim IETF/RFC coverage but left the
+   regex matching only the 3GPP alternation — a comment that lied about its code, the
+   exact class this sync was fixing elsewhere. Fixed by making the code true: `\bRFC\s?\d`
+   added, upstream's alternation retained verbatim (harmless here, keeps the diff clean
+   for a future sync), with a note that `_ARXIV_RE` owns arXiv IDs — which is how 197 of
+   this corpus's 229 entries identify themselves.
+
+3. **Three severities promoted `warn` → `error`.** The blanket "new gates start at warn"
+   heuristic was weaker than the evidence supports. Measured at `error`:
+   `crosslink check` rc=0 (its 3 open candidates sit at 0.275/0.220/0.208, all below the
+   0.30 **block-score** — `error` gates the block-score, not `--min-score`),
+   `derivation-dag` rc=0 on all four surveys, `reproduce-blocks` rc=0. All three now match
+   upstream and are provably non-blocking today while still catching a real regression.
+   The two that genuinely block stay at `warn`: `crosslink coverage` (rc=1, the INVISIBLE
+   executive summary) and `crosslink reach` (rc=1, two unreachable wikis) — as does
+   `math-basis` (rc=1, the 42-item backlog).
+
+4. **Claims that held, now evidenced.** All 9 "upstream branch-only" files confirmed absent
+   from `origin/main` and present on the feature branch. `bench/reference-implementation-study/`
+   was never ported at bootstrap and our RIS `SKILL.md` already documents that absence as
+   deliberate graceful degradation — so its `items.json` delta has nothing to apply to, and
+   porting a flag registry our skill does not carry would create a new dangling artifact.
+   `.claude/power-gate-severity` correctly skipped: nothing references it (its gate is the
+   telecom-specific `check_power` module, not ported).
+
+The `check-record-ids.py` scan-scope fix is now pinned by two tests — one that generated
+output is not scanned, one that an *authored* dangling ref still fails, so the exclusion
+cannot silently blunt the gate.
+
 ## Refs
 
 - Upstream range: `9b118d3940d54307a76ebee350c10b2fe4cf22bf..cedfccb2` (`origin/main`).
