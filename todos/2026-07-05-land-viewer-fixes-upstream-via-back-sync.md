@@ -1,13 +1,27 @@
 ---
 slug: land-viewer-fixes-upstream-via-back-sync
 date_filed: 2026-07-05
-status: in-progress
+status: closed
 ---
 
 **Update 2026-07-05.** `/sync-upstream --back` prepared the branch
 `sync-viewer-fixes-from-llm-zero-to-one` (@ `444aeb0d`) off upstream `main` in an
 isolated worktree — 1 commit, 5 files, HERE provenance stripped, 28 affected specs
 green on the branch. See decision `2026-07-05-02`.
+
+**Resolution.** Closed 2026-08-12. Acceptance met: **PR #36 is merged into upstream
+`main`** (commit `444aeb0d`, verified with `git merge-base --is-ancestor 444aeb0d
+origin/main`), and the fixes are present there — `viewer/serve.js` carries the
+`isRegularFile` guard and `multiroot-serve.spec.js` carries the EISDIR regression test.
+Upstream then hardened the guard further (the stat/read race), which came back INBOUND in
+this session's sync. Remaining item (1) is done: `.claude/upstream-sync.json` is advanced
+to `cedfccb2`, `pending_sync_back` is cleared, and `completed_sync_backs` records both
+PR #15 and PR #36 as merged. Remaining item (2) — reverting the now-redundant disk edits
+in the owner's feature-branch working tree — needs **no action from here**: the fixes are
+in upstream history, so those edits are redundant rather than wrong, and that checkout is
+live (a concurrent session moved its HEAD during this session), so it is the owner's to
+clean. Follow-on sync-back candidates found since are tracked separately in
+`todos/2026-08-12-sync-back-generic-tool-fixes.md`.
 
 **Pushed + PR opened 2026-07-05 (user go-ahead):** branch pushed to
 `FenLinger/data-channel-receiver`; **PR #36** —

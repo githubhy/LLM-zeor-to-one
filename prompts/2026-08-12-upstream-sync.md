@@ -43,4 +43,13 @@
   - **The default anchor is a starting point, not a recommendation.** Two of three would have damaged the prose. The skill's "edit the Anchor" affordance is load-bearing, not decorative.
   - **Two of the three gaps were prose pointers that already existed** — §10.3 literally ended "quantified in Section 14", and §2.2 discussed composition while linking A.2 and A.4 but not A.3. The detector was finding places the author had already gestured at a link and not made one, which is the highest-value class it can find.
 
+## Conversation 4
+- **Request**: "make the sync back a todo".
+- **Actions**: Verified each candidate against `origin/main` rather than filing from memory — all three confirmed still absent upstream: `check-record-ids.py` still scans with `rglob` (line 180), `crosslink.py::short_text` still truncates at 6 words, `viewer.js` has 0 occurrences of the relative-asset-link guard vs 2 here. Filed `todos/2026-08-12-sync-back-generic-tool-fixes.md` with the three, plus an explicit *not in scope* section for the three near-misses (the `RFC` regex widening and the re-domained registry are `SKIP-domain`; the corpus-derived test floor is offer-in-PR-body, not bundle-silently). Also **closed the stale `2026-07-05-land-viewer-fixes-upstream-via-back-sync` todo** — still `in-progress`, but its acceptance was already met: PR #36 is an ancestor of upstream `main` and the fixes are present there. Updated both INDEX rows.
+- **Result**: `check-record-ids` OK (INDEX/file consistency intact across both edits). One todo closed, one opened.
+- **Findings**:
+  - **A todo can outlive its own acceptance.** `2026-07-05` sat at `in-progress` while the PR it was waiting on had merged; nothing closes a todo automatically, and this session's own sync had already advanced the mark past it. Worth checking open todos against reality at the end of a sync, not just filing new ones.
+  - **Rank the sync-back by who it hurts.** The `check-record-ids` fix is the highest-value of the three because it breaks *upstream's own push*: running their viewer suite writes bug IDs into a gitignored `test-results/` file that the gate then reads. They are more exposed than this repo, not less.
+  - **The asset-link fix has already survived one sync by luck.** It persisted through the 2026-08-12 inbound only because it was deliberately re-applied after taking upstream's `viewer.js` wholesale. Left unsynced it needs re-applying by hand on every future viewer sync — the exact drift `--back` exists to stop.
+
 <!-- LOG-END -->
