@@ -75,7 +75,15 @@ No reference entry may exist without a source tag. The invariant is
 mechanically checked by `viewer/tools/check-citation-sources.py`, which
 flags any untagged entry and any `local:` / `spec:` tag whose file is
 missing from disk — an error of the same class as a `lint-math` violation.
-The checker runs as a step of `/check-survey`.
+The checker runs as a step of `/check-survey` **and as a blocking step of the
+push gate** (`.githooks/pre-push`) over every tracked `references.md`. The gate
+invokes it with `--index`, which resolves each `local:`/`spec:` path against
+git's index rather than the working tree: that is the stronger check — an
+*untracked* local PDF satisfies an on-disk test while being missing for every
+other clone — and it is what lets the same gate run where the `download/`
+mirror is not checked out. Before this the invariant was enforced only by the
+manual `/check-survey` family, so a broken `(local:)` tag could reach `main`
+unnoticed.
 
 ## Subagent propagation
 
@@ -88,7 +96,19 @@ survey, appendix, report, or proposal work must:
   before citing;
 - forbid citing from memory and require the gap-marking fallback instead;
 - require the subagent to report, on return, which citations it verified
-  against an acquired source and which it could not.
+  against an acquired source and which it could not;
+- **never state your own recollection as fact in the brief.** Anything you have
+  not just read is an *unverified prior*: mark it as one and instruct the agent
+  to check it against the source and to override you if it is wrong. Your brief
+  is a prompt, and a confident wrong sentence in it is a memory citation that
+  launders itself through the agent's output — the rule you are propagating,
+  broken by the act of propagating it. Upstream measured exactly this: a brief
+  written to *fix* a citation bug asserted the wrong first author and
+  paraphrased the numbers from an abstract rather than the table. Both were
+  wrong, and the agent caught them **only because the brief also said "CHECK
+  THIS EXACTLY against the PDF, do not trust my paraphrase"** — otherwise the
+  fix for a citation error would have introduced a new one. Make that
+  instruction standard, not lucky.
 
 ## When a full audit is mandatory
 

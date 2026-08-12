@@ -275,3 +275,83 @@ test('extractInlineHighlights resolves noteBody on a CRLF document', () => {
   assert.equal(typeof hits[0].noteDefStart, 'number');
   assert.equal(typeof hits[0].noteDefEnd, 'number');
 });
+
+// ── snapOutOfInlineSpans (bugs/2026-07-09-02) ─────────────────────────────
+const { snapOutOfInlineSpans } = require('../../lib/highlight-shared');
+
+/** helper: snap around the first occurrence of `visible` in `src`. */
+const snapAround = (src, visible, tailAfter = '') => {
+  const s = src.indexOf(visible);
+  const e = s + visible.length + tailAfter.length;
+  const r = snapOutOfInlineSpans(src, s, e);
+  return src.slice(r.selStart, r.selEnd);
+};
+
+test('reproducer 1: opener inside *em* snaps out to the asterisk', () => {
+  const src = "then, *motion* names the trajectory's variation in $n$ — a path.";
+  assert.equal(snapAround(src, "motion* names the trajectory's variation in $n$"),
+    "*motion* names the trajectory's variation in $n$");
+});
+
+test('reproducer 2: *First*, every **column** ... snaps out', () => {
+  const src = 'immediately. *First*, every **column** of $H$ is the **same** kernel, shifted by $e$ and scaled.';
+  const got = snapAround(src, 'First*, every **column** of $H$ is the **same** kernel, shifted by $e$');
+  assert.equal(got, '*First*, every **column** of $H$ is the **same** kernel, shifted by $e$');
+});
+
+test('reproducer 3: opener inside **strong** snaps out (bug predicted this)', () => {
+  const src = 'knob is the **normalized Doppler** $f = a/b$. As a rule';
+  assert.equal(snapAround(src, 'normalized Doppler** $f = a/b$'),
+    '**normalized Doppler** $f = a/b$');
+});
+
+test('regression: selection starting on a plain word is unchanged', () => {
+  const src = '*Second*, ==yellow: after dividing out the column scale, it is **Toeplitz**.==';
+  const s = src.indexOf('after dividing');
+  const e = src.indexOf('**Toeplitz**.') + '**Toeplitz**.'.length;
+  const r = snapOutOfInlineSpans(src, s, e);
+  assert.equal(r.changed, false);
+  assert.equal(r.selStart, s);
+  assert.equal(r.selEnd, e);
+});
+
+test('regression: a fully-enclosed **strong** inside the selection is untouched', () => {
+  const src = 'the off-diagonals are **literally** that sidelobe.';
+  const s = src.indexOf('the off');
+  const e = src.indexOf('sidelobe.') + 'sidelobe.'.length;
+  const r = snapOutOfInlineSpans(src, s, e);
+  assert.equal(r.changed, false);
+});
+
+test('nesting is legal: a selection strictly inside *em* is not snapped', () => {
+  const src = 'aaa *motion* bbb';
+  const s = src.indexOf('oti');
+  const e = s + 3;
+  const r = snapOutOfInlineSpans(src, s, e);
+  assert.equal(r.changed, false);
+  assert.equal(src.slice(r.selStart, r.selEnd), 'oti');
+});
+
+test('end boundary cutting a trailing **strong** snaps forward', () => {
+  const src = 'is the **same** kernel';
+  const s = src.indexOf('is the');
+  const e = src.indexOf('same') + 'same'.length; // ends inside **same**
+  const r = snapOutOfInlineSpans(src, s, e);
+  assert.equal(src.slice(r.selStart, r.selEnd), 'is the **same**');
+});
+
+test('math is masked: an asterisk inside $...$ is not an emphasis delimiter', () => {
+  const src = 'gain $a^*b$ and more text here';
+  const s = src.indexOf('and more');
+  const e = src.length;
+  const r = snapOutOfInlineSpans(src, s, e);
+  assert.equal(r.changed, false, 'a^* inside math must not be seen as emphasis');
+});
+
+test('code span boundary snaps out', () => {
+  const src = 'call `ici_matrix()` now';
+  const s = src.indexOf('ici_matrix');
+  const e = src.length;
+  const r = snapOutOfInlineSpans(src, s, e);
+  assert.equal(src.slice(r.selStart, r.selEnd), '`ici_matrix()` now');
+});

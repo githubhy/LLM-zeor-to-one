@@ -1,0 +1,6 @@
+# Program manifests checked by check-plan-progress.py --all (opt-in, one path per line).
+# A campaign is gated by the plan-progress anti-drift gate ONLY if its manifest is listed
+# here; an unregistered campaign is never touched. Each is checked against its OWN scope and
+# fails only on its OWN contradictions. Mirrors .claude/crosslink-scope.
+#
+# Empty: no program manifest exists in this repo yet.

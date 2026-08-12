@@ -8,6 +8,12 @@ Failure mode: prints to stderr and exits non-zero so the hook log
 captures it; never raises.
 """
 
+# py-launcher.sh accepts any Python >= 3.8, but the `X | None` return
+# annotations below are PEP 604 syntax evaluated at def-time (3.10+). Deferring
+# annotation evaluation keeps this hook importable on 3.8/3.9. Keep this line
+# first (a __future__ import must precede all other code).
+from __future__ import annotations
+
 import json
 import sys
 from pathlib import Path

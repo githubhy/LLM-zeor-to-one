@@ -1,0 +1,533 @@
+{
+  "id": "SKILL-OPTIONS-v1",
+  "purpose": "Toggle registry for individually-switchable skill/rule improvements that are NOT part of the deep-research-survey mode/flag lattice (that lattice lives in bench/deep-research-survey/items.json + the skill's addenda). Each option here has a stable ID and a `default`. SEMANTICS: an agent or human following an annotated skill/rule reads this file; an option set to \"off\" means 'ignore the block marked `[opt:<ID> ...]` at the listed site(s) and revert to `off_behavior`'. To turn an option on/off globally, flip its `default` here — the `[opt:<ID>]` marker at each site points back to this registry. This mirrors the repo's other `.claude/*` toggle files (bare-refs-severity, crosslink-severity, crosslink-scope).",
+  "conventions": {
+    "site_marker": "[opt:<ID> · default <ON|OFF> · toggle .claude/skill-options.json]",
+    "how_to_flip": "Edit the option's `default` field to \"on\" or \"off\". No code change is required; the guidance is applied (or skipped) by whoever follows the skill.",
+    "when_added": "Options are derived per session; each carries its own added-date and provenance. The SX-*/EV-*/CA-*/RIS-DERIV batch came from an upstream 2026-07-04 survey-authoring session; SP-FAMILYWHY from the 2026-07-06 LTE transmission-mode provenance session (prompts/2026-07-06-lte-transmission-modes.md); EF-PHYSICAL from the 2026-07-06 wcm spatial-correlation session (prompts/2026-07-06-wcm-spatial-correlation-duality.md); DT-L2-OUTLINE and DT-L3-DRIFT from the 2026-07-06/08 depth-tier-gating thread (prompts/2026-07-06-lte-transmission-modes.md Conv 15-19, proposals/2026-07-08-depth-tier-gating.md, decisions 2026-07-08-02/-03); EF-MATHEXHIBIT from the 2026-07-09 ICI-matrix session (prompts/2026-07-09-tap-vector-cir-question.md Conv 7, decisions/2026-07-09-01-math-exhibits-as-untagged-katex.md). The ME-*/RIS-EVAL-INDEPENDENCE batch came from the 2026-07-10/11 LLR-quantization session (prompts/2026-07-10-llr-quantization-status.md, proposals/2026-07-11-method-eval-ris-hardening.md, field-notes/2026-07-10-hand-enumerated-invariant-drift.md), whose five 'a check satisfied by the bug it should catch' failures motivate the evaluation-independence hardening; the fading-derivation verification wf_2d708df0-ed5 (bug 2026-07-11-01) was the dry-run."
+  },
+  "options": {
+    "SX-INIT": {
+      "title": "deep-research-survey: bare-then-`renumber-sections --init` section-marker loop",
+      "applies_to": ".claude/skills/deep-research-survey/SKILL.md (Gotchas → Phase-4 authoring)",
+      "default": "on",
+      "on_behavior": "Author same-survey section refs BARE (`§X.Y`), never pre-linked; after authoring all files, run `/normalize-survey <dir>` ONCE (viewer/tools/normalize-survey.py) — it runs `renumber-sections --init` (bare → secref same-file / secxref cross-file via order.json) plus the rest of the renumber/link sequence and the check suite. Cross-survey/external `§` de-glyphed or bracket-wrapped (see SX-DEGLYPH).",
+      "tool": "viewer/tools/normalize-survey.py + .claude/commands/normalize-survey.md",
+      "off_behavior": "Legacy guidance: hand-mark every `§` as secref/secxref inline during authoring (the per-file 13-round-trip path this option replaced).",
+      "verified": "2026-07-04, 2-file renumber-sections --init fixture",
+      "added": "2026-07-04"
+    },
+    "SX-DEGLYPH": {
+      "title": "cross-survey / external `§`-in-link-text → de-glyph (third directional-syntax case)",
+      "applies_to": [
+        ".claude/rules/cross-linking.md (directional syntax convention)",
+        ".claude/rules/math-authoring.md (Section Cross-Linking)"
+      ],
+      "default": "on",
+      "on_behavior": "A `§X.Y` pointing into a DIFFERENT survey (not in this survey's order.json) is written as a plain relative link with NO `§` glyph (like a wiki target); external-spec `§` is bracket-wrapped. Neither is written bare (renumber-sections --init would mis-resolve to a same-numbered section of the current survey) nor as secxref (wrong order.json).",
+      "off_behavior": "Only the two documented cases (same-survey → secref/secxref; wiki → plain link); cross-survey `§`-in-link-text left to ad-hoc handling (the bare-ref-gate failure mode this option prevents).",
+      "added": "2026-07-04"
+    },
+    "EV-PERSIST": {
+      "title": "DRS-HARDEN: persist-cited-sources (evidence agents save what they cite)",
+      "applies_to": [
+        ".claude/skills/deep-research-survey/config/operational-scale.json (evidence_agent_policy.rules.persist_cited_sources)",
+        ".claude/skills/deep-research-survey/addenda/phase-3.md (DRS-HARDEN rule 6)"
+      ],
+      "default": "on",
+      "on_behavior": "Any source an evidence-ledger claim will CITE must be persisted to download/ (source-fetch or direct fetch), not merely WebFetched transiently; the saved local path is recorded in the ledger entry.",
+      "off_behavior": "Pre-2026-07-04 behavior: an evidence agent may cite a source it only WebFetched, leaving no download/ artifact (the Qi PT-RS gap, surfaced at reference-compilation).",
+      "added": "2026-07-04"
+    },
+    "CA-LEDGER": {
+      "title": "citation-audit: ledger-first verification pass",
+      "applies_to": ".claude/skills/citation-audit/SKILL.md (Phase 3 → Verify)",
+      "default": "on",
+      "on_behavior": "When the audited document was authored from structured evidence ledgers ({source, location, quote, verified-value}), the cheap first pass is document-value vs. ledger-value (no source re-open); only a document↔ledger mismatch or a ledger-flagged GAP stated as fact escalates to a source-opening verifier.",
+      "off_behavior": "Every load-bearing citation goes straight to a source-opening verifier (the pre-2026-07-04 default; correct but more expensive when a trustworthy ledger exists).",
+      "added": "2026-07-04"
+    },
+    "CA-BYLINE": {
+      "title": "citation-audit: byline-vs-filename check",
+      "applies_to": ".claude/skills/citation-audit/SKILL.md (Phase 3 → Bibliographic layer)",
+      "default": "on",
+      "on_behavior": "In the Bibliographic layer, check the paper's title-page byline against the download/ FILENAME slug (not only the in-text citation); a filename≠byline mismatch is a finding to record + a bugs/ entry for the mislabeled file.",
+      "off_behavior": "Bibliographic check compares only against the in-text citation (a mislabeled download/ filename slug can go unnoticed — the bihan→Li / maltsev→Yu case).",
+      "added": "2026-07-04"
+    },
+    "CA-INTERNAL": {
+      "title": "citation-audit: internal-reference mode (# survey-ref / eqnmap / §X.Y / Eq.(N) -> the survey section it names)",
+      "applies_to": [
+        ".claude/skills/citation-audit/SKILL.md (frontmatter description) -- discovery surface, NO marker: inert-but-harmless when off",
+        ".claude/skills/citation-audit/SKILL.md (When to use: internal-reference-mode trigger bullet) -- carries the [opt:CA-INTERNAL] site marker",
+        ".claude/skills/citation-audit/SKILL.md (Phase 1: class:internal ledger rows + code-locus field) -- carries the marker",
+        ".claude/skills/citation-audit/SKILL.md (Phase 2: acquisition no-op for internal rows) -- carries the marker",
+        ".claude/skills/citation-audit/SKILL.md (Phase 3: the arity/pushforward discriminator + Tier-1 deterministic pre-filter) -- carries the marker",
+        ".claude/skills/citation-audit/SKILL.md (Phase 4: two submodes map onto wrong-value/wrong-source) -- carries the marker",
+        ".claude/skills/citation-audit/SKILL.md (Phase 5: an internal ref's impact terminates in a code kernel) -- carries the marker",
+        ".claude/skills/citation-audit/SKILL.md (Rules: a resolving anchor is necessary-not-sufficient) -- carries the marker"
+      ],
+      "default": "on",
+      "on_behavior": "citation-audit also audits INTERNAL references -- a `# survey-ref`/`% survey-ref` code comment, a report eqnmap line, or a §X.Y / Eq. (N) pointer into the local survey corpus -- verifying the cited equation/section actually describes what the code/claim computes, not merely that the anchor RESOLVES (which every existing gate already asserts). Accept/reject discriminator: a SINGLE-argument deterministic map on a discrete support IS its own grid-point evaluation (no mismatch); a MULTI-argument map over independent RVs becomes an order-statistic / survival-product / convolution -- a density-level pushforward that shares no arithmetic with the cited scalar formula (mismatch), even when the cited equation is topically about the same quantity. Two submodes: wrong-but-resolving (anchor real, equation wrong) -> wrong-value; right-section-wrong-appendix (topically-right but special-case-only locus) -> wrong-source. Tier-1 deterministic pre-filter viewer/tools/check-internal-eq-refs.py flags a `# survey-ref: file#sec-S ... Eq. N` whose cited N does not live in section S (the copy-paste class), detect-only/advisory with a rejection ledger, necessary-not-sufficient (blind to the present-but-wrong residue, which only the semantic pass catches).",
+      "off_behavior": "Pre-2026-07-21: citation-audit covers EXTERNAL citations only; internal survey-refs / equation-refs are out of scope, checked only for anchor RESOLUTION by chk_eq_code_correspondence.py / chk_survey_traceability.py / check-eqn-function-map.py -- none of which checks whether a resolving ref names the RIGHT equation (the wrong-but-resolving failure mode). The atomic verification steps still exist; only the named internal-ref mode + its discriminator + the Tier-1 pre-filter are absent.",
+      "tool": "viewer/tools/check-internal-eq-refs.py (Tier-1 deterministic pre-filter; advisory, .claude/internal-eq-refs-rejected.json ledger)",
+      "verified": "2026-07-21, discriminator earned from an upstream 57-agent equation<->function re-audit (10 wrong-but-resolving internal attributions, all mechanical gates green); recurrence N>=2 confirmed on independent evidence from a separate lineage (an upstream code-vs-survey equation audit finding C1). Tier-1 gate fixture + real-corpus verification: ca-internal-gate-build workflow wf_854373ff-09f (see reports/ landing note).",
+      "added": "2026-07-21"
+    },
+    "RIS-DERIV": {
+      "title": "reference-implementation-study: standing derivation-soundness gate (G0, Phase 1 → 2)",
+      "applies_to": [
+        ".claude/skills/reference-implementation-study/SKILL.md (Phases table + Prerequisites)",
+        ".claude/skills/reference-implementation-study/phases/phase-1b-derivation-gate.md",
+        ".claude/skills/reference-implementation-study/validate_gate.py (gate_g0)"
+      ],
+      "default": "on",
+      "on_behavior": "Before Phase 2 coding, gate G0 requires a derivation ledger (docs/<topic>-derivation-ledger.md + a machine-checkable `derivation_ledger` block in artifacts/<study>/study-manifest.json). Per candidate: survey_ref/source_ref, tier (load-bearing|catalog), no_missing_step. LOAD-BEARING candidates additionally need independent_rederivation='verified' (re-derived from axioms, NOT re-read from the survey), >=1 limit_checks (reduction-to-known-limit), a non-empty assumptions list, and an external_values attestation (each imported constant/coefficient/comparison value reproduced from an acquired local:/spec: source per citation-integrity — {value, source, reproduced:true}; [] + external_values_note if the derivation imports none). external_values is separate from no_missing_step because the two failure modes are independent: the documented the studied method-appendix defects (fabricated Chen&Fossorier comparison, wrong-sign J-function coefficient) were imported-value errors on step-complete derivations that a self-consistent re-derivation and a same-math oracle both pass. Run `validate_gate.py <study> G0 <topic>`; a load-bearing entry missing any field FAILS G0 and blocks Phase 2. The ledger pre-populates the Report §4 eq↔function table left column. Rationale: the §4 correspondence table and the P0-5 oracle both ANCHOR on the derived equation, so neither catches a derivation error — G0 is the upstream, independent check (method-eval re-derivation stage / sim-audit re-derivation lens, repositioned as a pre-implementation gate). The ledger can be AUTO-GENERATED by reusing method-eval's derive→adversarial-re-derive stages (see phase-1b-derivation-gate.md 'Ledger auto-generation'); G0 then gates the agents' output.",
+      "off_behavior": "Pre-2026-07-04 behavior: no pre-implementation derivation gate — the survey's derivations are trusted via the Prerequisites line and only checked for CODE CORRESPONDENCE at Report §4 (eq↔function table) and for IMPLEMENTATION-vs-oracle at G1 (P0-5). A derivation error (dropped term, sign/coefficient) is faithfully implemented and confirmed by an oracle built from the same wrong math — a green report on a broken foundation (the the studied method J-function coefficient precedent).",
+      "verified": "2026-07-04, sound-vs-defective ledger discrimination fixture (test_validate_gate_g0.py)",
+      "added": "2026-07-04"
+    },
+    "SP-FAMILYWHY": {
+      "title": "spec-provenance: taxonomy-level family / 'why so many X' claim shape",
+      "applies_to": [
+        ".claude/skills/spec-provenance/SKILL.md (When to use: family-level why trigger) -- carries the [opt:SP-FAMILYWHY] site marker",
+        ".claude/skills/spec-provenance/SKILL.md (Phase 0: taxonomy/design-family claim type) -- carries the [opt:SP-FAMILYWHY] site marker",
+        ".claude/skills/spec-provenance/SKILL.md (frontmatter description) -- discovery surface, NO marker: a superset trigger, inert-but-harmless when off"
+      ],
+      "default": "on",
+      "on_behavior": "Treat a FAMILY-LEVEL why -- ANY phrasing of 'why does the standard carry a whole set of related options' (e.g. 'why so many transmission modes', 'why N DCI formats', 'why does LTE have ~10 TMs', 'why not just one X', 'why the whole family of Y', 'why K PRACH formats / CQI tables / BWP configs') -- as the Phase-0 taxonomy/design-family claim type. Match on the SHAPE of the question (why a set exists), NOT the literal string 'why so many X'. It is not one atomic claim but a DECOMPOSITION: split the family into per-member rationale claims, trace EACH member to its own contribution (rungs 1-2), then SYNTHESIZE one root cause across them; the deliverable is a per-member provenance ledger + a single root-cause statement, not one gated value. Ladder is RAT/release-agnostic (LTE 36-series + NR 38-series). Worked instance: surveys/lte-dl-receiver-vs-nr/appendix-c-tm-equalization.md sec C.14.",
+      "off_behavior": "Pre-2026-07-06 behavior: spec-provenance is framed for ATOMIC claims only (value/parameter, rationale/mechanism, behavior/procedure) with NR-only worked examples. A family-level 'why so many X' question is not named as a claim shape (risk: answered from memory as a whole, or one member traced and over-generalized), and the taxonomy decomposition + per-member-ledger deliverable is undocumented. The atomic tools still work member-by-member; only the named decomposition scaffold is absent.",
+      "verified": "2026-07-06, an upstream option-family provenance trace folded into a survey appendix (11 held primary documents; a two-class taxonomy)",
+      "added": "2026-07-06"
+    },
+    "SP-CHARTER": {
+      "title": "spec-provenance: charter/requirements/vision layer above the WG record (ladder rungs 4-6)",
+      "applies_to": ".claude/skills/spec-provenance/SKILL.md (The provenance ladder: rungs 4-6 + the charter-layer note) -- carries the [opt:SP-CHARTER] site marker",
+      "default": "on",
+      "on_behavior": "A 'why' trace may climb ABOVE the immediate artifact (rung 3): rung 4 = the originating research agenda that framed the problem; rung 5 = the benchmark's defining paper + its official harness config; rung 6 = an external formal standard (IETF/W3C). Climbing trades specificity for generality, so stop at the rung that carries the claim. Requirements (Rec. M.2083, Report M.2410, outside the standards body). The chain is self-citing (each rung names the one above in its own reference list -- climb by reading the current doc's citations). Documented floor = the ITU vision (M.2083); below it is policy/first-principles, not record. Climbing higher trades specificity for generality, so stop at the rung that carries the claim and cite the rest as context. Worked instance: surveys/lte-dl-receiver-vs-nr/appendix-c-tm-equalization.md sec C.14.5 (current TS up to ITU-R M.2083).",
+      "off_behavior": "Pre-2026-07-07 behavior: the ladder stops at rung 3 (Way-Forward / chairman's-notes); a 'why' trace bottoms out at the WG agreement and does not name the SID / requirements TR / ITU-R vision as further rungs, so the charter-level 'why was this a goal at all' provenance is untraced.",
+      "verified": "2026-07-07, NR no-transmission-mode trace climbed TS -> RAN1#84bis -> NR SID RP-160671 -> TR 38.913 -> TR 22.891 -> ITU-R M.2083, all held and self-citing",
+      "added": "2026-07-07"
+    },
+    "SP-DRIFT": {
+      "title": "spec-provenance: draft-vs-spec gate extends to clause-number + wording drift",
+      "applies_to": ".claude/skills/spec-provenance/SKILL.md (Phase 2 -- the draft-vs-current-spec gate) -- carries the [opt:SP-DRIFT] site marker",
+      "default": "on",
+      "on_behavior": "The Phase-2 gate applies not only to numeric values but to a contribution's CLAUSE-NUMBER and WORDING citations. A contribution's '[TS/TR X sec Y.Z] says ...' is a snapshot of the DRAFT version it was written against; the clause can renumber or reword by the published spec. Gate the clause number and wording against the current published spec. Fourth classification: concept-current / wording-superseded -- the requirement/concept is spec-current but the exact phrasing or clause number the contribution used is draft-era; cite the published clause + wording, label the contribution's form as draft. Observed: Huawei R1-162146 attributed 'inherently flexible... (as yet unknown) services' to TR 38.913 sec 10.2; published TR reworded + renumbered to sec 10.3 'Support for wide range of services'.",
+      "off_behavior": "Pre-2026-07-07 behavior: the Phase-2 gate guards numeric values/forms only; a contribution's clause-number and wording citations are not gated, so a draft-era clause number or phrasing (renumbered/reworded in the published spec) can be repeated as if current.",
+      "verified": "2026-07-07, TR 38.913 sec 10.2 (Rel-14 draft) -> sec 10.3 (published) drift caught during the NR forward-compat dig",
+      "added": "2026-07-07"
+    },
+    "EF-PHYSICAL": {
+      "title": "survey-explainer-fold: physical-meaning is a required answer-format element",
+      "applies_to": [
+        ".claude/skills/survey-explainer-fold/SKILL.md (Overview point 2; Step 4 answer-format template + following note; checklist)"
+      ],
+      "default": "on",
+      "on_behavior": "The dedicated section must include the concept's PHYSICAL MEANING as a required element: the concrete mechanism in physical quantities -- what is superposed or summed, what interferes or cancels, what a reader would observe or measure -- not only the symbolic derivation, a restatement of the governing equation, or a limit/asymptote. When the concept is one of a dual/analogous family (e.g. coherence bandwidth / time / distance; delay / Doppler / angle spreads; the Bello functions), the physical picture must be drawn PARALLEL to its siblings so the mechanism reads the same way across them, and any single ingredient the concept adds over its siblings named explicitly. Operationalizes the .claude/rules/workflow.md math-derivation 'intuition for each major result' bar for folded explanations.",
+      "off_behavior": "Pre-2026-07-07 behavior: the answer format ends at the 'Geometrically / Intuition' tie-in, which a symbolic or limit restatement can satisfy without the physical mechanism. Motivating case: the coherence-distance fold (survey sec 2.3.1) delivered the phase-accrual math but omitted the sum-of-plane-waves interference picture -- and its parallel to frequency selectivity as a sum of delayed taps -- until the reader asked (prompts/2026-07-06-wcm-spatial-correlation-duality.md, Conv 14).",
+      "added": "2026-07-07"
+    },
+    "EF-MATHEXHIBIT": {
+      "title": "survey-explainer-fold: math exhibits are untagged $$ KaTeX, not ASCII art in a fence",
+      "applies_to": [
+        ".claude/skills/survey-explainer-fold/SKILL.md (Overview point 2; Step 4 rule + answer-format template; Step 6 sweep; checklist; Cross-references worked instances)"
+      ],
+      "default": "on",
+      "on_behavior": "An ANNOTATED EQUATION or stepped derivation in the dedicated section is written as REAL math in an UNTAGGED `$$...$$` display block -- \\underbrace / \\overbrace with \\substack{} labels, \\begin{aligned} for a stepped derivation -- never drawn as ASCII art in a fenced code block. Fences are reserved for genuinely NON-math verbatim content: pseudocode, program listings, ASCII plots / curve sketches. Omitting \\tag{N} (not the fence) is what keeps the exhibit cascade-free; untagged display math is a first-class warning-level citizen (hundreds of such blocks exist across surveys/; lint-math check #9 is WARNING, never error). Each untagged block carries a one-line HTML comment recording why, so a later reader does not 'fix' the warning into a cross-file break. The two REAL reasons not to tag: (1) SEMANTIC -- an exhibit re-displaying an existing equation must not mint a rival number for it; (2) CROSS-FILE -- equation numbers cited from outside the survey dir (wikis/) are unprotected, since propagate_xrefs only walks target_path.parent and XREF_FULL only matches the `[(N)](f.md#eq-N) <!-- xref:ID -->` form, while validate-refs checks that an anchor RESOLVES, never that the visible number MATCHES (todos/2026-07-09-crossfile-eq-number-fragility.md). Because Step 4 now mandates macros lint-math cannot validate (it checks delimiters statically and never runs KaTeX), Step 6 gains a MANDATORY `node viewer/tools/verify-katex-render.cjs FILE` render gate.",
+      "off_behavior": "Pre-2026-07-09 behavior: Step 4 instructed 'Reproduce verbatim-sensitive math (program statements, annotated equations) as fenced code blocks, NOT as numbered $$ equations', justified by the claim that a new \\tag would 'cascade every later equation number through the rest of the appendix'. That justification is FALSE for the in-file case -- renumber-equations.py Step 4 rewrites every in-file `<!-- ref:ID -->` link automatically and Step 6 propagates to survey-dir siblings, so an in-file cascade is a safe, routine, script-handled operation. The false rationale, plus a false dichotomy that never named the untagged-$$ third option, made ASCII art look mandatory: it produced the ╰──┬──╯ annotated Lagrangian in the G.8.6 worked instance, which the skill then generalized into a rule, which reproduced the defect in pusch-receiver sec 4.8.1 until the reader asked for KaTeX. No render gate in the sweep.",
+      "tool": "viewer/tools/verify-katex-render.cjs (existed since 2026-07-03, wired into NO gate; see todos/2026-07-09-wire-katex-render-gate.md)",
+      "verified": "2026-07-09, surveys/pusch-receiver/equalization-detection.md sec 4.8.1 converted to \\overbrace/\\underbrace/\\substack + aligned: verify-katex-render.cjs reports 21/21 display + 399/399 inline OK, 0 leaks; renumber-equations --check still 19 tags sequential (no cascade). Mechanism claims checked against renumber-equations.py::renumber() Step 4 / propagate_xrefs() and lint-math.py:206 (untagged = WARNING).",
+      "added": "2026-07-09"
+    },
+    "DT-L2-OUTLINE": {
+      "title": "deep-research-survey: Layer-2 outline depth-tier table (Phase-1 tiering + P0-3 sign-off, persisted for the L3' drift-diff)",
+      "applies_to": [
+        ".claude/skills/deep-research-survey/addenda/phase-2.md ([R-GOV] persisted-allocation paragraph + the 'assigned in Phase 1' clause) -- carries the [opt:DT-L2-OUTLINE] site marker",
+        ".claude/skills/deep-research-survey/addenda/phase-1.md ([P0-3] tier-table surfacing) -- carries the [opt:DT-L2-OUTLINE] site marker",
+        ".claude/skills/deep-research-survey/templates/preflight-checklist.md (Outline sign-off item) -- carries the [opt:DT-L2-OUTLINE] site marker"
+      ],
+      "default": "on",
+      "on_behavior": "Assign the R-GOV per-section depth tier in PHASE 1 (before the P0-3 confirmation), surface the section-tier-justification table -- INCLUDING every `supporting` row -- inside the single P0-3 brief, and persist it as a `<!-- depth-tier-allocation -->` markdown table (| Section | Tier | Justification |) in survey/_scratch/00-*-outline.md, the Section cell being the delivered heading-anchor id (<a id=\"sec-N\">). This table is the authoritative depth-budget allocation and the LEFT-HAND SIDE of the Layer-3' TIER-DRIFT diff (DT-L3-DRIFT). Adds no new pause (rides the existing P0-3 gate). Greenfield-only by construction: it rides the fresh proposed-mode P0-3 gate and so hardens NEW surveys; the edit path (where both motivating bugs arrived) is backstopped by Layer 1 (check-depth-tiers.py vocabulary) + Layer 3' (the drift-diff).",
+      "off_behavior": "Pre-2026-07-08 behavior: tiers assigned in Phase 2 and left prose-only in the outline; no persisted tier table, so the Layer-3' drift-diff has no baseline (it skips TIER-DRIFT / MISSING-TIER and runs only its category-safe checks). The P0-3 brief carries the outline without a tier column, and `supporting` rows are not individually surfaced for confirmation.",
+      "tool": "viewer/tools/depth-tier-coverage.py (consumes the persisted table)",
+      "verified": "2026-07-08, lte-dl-receiver-vs-nr outline retrofit -- 16-section allocation table, zero-drift baseline",
+      "added": "2026-07-08"
+    },
+    "DT-L3-DRIFT": {
+      "title": "deep-research-survey: Layer-3' deterministic depth-tier coverage summary (Phase-5)",
+      "applies_to": [
+        ".claude/skills/deep-research-survey/addenda/phase-5.md ([Layer 3' -- depth-tier coverage] block under R-RUBRIC/R-COVER) -- carries the [opt:DT-L3-DRIFT] site marker",
+        "viewer/tools/depth-tier-coverage.py (the emitter)"
+      ],
+      "default": "on",
+      "on_behavior": "At Phase-5 sign-off, run `python viewer/tools/depth-tier-coverage.py <survey-dir>` and fold its markdown summary into the report (## Self-evaluation scorecard, or a ## Depth-tier coverage footer). It emits a delivered tier tally + four DETERMINISTIC checks against the persisted outline allocation (DT-L2-OUTLINE): TIER-DRIFT (a delivered `Depth tier:` label diverging from its approved outline row -- the load-bearing check; `--severity error` promotes it to a gate once the persisted outline exists), MISSING-TIER (an outline-listed section with no delivered label), a narrow OVER-DELIVERED (a `catalog` section carrying a `$$` block), and n/a-FORM (a `catalog` section with no explicit `n/a` marker, accepting both `n/a (...)` and the em-dash form). TIER-DRIFT covers the EDIT path both motivating bugs took. No depth-from-equations inference: UNDER-DELIVERED (inferring under-derivation from the absence of `$$`/landmarks) is deliberately NOT a check -- depth is often argumentative or cross-linked out. SELF-SCOPING (decision 2026-07-08-05): a survey with NO `Depth tier:` labels is out of scope -- clean no-op, no nudge to add a table; a tier-using survey that skipped the Layer-2 sign-off is flagged NO-ALLOCATION-TABLE. So a corpus-wide run exercises only lte-dl + future tier-mode surveys, never the ~15 dormant no-tier ones (no blanket retrofit).",
+      "off_behavior": "Pre-2026-07-08 behavior: no end-of-run depth-tier coverage surface. A delivered tier diverging from the approved outline, or a `catalog` section that grew equations, is caught by nothing mechanical -- only Layer 1 (vocabulary) and human outline review. This was the gap that let the `derivation` mislabel and the un-surfaced `supporting` sections pass nine green gates.",
+      "tool": "viewer/tools/depth-tier-coverage.py",
+      "verified": "2026-07-08, lte-dl fixture -- zero-drift baseline + a single-row TIER-DRIFT on a deliberately re-tiered section 14 (exit 1 under --severity error)",
+      "added": "2026-07-08"
+    },
+    "ME-ADVERSARIAL-METRIC": {
+      "title": "method-eval: adversarial-metric rubric item (construct the degenerate case; confirm the metric REJECTS it)",
+      "applies_to": [
+        ".claude/skills/method-eval/SKILL.md (Step 1 Frame → Standing evaluation-hardening) — carries the [opt:ME-ADVERSARIAL-METRIC] site marker",
+        ".claude/skills/reference-implementation-study/phases/phase-3-baseline.md + phase-5-precision.md (via RIS-EVAL-INDEPENDENCE, which invokes this test)"
+      ],
+      "default": "on",
+      "on_behavior": "The viability rubric MUST include a degenerate-case item: name the trivial/degenerate solution that would satisfy the metric WITHOUT solving the problem (a constant output; a saturating offset that annihilates the messages; an all-zero decoder), construct it, and confirm the metric/oracle REJECTS it. Clearing the metric only by triviality is a FAIL of the metric, not a pass of the candidate; the Stage-3 verdict states the degenerate case it ruled out.",
+      "off_behavior": "Pre-2026-07-11: the rubric checks correctness/speed/target against oracles but does not require constructing the degenerate case, so a metric satisfied by a trivial solution passes silently — the floor-gate triviality (a max-σ* tuning objective rewarded a decoder whose huge offset annihilated the messages into an elevated-floor fixed point, bug-2026-06-01-04 class) and the stale gate that accepted the exact δ(0)-init bug signature (bug 2026-07-10-03).",
+      "verified": "2026-07-11, exercised end-to-end in an upstream derivation verification ; motivating floor-gate case in an upstream tuned-sweep driver; A/B confirmed 2026-07-25 (bench/method-eval-ris-hardening/ab-adversarial-metric.py: the un-toggled rubric adopts a trivial saturating decoder b=200 that maxes the max-sigma*-proxy metric at true_quality=0.0 bits, while ME-ADVERSARIAL-METRIC constructs the degenerate case and disqualifies the metric for not rejecting it)",
+      "added": "2026-07-11"
+    },
+    "ME-INDEPENDENCE-AUDIT": {
+      "title": "method-eval: oracle-independence audit (the verifying oracle shares no code/assumption with the artifact)",
+      "applies_to": [
+        ".claude/skills/method-eval/SKILL.md (Step 1 Frame → Standing evaluation-hardening; Step 2 Stage-2/3 prompts) — carries the [opt:ME-INDEPENDENCE-AUDIT] site marker"
+      ],
+      "default": "on",
+      "on_behavior": "Before an oracle is trusted, list what it SHARES with the artifact under test — code paths, imported functions, and load-bearing ASSUMPTIONS (symmetry, Gaussianity, a scaling law). If the oracle shares the assumption being tested it is NOT independent and must be replaced or supplemented by a route sharing neither code nor that assumption. Stage 3 confirms the decisive oracle shares nothing with the failure mode. Rule: agreement between instruments that share a bug is not evidence.",
+      "off_behavior": "Pre-2026-07-11: independence is asserted ('a second agent re-derives from scratch') but the ORACLE's shared surface is unaudited, so a verifier can reuse the code-under-test's own arithmetic or its wrong premise — bug 2026-07-10-05 (three 'independent' MI computations all assumed the symmetry the quantizer bug broke) and the loop-reference that copied the implementation's indexing line (same bug).",
+      "verified": "2026-07-11, the fading verification used a no-shared-code numerical oracle (rayleigh_fading_llr_density) that caught two high-SNR-limit constants + an inverted physical claim the analytic derivation missed (bug 2026-07-11-01)",
+      "added": "2026-07-11"
+    },
+    "ME-RED-ORACLE": {
+      "title": "method-eval: RED-first oracle (the oracle must FAIL on a deliberately-broken candidate before it is trusted to confirm)",
+      "applies_to": [
+        ".claude/skills/method-eval/SKILL.md (Step 1 Frame → Standing evaluation-hardening; Step 2 Stage-2 prompt) — carries the [opt:ME-RED-ORACLE] site marker"
+      ],
+      "default": "on",
+      "on_behavior": "Borrow TDD's iron law for the oracle itself: before the oracle/test is used to CONFIRM a candidate, run it on one deliberately-broken input and show it FAILS. An oracle never seen to reject is not known to discriminate; record the RED alongside the GREEN.",
+      "off_behavior": "Pre-2026-07-11: the oracle is written and run on the real candidate only, so a check that CANNOT fail passes forever — bug 2026-07-10-03 (a gate whose bound admitted the bug) and bug 2026-07-10-05 (a loop-reference sharing the implementation's bug); neither was ever shown to reject a wrong input.",
+      "verified": "2026-07-11, verification-before-completion red-green precedent; the fading oracle's exponential-vs-Gaussian discrimination (R^2 1.0 vs 0.95) is the RED/GREEN in practice",
+      "added": "2026-07-11"
+    },
+    "RIS-EVAL-INDEPENDENCE": {
+      "title": "reference-implementation-study: evaluation-independence sub-pass (extend G0's derivation-independence into Phases 3 & 5)",
+      "applies_to": [
+        ".claude/skills/reference-implementation-study/phases/phase-3-baseline.md (Evaluation-independence sub-pass) — carries the [opt:RIS-EVAL-INDEPENDENCE] site marker",
+        ".claude/skills/reference-implementation-study/phases/phase-5-precision.md (Evaluation-independence sub-pass) — carries the [opt:RIS-EVAL-INDEPENDENCE] site marker"
+      ],
+      "default": "on",
+      "on_behavior": "RIS's G0 gate (RIS-DERIV) makes the DERIVATION independent; this extends the same discipline to EVALUATION. In Phase 3 (baseline) and Phase 5 (precision), each load-bearing number gets a no-shared-code adversarial sub-pass: (1) re-verify it with an oracle sharing neither code nor the assumption under test (ME-INDEPENDENCE-AUDIT); (2) run the degenerate-case test — name the trivial solution that would satisfy the metric and confirm the metric REJECTS it (ME-ADVERSARIAL-METRIC). A metric that rewards triviality, or a number confirmed only by an oracle built from the same code/assumption, FAILS the sub-pass.",
+      "off_behavior": "Pre-2026-07-11: RIS independence stops at derivation (G0); the evaluation phases trust their own metric and an oracle that may share the implementation. Motivating case: a Phase-3 floor-limited-threshold baseline metric rewarded a trivial decoder (a large offset annihilating the messages) — caught late by hand, not by a gate.",
+      "verified": "2026-07-11, sibling of RIS-DERIV; the method-eval fading verification demonstrated the evaluation-independence discipline end-to-end",
+      "added": "2026-07-11"
+    },
+    "RIS-PHASE0": {
+      "title": "reference-implementation-study: named Phase 0 (survey-side derivation authoring)",
+      "applies_to": [
+        ".claude/skills/reference-implementation-study/SKILL.md (Phases table P0 row + the P0-vs-P1.5 note) -- carries the [opt:RIS-PHASE0] site marker",
+        ".claude/skills/reference-implementation-study/phases/phase-0-survey-derivation.md"
+      ],
+      "default": "on",
+      "on_behavior": "A CONDITIONAL Phase 0 runs before Phase 1 when the study needs load-bearing math the survey does not yet contain (a finite-precision variant, a new operator, a discretized recursion). Its deliverable is the authored survey/wiki section (to survey standard, built on and reducing to existing sections, each new equation stating its reduction-to-known-limit) plus a 0-uncovered procedure<->equation inventory (every planned code procedure -> a numbered survey equation, each row CA-INTERNAL arity/pushforward-checked, not resolve-only). P0 gates on the survey gates (check-survey, lint-math, citation-audit, cross-link sign-off) + the 0-uncovered map. P0 AUTHORS the foundation; the Phase-1.5 G0 gate (RIS-DERIV) INDEPENDENTLY RE-DERIVES it to attest soundness -- complementary, not redundant. Skip P0 when the survey already derives every operator the study implements.",
+      "off_behavior": "Pre-2026-07-24: RIS numbers phases 1-6 (+1.5 G0) with no named Phase 0. A study introducing new load-bearing math authors it into the survey ad-hoc, inventing a study-local 'Phase 0' with no skill guidance for the deliverable (the procedure<->equation inventory + reduction-to-limit obligation), which recurred upstream twice (a decoder-parameter operator; a finite-precision recursion). The survey gates still exist; only the named phase + its inventory deliverable are absent.",
+      "verified": "2026-07-24, upstream worked instance: a survey appendix section (a bounded reduced-precision recursion, Eqs 64-68 built on an earlier section, all survey gates clean)",
+      "added": "2026-07-24"
+    },
+    "SP-IMAGECITE": {
+      "title": "spec-provenance: image/OLE spec value -> IMAGE-CITED status verified by golden vector (not memory, not blocked)",
+      "applies_to": ".claude/skills/spec-provenance/SKILL.md (Phase 2 -- the draft-vs-current-spec gate) -- carries the [opt:SP-IMAGECITE] site marker",
+      "default": "on",
+      "on_behavior": "When the current published artifact carries the value/formula only inside a figure, a rendered table image, or a screenshot that did not survive text extraction (blank line / garbled run), it cannot be text-read. The honest resolution is a fifth verification status, IMAGE-CITED: cite the exact clause/table, and verify our implementation by a bit-exact GOLDEN VECTOR (a spec test vector or a trusted reference implementation -- an official eval harness, a vendor reference kernel), NOT by transcribing the formula from memory and NOT by treating the value as text-verified. For a value TABULATED elsewhere in a readable table (e.g. an Annex reference-channel table giving the TBS), prefer that tabulated source and mark VERIFIED. Motivating: 2026-07-11 the conformance campaign ledger -- QAM constellation I/Q mapping (38.211 sec 5.1.3-5.1.6), DMRS comb k-formula (38.211 sec 7.4.1.1.2), TBS-procedure equations (38.214 sec 5.1.3.2) all extract blank; decisions 2026-07-03-01/-02 hit the same image-table class in 38.901.",
+      "off_behavior": "Pre-2026-07-11: an image/OLE spec formula that extracts blank from the mirror has no named resolution -- risk of transcribing it from memory (citation-integrity violation) or the trace stalling. Only the earlier ad-hoc 'image table -> cite, don't transcribe' (decision 2026-07-03) exists, without the golden-vector verification method named.",
+      "verified": "2026-07-11, an upstream Phase-1 ledger (4 Sonnet extractors confirmed the three formulas blank in the .txt mirror; tabulated TBS used instead where available)",
+      "added": "2026-07-11"
+    },
+    "SP-LEDGER": {
+      "title": "spec-provenance: standing spec-provenance ledger artifact + per-spec version pin + cross-spec release-consistency",
+      "applies_to": ".claude/skills/spec-provenance/SKILL.md (Phase 4 -- Record and fix; Phase 0/2 version pin) -- carries the [opt:SP-LEDGER] site marker",
+      "default": "on",
+      "on_behavior": "For a study touching many values across several artifacts, maintain a standing spec-provenance LEDGER -- one row per detail: {detail, value, source, VERSION/pin, section/table, verification method, status}. It is the single source of truth the whole study is checked against (methodology: wikis/spec-compliance-verification-methodology.md). Two disciplines it adds: (a) PIN each spec's version explicitly (cover-verified); (b) CROSS-SPEC RELEASE CONSISTENCY -- when the study rests on multiple specs, verify their releases are mutually consistent (a coherent Rel-N set) or record the cross-spec delta as its own ledger row (distinct from SP-DRIFT, which gates one contribution's clause/wording vs the current spec). Every mandated row must be spec-read (not left TO-VERIFY) before the reproduce/sign-off gate. Worked instance: artifacts/the conformance campaign/spec-provenance-ledger.md (pinned Rel-17 because 38.101-4 V18.11.0 would mismatch Rel-17 38.214/38.212).",
+      "off_behavior": "Pre-2026-07-11: Phase-4 records provenance per-claim in prose with no standing ledger artifact, per-spec versions are not systematically pinned, and cross-spec release consistency is not a verification item -- a study can silently mix a Rel-18 performance spec with Rel-17 procedure specs.",
+      "verified": "2026-07-11, an upstream ledger caught a cross-version drift and drove the version pin (decision 2026-07-11-03)",
+      "added": "2026-07-11"
+    },
+    "BG-RUNINBG": {
+      "title": "execution convention: durable background jobs use the tool's run_in_background, never nohup/& inside a foreground call",
+      "applies_to": ".claude/rules/workflow.md (Diagram Rules — execution conventions, next to UTF8-WRITE) — carries the [opt:BG-RUNINBG] site marker",
+      "default": "on",
+      "on_behavior": "Launch any long-running job via the Bash/PowerShell tool's own `run_in_background: true`, NEVER via a trailing `&`, `nohup`, `setsid`, or `disown` inside a foreground tool call. A foreground tool call reaps its child processes on return, so a `&`/`nohup`-detached job is killed when the launching call completes (on WSL the distro also idles out and wipes /tmp). Durability is a launch-mechanism property, not `nohup`/`&` syntax. Corollary: design long-running drivers to flush+resume per unit of work (per-point/per-file) so an interrupted job relaunches at zero recompute. A PreToolUse advisory GATE that detects the anti-pattern at the moment of the call is the higher-reliability upgrade, held to a todo until its non-blocking surfacing contract is verified (todos/2026-07-12-background-launch-pretooluse-gate.md).",
+      "off_behavior": "Pre-2026-07-12: no repo-wide convention; the nohup/& habit is re-attempted per long job and reaped, costing a relaunch (mitigated only where the driver happens to resume). Recurred N>=3 across sessions despite run_in_background being documented in the tool description — a habit-override failure a passive tool-description note did not prevent.",
+      "verified": "2026-07-12, mechanism is the tool's documented run_in_background primitive (used successfully for the fxp Phase-5 relaunch with per-point resume, zero recompute); recurrence grep across prompts/field-notes (2026-06-29, 2026-07-11, 2026-07-12)",
+      "added": "2026-07-12"
+    },
+    "UTF8-WRITE": {
+      "title": "tooling convention: file writes pass encoding='utf-8' (kill the recurring Windows GBK UnicodeEncodeError)",
+      "applies_to": ".claude/rules/workflow.md (code conventions, near the determinism rule) -- carries the [opt:UTF8-WRITE] site marker",
+      "default": "on",
+      "on_behavior": "Any repo tool/script that does file I/O with possibly-non-ASCII content MUST pass encoding='utf-8'. WRITES -- Path.write_text(...), open(path,'w'), json.dump(obj, handle) -- and READS -- Path.read_text(), open(path), json.load(open(path)) -- both default to the platform locale code page, which on Windows is GBK/CP936: a WRITE raises UnicodeEncodeError and a READ raises UnicodeDecodeError the moment the content carries a non-ASCII glyph (minus-sign U+2212, times, superscript-2, em-dash, ~, box-drawing). For stdout, set PYTHONIOENCODING=utf-8 or route non-ASCII to a file. Recurrence: bug 2026-06-22-01 (status-line GBK crash, fixed locally, convention not generalized), bug 2026-06-24-01 (emdash corruption), >=3 write repeats in the 2026-07-11 quantizer session, and a READ crash during THIS harvest (json.load(open('.claude/skill-options.json')) failed on the file's own em-dashes).",
+      "off_behavior": "Pre-2026-07-11: no repo-wide convention; each tool re-learns the footgun -- a write with a non-ASCII glyph crashes under GBK on Windows and the fix is re-discovered per tool.",
+      "verified": "2026-07-11, empirically reproduced + fixed (analyze_quantizer_bler / comparison_matrix / bler_tables writers all set encoding='utf-8'); bug 2026-06-22-01 diagnosis (GBK/CP936 stdout)",
+      "added": "2026-07-11"
+    },
+    "RIS-BACKLINK": {
+      "title": "reference-implementation-study G0: survey -> derivation-wiki BACK-LINK obligation",
+      "applies_to": [
+        ".claude/skills/reference-implementation-study/phases/phase-1b-derivation-gate.md (Deliverable item 3)",
+        ".claude/rules/cross-linking.md (reachability gate)"
+      ],
+      "default": "on",
+      "on_behavior": "When the G0 derivation ledger is authored as a wikis/*.md document, a reader-facing link to it is added FROM the survey section it attests, in the same turn -- in the prose, not in an HTML comment. Enforced by `crosslink.py reach` (pre-push, .claude/reachability-severity, default warn).",
+      "off_behavior": "Only the wiki->survey `survey_ref` provenance is required (the pre-2026-07-14 behavior). The survey->wiki direction has no owner, so a derivation ledger can exist in the repo with no reader-facing path to it.",
+      "added": "2026-07-14",
+      "rationale": "The G0 gate makes the ledger cite the SURVEY and nothing makes the survey cite the LEDGER, so the linkage is one-way BY CONSTRUCTION -- not an authoring slip. It failed identically for all three 2026-07-08 ICI wikis; ici-aware-banded-mmse-derivation.md, the ledger for HEADLINE 4.9, had ZERO mentions in the survey it attests, and 4.10 asserted DPS-BEM's 'provably minimum' optimality while its proof sat unreachable two directories away. Measured at introduction: 17 of 33 wikis unreachable from surveys/. See field-notes/2026-07-14-orphaned-derivations.md."
+    },
+    "RIS-REFPERF": {
+      "title": "reference-implementation-study: conformance studies establish REFERENCE PERFORMANCE and benchmark against it, not the raw requirement (Phase 1)",
+      "applies_to": [
+        ".claude/skills/reference-implementation-study/phases/phase-1-scenario.md (Deliverables -> Reference performance bullet) -- carries the [opt:RIS-REFPERF] site marker",
+        ".claude/skills/reference-implementation-study/SKILL.md (Phases table, Phase-1 gate cell) -- carries the [opt:RIS-REFPERF] site marker"
+      ],
+      "default": "on",
+      "on_behavior": "If the study's success criterion is an EXTERNALLY PUBLISHED NUMBER (a model card's reported accuracy, a leaderboard entry, a paper's headline pass@k), treat it as REFERENCE PERFORMANCE + a configuration stack (prompt template, few-shot k, decoding params, harness version, answer-extraction rule), NOT the receiver's target. In Phase 1, before computing any margin: (1) establish the underlying reference performance via the spec-provenance skill -- it lives in the WG contribution primary records (rungs 1-2), not the published spec -- and record it in the spec-provenance ledger (SP-LEDGER); (2) benchmark the sim against the REFERENCE, stating requirement = reference + margin explicitly. Escape (never silent): if the reference performance genuinely cannot be acquired, say so and benchmark against the requirement WITH the margin-stack caveat disclosed. Non-conformance studies (no external mandated target) skip this. Composes with spec-provenance (does not duplicate its primary record machinery); the report-side disclosure is SIM-REQBASIS.",
+      "off_behavior": "Pre-2026-07-23: RIS Phase 1 names no reference-performance step. A study benchmarks against the PUBLISHED number directly, silently treating published-minus-measured as a capability delta -- so a margin that is mostly harness and prompt difference reads as merit. The failure is silent and survives every gate (the W4.2 '+5.33 dB MET' bug, caught only by owner intuition). The existing calibration-residuals check-4 (reconcile the metric basis) cannot even fire, because the reference performance was never acquired -- only one basis exists.",
+      "verified": "2026-07-23, an upstream post-mortem: the reference performance re-anchored the verdict off the published requirement onto reference + margin (upstream bug 2026-07-22, margin conflated with the margin stack)",
+      "added": "2026-07-23"
+    },
+    "SIM-REQBASIS": {
+      "title": "sim-report-completeness: a conformance report decomposes requirement = reference + margin and names which basis the verdict is measured against",
+      "applies_to": ".claude/rules/sim-report-completeness.md (Three emphases -> 'A conformance requirement is not a target') -- carries the [opt:SIM-REQBASIS] site marker",
+      "default": "on",
+      "on_behavior": "When a sim/implementation report benchmarks against an external standardization conformance requirement, Section 2 states the decomposition requirement = reference + margin with the REFERENCE PERFORMANCE sourced to the WG contribution record (via spec-provenance; established in Phase 1 under RIS-REFPERF), and the verdict names WHICH BASIS it is measured against: a margin vs the reference is receiver headroom; a margin vs the requirement is mostly the margin stack and must NOT be cited as headroom. If the reference cannot be acquired, disclose that and benchmark against the requirement with the caveat (explicit n/a beats silent absence). Broader than RIS: applies to any sim report, including one not produced via the RIS workflow. This is calibration-residuals check 4 (metric-basis reconciliation) applied to the requirement itself. Prose discipline, NOT a check-report-completeness.py mechanical gate (not wired to the checker).",
+      "off_behavior": "Pre-2026-07-23: Section 2 grades per-parameter conformance (EXACT/IDEALIZED/...) but does not require decomposing the published number into reference + configuration delta, so a report can cite margin-vs-published as a capability gain without disclosing that most of it is harness difference (the '+5.33 dB MET' framing).",
+      "verified": "2026-07-23, an upstream report re-anchored: its sections now decompose published = reference + configuration delta and cite the reference performance as the operating point",
+      "added": "2026-07-23"
+    },
+    "CR-SPLIT": {
+      "title": "calibration-residuals check 6: split the population + check rig preconditions before attributing a reproducible number",
+      "applies_to": ".claude/rules/calibration-residuals.md (check 6 + the significance-vs-materiality corollary)",
+      "default": "on",
+      "on_behavior": "Before stating what a measured quantity MEANS: (a) decompose an aggregate rate into sub-populations and confirm the effect survives in the one being attributed; (b) verify the measurement rig's own preconditions, especially on a deliberately 'easy'/control case; (c) establish seed/noise variance at one point before believing a trend across a swept variable. Corollary: judge a statistic against a MATCHED NOISE FLOOR (the same statistic under a change that alters nothing real), never against an absolute constant.",
+      "off_behavior": "Checks 1-5 only. A residual may be attributed from an aggregate statistic without population decomposition or rig-precondition verification, and gates may use absolute thresholds.",
+      "earned_from": "an upstream measurement session: five wrong attributions in one session, EVERY ONE attached to a number that reproduced exactly. Headline instances: a 96.54%/0.00% population split overturning a 'the codebook erases the population' finding by ~5x and changing its mechanism; a forced-AWGN control rig that was an identically null channel (silent for 28% of seeds) whose noise-only output was written up as a demapper property; a single-seed 'trend' that five seeds showed was monotone; and a z=+10.65 symmetry defect that moved a codebook no more than resampling did, against a threshold below the sampling-noise floor. Recurrence beyond this session: 12 prior field-notes match the wrong-attribution-on-a-reproducible-number pattern, incl. 2026-07-16-wave3-a4-green-gates-hiding-real-defects.",
+      "refs": [
+        "bugs/2026-07-20-awgn-ntx2-null-channel.md",
+        "upstream bug 2026-07-20 (run-design basis)",
+        "upstream field-note 2026-07-20 (leg scoping)",
+        "an upstream derivation wiki (correction, retraction, gate resolution)"
+      ]
+    },
+    "SP-FILE403": {
+      "title": "spec-provenance: an individual document can 403/418 even on a public host",
+      "applies_to": ".claude/skills/spec-provenance/SKILL.md (Rules -> 'The FTP is public') -- carries the [opt:SP-FILE403] site marker",
+      "default": "on",
+      "on_behavior": "A per-file HTTP 403/418 on a public host is NOT proof of 'paywalled' or 'member-only'. Confirm by fetching a sibling file in the same Docs/ folder (if it 200s the folder is public); recover the content from another rung when possible (e.g. the verbatim-reproduction technique in the rung-3 recipe); flag the inaccessible file honestly and NEVER fabricate its content. Do not retry a genuine per-file 403 blindly.",
+      "off_behavior": "Treat 'The FTP is public' as absolute -- a per-file 403 is misread as member-only/unreachable or retried blindly, with no guidance to recover the content from another rung or to flag-not-fabricate.",
+      "verified": "2026-07-20, one document returned a persistent per-file 403 while its siblings fetched fine (an upstream provenance session)",
+      "added": "2026-07-20"
+    },
+    "SP-LOADBEARING-LOCAL": {
+      "title": "spec-provenance: load-bearing primary-record claim -> strong-form (local:) tag, save the extract",
+      "applies_to": ".claude/skills/spec-provenance/SKILL.md (Phase 4 -> references.md source tags) -- carries the [opt:SP-LOADBEARING-LOCAL] site marker",
+      "default": "on",
+      "on_behavior": "If a primary record carries a LOAD-BEARING claim (a rationale the document leans on), save its fetched extract to download/ and tag it (local:), not (web). Reserve the weak-form (web) tag for context / non-load-bearing sources. Rationale: citation-integrity forbids load-bearing claims resting on weak-form refs, and (web) is exactly what citation-audit scrutinises.",
+      "off_behavior": "Phase-4 presents (local:) and (web) as roughly equivalent options chosen by convenience; a load-bearing rationale can end up resting on a weak-form (web) ref with no download/ artifact.",
+      "verified": "2026-07-20, 14 primary-record extracts saved to download/ + tagged (local:) in the survey/references.md 152-165 (PR #3)",
+      "added": "2026-07-20"
+    },
+    "SP-SAMECOMPANY-DRIFT": {
+      "title": "spec-provenance: draft-vs-spec gate applies to a contributor's OWN earlier proposals",
+      "applies_to": ".claude/skills/spec-provenance/SKILL.md (Phase 2 -> draft-vs-current-spec gate) -- carries the [opt:SP-SAMECOMPANY-DRIFT] site marker",
+      "default": "on",
+      "on_behavior": "The draft-vs-spec gate is not only cross-company: a single company's Month-N proposed value can differ from the Month-N+1 agreement it co-authored, so gate EVERY proposed value against the final agreement / current TS regardless of who proposed it -- including the winning company's own earlier drafts.",
+      "off_behavior": "The gate is applied cross-company only; a winning contributor's earlier draft number can slip through as if it were the adopted value.",
+      "verified": "2026-07-20, Ericsson Sept RV3 proposal 50Z/38Z (R1-1715732) != final Agreement it co-signed 56Z/43Z (R1-1717990 = TS 38.212 Table 5.4.2.1-2)",
+      "added": "2026-07-20"
+    },
+    "BG-GUARD": {
+      "title": "workflow.md BG-RUNINBG: PreToolUse gate blocks foreground-background Bash launches",
+      "applies_to": [
+        ".claude/rules/workflow.md (BG-RUNINBG rule) -- carries the [opt:BG-GUARD] site marker",
+        ".claude/settings.json (hooks.PreToolUse[matcher=Bash])",
+        ".claude/hooks/guard-foreground-background.py"
+      ],
+      "default": "on",
+      "on_behavior": "A PreToolUse hook inspects every foreground Bash call (run_in_background not true) and, if the command backgrounds a job via a trailing `&`, `nohup`, `setsid`, or `disown`, BLOCKS it (exit 2) with a message to relaunch via run_in_background:true. The OPERATIVE runtime toggle is the severity file `.claude/foreground-bg-severity` in {off | warn | error}: `error` blocks, `warn` is stderr-advisory only (does NOT prevent the reap), `off` disables. High-precision detector: `&&`, fd-redirects (2>&1, >&2), arithmetic bitwise-and ($((a & b))), and `&` inside quotes/comments are NOT flagged. Fails OPEN on any error; Bash-only (PowerShell `&` is the call operator).",
+      "off_behavior": "Set `.claude/foreground-bg-severity` to `off`: no gate, and BG-RUNINBG relies on the documented rule alone -- the state that let the reap recur N>=6 across upstream sessions.",
+      "tool": ".claude/hooks/guard-foreground-background.py (toggle .claude/foreground-bg-severity)",
+      "verified": "2026-07-21, 7 bad-pattern fixtures blocked + 13 good-pattern fixtures allowed (incl. &&, 2>&1, $((3&1)), quoted &, $#, comment-hidden &, & wait); production py-launcher path + malformed-input fail-open confirmed",
+      "added": "2026-07-21"
+    },
+    "ME-METRIC-DECL": {
+      "title": "method-eval / RIS: declare the metric (no cross-metric comparison without a stated bridge)",
+      "applies_to": [
+        ".claude/skills/method-eval/SKILL.md (Step 1 Standing evaluation-hardening) -- carries the [opt:ME-METRIC-DECL] site marker",
+        ".claude/skills/reference-implementation-study/phases/phase-3-baseline.md (Evaluation-independence sub-pass item 3; applies to the report Section-6 results + Section-2 conformance matrix -- the folded RIS-METRIC-DECL) -- carries the [opt:ME-METRIC-DECL] site marker"
+      ],
+      "default": "on",
+      "on_behavior": "Every rubric criterion and every verdict/result claim NAMES its metric (exact-match accuracy vs pass@1 vs pass@k vs perplexity in bits vs win-rate vs tokens/s); a cross-metric 'X beats Y' requires an explicit stated bridge putting both on the SAME axis. In RIS this applies to the Section-6 results and the Section-2 conformance matrix (which already grades EXACT/IDEALIZED/DEVIATED -- extend to name the metric axis of every comparison). Same discipline as calibration-residuals check 4 (reconcile the metric basis).",
+      "off_behavior": "Pre-2026-07-11: claims compare numbers without declaring the axis. Motivating: an agent verdicted 'CONTRADICTED' by comparing a GMI number directly to a threshold number (two different axes).",
+      "verified": "2026-07-25, landed as the completion of the proposals/2026-07-11-method-eval-ris-hardening.md batch (top-4 landed 2026-07-11 after the fading-derivation dry-run wf_2d708df0-ed5); each remaining toggle mirrors a pre-existing repo discipline so it inherits that verification",
+      "added": "2026-07-25"
+    },
+    "ME-RESULT-VS-PROOF": {
+      "title": "method-eval: result-vs-proof arbitration (suspect the measurement, not the theorem, first)",
+      "applies_to": [
+        ".claude/skills/method-eval/SKILL.md (Step 1 Standing evaluation-hardening; Stage-3 verdict) -- carries the [opt:ME-RESULT-VS-PROOF] site marker"
+      ],
+      "default": "on",
+      "on_behavior": "When a numerical RESULT contradicts a PROOF/theorem, suspect the result first and settle it by a THIRD route sharing no code with either side; do NOT file a defect against the proven artifact until the measurement is independently reproduced. Same failure class calibration-residuals guards (a number that reproduces is not an attribution that holds).",
+      "off_behavior": "Pre-2026-07-11: a measurement that conflicts with a proof triggers a defect against the proven artifact before the number is re-checked -- a false high-severity bug was filed against a proven-optimal component (bug 2026-07-10-25 class) that a third-route reproduction would have cleared.",
+      "verified": "2026-07-25, landed as the completion of the proposals/2026-07-11-method-eval-ris-hardening.md batch (top-4 landed 2026-07-11 after the fading-derivation dry-run wf_2d708df0-ed5); each remaining toggle mirrors a pre-existing repo discipline so it inherits that verification",
+      "added": "2026-07-25"
+    },
+    "ME-FILE-FIRST": {
+      "title": "method-eval: file-first oracle/prototype harness (per-cell incremental flush; imported from DRS-HARDEN)",
+      "applies_to": [
+        ".claude/skills/method-eval/SKILL.md (Step 1 Standing evaluation-hardening; Stage-2 prototype rules) -- carries the [opt:ME-FILE-FIRST] site marker"
+      ],
+      "default": "on",
+      "on_behavior": "The prototype/oracle harness persists per-claim / per-cell INCREMENTALLY to disk, so a step-cap agent death or a kill leaves evidence -- never a terminal-only write whose loss on interruption discards the whole run. Mirrors deep-research-survey DRS-HARDEN and RIS-FILE-FIRST.",
+      "off_behavior": "Pre-2026-07-11: an oracle harness may write only at the end / only to the terminal, so an interrupted or step-cap-killed run leaves no evidence (E7 data-loss).",
+      "verified": "2026-07-25, landed as the completion of the proposals/2026-07-11-method-eval-ris-hardening.md batch (top-4 landed 2026-07-11 after the fading-derivation dry-run wf_2d708df0-ed5); each remaining toggle mirrors a pre-existing repo discipline so it inherits that verification",
+      "added": "2026-07-25"
+    },
+    "ME-REAL-EXIT": {
+      "title": "method-eval: capture the REAL exit code (imported from verification-before-completion)",
+      "applies_to": [
+        ".claude/skills/method-eval/SKILL.md (Step 1 Standing evaluation-hardening; Stage-2 RUN step) -- carries the [opt:ME-REAL-EXIT] site marker"
+      ],
+      "default": "on",
+      "on_behavior": "Verification captures the process's REAL exit code, reported SEPARATELY from any pipe: `| tail`/`| head` masks it, and on PowerShell `-ErrorAction SilentlyContinue` and `2>&1` on a native exe fake success (the exit-code footgun the PowerShell tool rule already documents). 'Ran it, read stdout' is not 'read the exit code'.",
+      "off_behavior": "Pre-2026-07-11: 'RUN it, paste stdout' accepts piped/masked output, so a nonzero exit hidden behind `| tail` or a swallowed PowerShell error reads as success (E8).",
+      "verified": "2026-07-25, landed as the completion of the proposals/2026-07-11-method-eval-ris-hardening.md batch (top-4 landed 2026-07-11 after the fading-derivation dry-run wf_2d708df0-ed5); each remaining toggle mirrors a pre-existing repo discipline so it inherits that verification",
+      "added": "2026-07-25"
+    },
+    "ME-NO-DELEGATED-WAIT": {
+      "title": "method-eval: a verify/verdict agent returns its finding as TEXT, never a background-waiter stub",
+      "applies_to": [
+        ".claude/skills/method-eval/SKILL.md (Step 1 Standing evaluation-hardening; Stage-3 verdict) -- carries the [opt:ME-NO-DELEGATED-WAIT] site marker"
+      ],
+      "default": "on",
+      "on_behavior": "A verify/verdict agent must return its finding as TEXT in its own turn; it may NOT spawn background work (an MC script + a 'waiter') and return a 'still running... I'll be notified... waiting' stub. A stub is an empty result in disguise -- the pipeline's final return becomes a non-answer, and the Workflow journal's agents_empty_result=0 does not catch it.",
+      "off_behavior": "Pre-2026-07-11: a Stage-3 independent-verify agent could spawn concurrent background scripts + a waiter and return a stub, so the substantive verdict silently came from Stage 2 and the independent-verify stage effectively did not complete (observed in wf_8029dd44-37e; caught only because the orchestrator did not trust the pipeline result and re-reproduced the falsification).",
+      "verified": "2026-07-25, landed as the completion of the proposals/2026-07-11-method-eval-ris-hardening.md batch (top-4 landed 2026-07-11 after the fading-derivation dry-run wf_2d708df0-ed5); each remaining toggle mirrors a pre-existing repo discipline so it inherits that verification",
+      "added": "2026-07-25"
+    },
+    "ME-FALSIFIER": {
+      "title": "method-eval: pre-registered falsifier per rubric criterion (criterion, oracle, falsifier triple)",
+      "applies_to": [
+        ".claude/skills/method-eval/SKILL.md (Step 1 Standing evaluation-hardening; rubric) -- carries the [opt:ME-FALSIFIER] site marker"
+      ],
+      "default": "on",
+      "on_behavior": "Each viability criterion pre-registers its FALSIFIER -- the observation that would reject the candidate -- BEFORE the run, so a rubric criterion is a {criterion, oracle, falsifier} triple and the Stage-3 verdict states which falsifier fired (or that none did). This is what makes 'a null result is valid' honest rather than a post-hoc rationalization.",
+      "off_behavior": "Pre-2026-07-11: rubric criteria carry an oracle + target but no pre-registered falsifier, so a negative outcome can be re-framed after the fact and 'the candidate is fine, the test is too strict' is unfalsifiable.",
+      "verified": "2026-07-25, landed as the completion of the proposals/2026-07-11-method-eval-ris-hardening.md batch (top-4 landed 2026-07-11 after the fading-derivation dry-run wf_2d708df0-ed5); each remaining toggle mirrors a pre-existing repo discipline so it inherits that verification",
+      "added": "2026-07-25"
+    },
+    "RIS-RED-FIRST": {
+      "title": "reference-implementation-study Phase 2: RED-first regression tests (imported from TDD)",
+      "applies_to": [
+        ".claude/skills/reference-implementation-study/phases/phase-2-implementation.md (RED-first tests section) -- carries the [opt:RIS-RED-FIRST] site marker",
+        ".claude/skills/reference-implementation-study/phases/phase-6-report.md (Section-5 verification-suite red-green column)"
+      ],
+      "default": "on",
+      "on_behavior": "Phase 2 adopts TDD's iron law explicitly: each candidate's regression tests are written RED-first (shown to FAIL against a stub/known-wrong implementation before the real implementation makes them GREEN), and the report's Section-5 verification suite records the red-green transition. A test known only in its green state is indistinguishable from one that cannot fail.",
+      "off_behavior": "Pre-2026-07-11: tests are written after the implementation and only their passing state is recorded, so a check that never could fail (the session's five 'a check satisfied by the bug it should catch' cases) is indistinguishable from a discriminating one.",
+      "verified": "2026-07-25, landed as the completion of the proposals/2026-07-11-method-eval-ris-hardening.md batch (top-4 landed 2026-07-11 after the fading-derivation dry-run wf_2d708df0-ed5); each remaining toggle mirrors a pre-existing repo discipline so it inherits that verification",
+      "added": "2026-07-25"
+    },
+    "RIS-RETRACTION": {
+      "title": "reference-implementation-study Phase 6: explicit corrections & retractions in the Section-13 audit trail",
+      "applies_to": [
+        ".claude/skills/reference-implementation-study/phases/phase-6-report.md (Completeness & verification -> Corrections & retractions) -- carries the [opt:RIS-RETRACTION] site marker"
+      ],
+      "default": "on",
+      "on_behavior": "A report accretes results over many turns; if a filed finding (a headline number, a claimed defect, an attribution) is later REFUTED, the report retracts it EXPLICITLY in the Section-13 Audit Trail -- with the evidence that overturned it and the third-route (no-shared-code) result that settled it -- never silently overwriting the prose. Mirrors bugs/ retraction, lifted into the report spine; complements results-reconciliation (which catches the stale framing a silent overwrite leaves).",
+      "off_behavior": "Pre-2026-07-11: a refuted result is edited out with no retraction record, so a later reader cannot tell a number was withdrawn or why (E3's retraction is the model this installs).",
+      "verified": "2026-07-25, landed as the completion of the proposals/2026-07-11-method-eval-ris-hardening.md batch (top-4 landed 2026-07-11 after the fading-derivation dry-run wf_2d708df0-ed5); each remaining toggle mirrors a pre-existing repo discipline so it inherits that verification",
+      "added": "2026-07-25"
+    },
+    "RIS-FILE-FIRST": {
+      "title": "reference-implementation-study: sweep artifacts flush per-cell + resume (imported from DRS-HARDEN / BG-RUNINBG)",
+      "applies_to": [
+        ".claude/skills/reference-implementation-study/SKILL.md (Artefact Rules -> Persistent data) -- carries the [opt:RIS-FILE-FIRST] site marker"
+      ],
+      "default": "on",
+      "on_behavior": "A sweep driver flushes PER CELL (per-point/per-seed) to disk and resumes from what is already written, so a step-cap death, kill, or reap leaves partial evidence and relaunches at zero recompute -- never a terminal-only or end-of-run-only write. Same flush+resume discipline as workflow.md BG-RUNINBG and deep-research-survey DRS-HARDEN / ME-FILE-FIRST.",
+      "off_behavior": "Pre-2026-07-11: a sweep that writes only at the end loses everything on interruption and re-runs from scratch on relaunch (E7).",
+      "verified": "2026-07-25, landed as the completion of the proposals/2026-07-11-method-eval-ris-hardening.md batch (top-4 landed 2026-07-11 after the fading-derivation dry-run wf_2d708df0-ed5); each remaining toggle mirrors a pre-existing repo discipline so it inherits that verification",
+      "added": "2026-07-25"
+    },
+    "DRS-HARDEN": {
+      "title": "deep-research-survey Phase 3: evidence-agent hardening (step-cap survivable sizing, file-first deliverable)",
+      "applies_to": [
+        ".claude/skills/deep-research-survey/phases/phase-3-evidence.md -- carries the [DRS-HARDEN] site marker",
+        ".claude/skills/deep-research-survey/addenda/phase-3.md -- the policy block",
+        ".claude/skills/deep-research-survey/config/operational-scale.json -- evidence_agent_policy (the OPERATIVE toggle)",
+        "CLAUDE.md '## Agent Fan-Out -- Sizing and Failure Diagnosis' -- names DRS-HARDEN as the encoded default"
+      ],
+      "default": "on",
+      "on_behavior": "Evidence agents are sized and shaped so a per-agent iteration/tool-call cap death (~36-40 calls) is survivable: ~3-4 questions per agent, EXACT paths (no Glob discovery), WebFetch capped at <=2 in favour of WebSearch snippets + local-spec grep, and an incrementally-written _scratch/<id>.md file as the deliverable so a step-cap death still leaves evidence on disk. The orchestrator treats an empty-string return as agent death. Never rely on a terminal structured-output call as the only output -- its throw silently nulls inside parallel() and jumps a null-only retry.",
+      "off_behavior": "`agent_hardening: off` in config/operational-scale.json restores the legacy schema-first deliverable, 5-question sizing, and unrestricted Glob/WebFetch (pre-2026-06-25). NOT recommended -- that is the measured-broken path (three failed evidence rounds, 2026-06-25 deep-research-survey).",
+      "tool": "toggle `agent_hardening` in .claude/skills/deep-research-survey/config/operational-scale.json (evidence_agent_policy.switch), NOT this file's `default` key -- see caveat",
+      "caveat": "REGISTRY-POINTER ENTRY, not a registry-owned switch. .claude/skills/ is wholesale regenerated by .github/workflows/sync-claude-config.yml (`rm -rf .claude/skills/`), so this repo cannot own a toggle whose site marker lives inside a skill. Registered here for DISCOVERABILITY -- CLAUDE.md names DRS-HARDEN as a default and an auditor reading this registry would otherwise never find it. Flipping `default` here does nothing; flip the config switch upstream. Registered by the 2026-07-26 harness audit.",
+      "verified": "2026-07-26, harness audit: entry cross-checks clean against the [opt:]/[DRS-HARDEN] marker sweep; operative switch confirmed present as evidence_agent_policy.switch",
+      "added": "2026-07-26"
+    },
+    "PLAN-REDFIRST": {
+      "title": "Planning: a plan that ships code names its RED-first test deliverable per phase",
+      "applies_to": [
+        ".claude/rules/workflow.md '### Planning' -- carries the [opt:PLAN-REDFIRST] site marker",
+        "plans/**.md -- every plan whose deliverables include a script, parser, extractor or gate"
+      ],
+      "default": "on",
+      "on_behavior": "A plan that ships code names, per phase, the test module AND the discriminating input that module must FAIL against before the implementation makes it pass; a phase's exit criterion is not met until that test passes. Routes [opt:RIS-RED-FIRST] to plan-authoring time rather than code-writing time.",
+      "off_behavior": "Pre-2026-07-27: plans name code deliverables with no test obligation, and 'verify by discrimination' appears as prose intent. Measured cost: the conformance-case-register plan reached v1.2 with three parsers/gates and zero tests, all three having silent success as their failure mode.",
+      "tool": "flip `default` here; the rule block is skipped when off and the documented off_behavior applies",
+      "caveat": "REGISTRY-OWNED. Unlike RIS-RED-FIRST (whose site marker lives under the wholesale-regenerated .claude/skills/), this option's site is .claude/rules/workflow.md, which sync-claude-config.yml does NOT touch -- so this repo genuinely owns the switch.",
+      "verified": "2026-07-27, added with the rule block in the same commit; sync scope re-checked against .github/workflows/sync-claude-config.yml (rm -rf covers .claude/skills/ only)",
+      "added": "2026-07-27"
+    },
+    "SIM-REFPOP": {
+      "title": "Reports: a published margin carries the contributing-company population, not just the agreed reference value",
+      "applies_to": [
+        ".claude/rules/sim-report-completeness.md -- carries the [opt:SIM-REFPOP] site marker, immediately after [opt:SIM-REQBASIS]",
+        "artifacts/**/spec-provenance-ledger.md -- the reference_performance rows",
+        "artifacts/**/reference-performance.json -- the margin object"
+      ],
+      "default": "on",
+      "on_behavior": "Wherever a report or register publishes a MARGIN against a published reference performance, it carries the contributing population as structured data -- reference_performance: {value, basis_condition, selection_rule, source, n, contributors:[{source, value, condition, harness}]}. Only same-basis values are pooled; every contributor carries its condition. N is stated with the raw values and percentile/quantile language is forbidden (small, self-selected samples). Unavailable populations are recorded (not-published). Best-effort where no margin is published. Acquisition via spec-provenance + tools/fetch_the published source_tdoc.py, never from memory.",
+      "off_behavior": "Pre-2026-07-27: a margin is compared against a single agreed reference value with no dispersion, so there is no matched noise floor for judging whether the margin is material. Company attribution stays prose-level (ledger section K style) and cannot be queried or checked for basis mixing.",
+      "tool": "flip `default` here; the rule block in sim-report-completeness.md is skipped when off",
+      "caveat": "REGISTRY-OWNED (.claude/rules/ is not in the sync-claude-config.yml scope). Extends [opt:SIM-REQBASIS]; turning SIM-REQBASIS off makes this one vacuous, since there is no reference basis to carry a population for.",
+      "verified": "2026-07-27, added with the rule block in the same commit; the basis-mixing hazard is evidenced from ledger section K (9.0 ideal / 9.2 alignment / 11.2 impairment -- three quantities, not a spread)",
+      "added": "2026-07-27"
+    },
+    "MATH-REDERIVE": {
+      "title": "Derivations: every new derivation gets one independent re-derivation before it lands",
+      "applies_to": [
+        ".claude/rules/workflow.md -- Math Derivation Rules, carries the [opt:MATH-REDERIVE] site marker",
+        "surveys/**, wikis/**, reports/** -- any document adding or materially changing a numbered derivation"
+      ],
+      "default": "on",
+      "on_behavior": "Before a new or materially-changed numbered derivation is committed, ONE independent re-derivation is run by an agent that did not author it, deriving from first principles BEFORE reading the target text, and its findings are applied or explicitly rejected with a reason. The reviewer's raw output is preserved under the document's _scratch/. Sizing follows DRS-HARDEN: exact paths, no Glob, file-first incremental deliverable, under ~30 tool calls, kept on Opus because this is adversarial verification gating correctness.",
+      "off_behavior": "The author's own numerical checks are the only gate, as before.",
+      "rationale": "Measured upstream on one survey: four verifiers, ~10 minutes each, found 17 error-class defects in material that had ALREADY passed the author's numerical checks and one prior adversarial review -- two claims exactly backwards, a formula refuted by its own sanity anchor two sentences away, and a citation misattribution inside the paragraph about attributing correctly. Nothing else measured in that session approached the yield per unit effort. It also catches what a value-checking oracle structurally cannot: an oracle confirms arithmetic while the conclusion drawn from it is inverted. Oracles test values; re-derivation tests reasoning.",
+      "gate": "viewer/tools/check-derivation-review.py",
+      "toggle": ".claude/math-rederive-severity"
+    },
+    "MATH-BASIS": {
+      "title": "Derivations: every quantity measurable on two bases declares which one, at the point of use",
+      "applies_to": [
+        ".claude/rules/workflow.md -- Math Derivation Rules, carries the [opt:MATH-BASIS] site marker",
+        "surveys/**, wikis/**, reports/** -- any document stating a derived quantity",
+        "viewer/tools/check-basis-declarations.py -- the mechanical gate"
+      ],
+      "default": "on",
+      "on_behavior": "A quantity that can be measured on more than one basis carries its basis where it is first used and wherever it is compared: sample counts as per-channel or total; statistics as realised-population or ensemble; time constants as mean-error or mean-square; a variance by naming WHICH quantity's variance; a sign convention by naming the section that sets it; a dB figure as dBc, dBFS or dB-relative-to-named. Two values on different bases are never compared without a stated reconciliation.",
+      "off_behavior": "Bases are declared ad hoc, as .claude/rules/calibration-residuals.md check 4 already requires at the moment of ATTRIBUTION rather than of authoring.",
+      "rationale": "Measured upstream on one survey: metric-basis conflation was the LARGEST single defect class, 5 of 17 findings -- N per-channel vs total, sigma_F^2 vs a different scheme's variance, tau mean vs mean-square, sigma_eps realised vs ensemble, and a sign convention contradicting the section that set it 130 lines earlier. calibration-residuals check 4 already forbids exactly this, was loaded, and fired five times anyway: it owns the moment of attribution, and nothing owned the moment of authoring. Same structural gap [opt:PLAN-REDFIRST] was created to close."
+    },
+    "SIM-BASELINE": {
+      "title": "sim-report-completeness: validate the CONTROL arm at its own best operating point before publishing a comparative margin",
+      "applies_to": ".claude/rules/sim-report-completeness.md (## The rule -> baseline-validation clause)",
+      "default": "on",
+      "on_behavior": "Before publishing a margin, state for the baseline what you would state for the candidate: its configuration, why that configuration, and evidence it is not being run below its own best setting. Cheapest sufficient check: vary the baseline's most-arbitrary knob and confirm the chosen setting is not dominated.",
+      "off_behavior": "Report the comparative margin with the treatment arm alone carrying a configuration justification; the baseline's setting is taken as given.",
+      "rationale": "A comparative result is a DIFFERENCE and is exactly as sensitive to the control as to the treatment, but scrutiny is never symmetric: the treatment is what is being proposed and gets the derivations and the adversarial review, while the control inherits an obvious-looking default nobody questions. Measured 2026-08-02 (bugs/2026-08-02-coded-phy-gain-measured-against-uncalibrated-baseline): a Coded-PHY gain published at +3.20 dB was +1.60 dB on a fair basis -- the discriminator baseline's raw soft LLR decoded WORSE than its own hard decisions, so roughly half the reported gain was the baseline's miscalibration rather than sequence detection. A handicapped control inflates the effect AND reproduces perfectly on every re-run, so repetition, seeding discipline and CI cannot surface it -- 40+ Monte Carlo runs did not. This is calibration-residuals check 6 applied at the moment a comparative margin is PUBLISHED rather than when a residual is attributed.",
+      "added": "2026-08-03"
+    }
+  }
+}

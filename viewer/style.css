@@ -66,6 +66,13 @@ html[data-theme="sepia"] {
   --text: #3a3022;
   --text-muted: #7a6c54;
   --accent: #8a5a2b;
+  /* Deeper warm highlight fills for the cream page. The light-theme pastels
+     (yellow/orange/pink) share the cream's hue AND luminance (contrast ~1.05)
+     so they wash out; these clear it (contrast ~1.45-1.57) while keeping dark
+     text >=7:1. Cool hues read fine on hue contrast and stay light-inherited. */
+  --hl-yellow: #ecc233;
+  --hl-orange: #ffb865;
+  --hl-pink:   #f7a8c8;
 }
 
 html[data-theme="dark"] {
@@ -85,6 +92,21 @@ html[data-theme="dark"] {
   --hl-purple: #3a3354;
   --hl-teal:   #1f4944;
   --hl-pink:   #4d2a3a;
+  /* Saturated highlighter "ink" hues. On the near-black page an opaque muddy
+     fill reads as a dirt smear; dark-mode content highlights instead lay a
+     low-alpha GLAZE of these hues (page + any covered link/inline-math show
+     through) edged by a thin ink ring. Also drive the vivid toolbar swatches
+     so the 8-colour picker stays distinguishable on the dark toolbar. The
+     opaque --hl-* above are kept for surfaces where light text sits on the
+     fill (search-hit em, flash washes, right-pane dots). */
+  --hl-yellow-ink: #f2cc4b;
+  --hl-green-ink:  #4ade80;
+  --hl-red-ink:    #f26d75;
+  --hl-blue-ink:   #5aa9f0;
+  --hl-orange-ink: #f0964a;
+  --hl-purple-ink: #b98cf5;
+  --hl-teal-ink:   #2dd4bf;
+  --hl-pink-ink:   #f472b6;
 }
 
 /* Figures: dim, never invert (spec section 7). */
@@ -1052,6 +1074,47 @@ mark { background-color: var(--hl-yellow); padding: 0.1em 0.2em; border-radius: 
 .hl-purple { background-color: var(--hl-purple); }
 .hl-teal   { background-color: var(--hl-teal); }
 .hl-pink   { background-color: var(--hl-pink); }
+
+/* Links inside a highlight keep an underline so the link affordance never
+   depends on hue contrast with the fill (a blue link inside a blue highlight
+   is only ~4:1 in dark mode). Content-scoped; all themes. */
+:is(#content, #content-b) :is(mark, .hl-yellow, .hl-green, .hl-red, .hl-blue, .hl-orange, .hl-purple, .hl-teal, .hl-pink) a {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+/* ── Dark-mode content highlights: translucent glaze + crisp ink ring ──────
+   Per-class --_ink feeds one shared rule. Scoped to the content panes so it
+   never touches command-palette (.pal-item mark) or right-pane list marks.
+   The glaze is translucent (mixed with `transparent`) so the dark page and
+   any link/inline-math it covers stay visible; the inset ring gives the
+   highlight a defined edge instead of a muddy blob. */
+html[data-theme="dark"] :is(#content, #content-b) mark       { --_ink: var(--hl-yellow-ink); }
+html[data-theme="dark"] :is(#content, #content-b) .hl-yellow { --_ink: var(--hl-yellow-ink); }
+html[data-theme="dark"] :is(#content, #content-b) .hl-green  { --_ink: var(--hl-green-ink); }
+html[data-theme="dark"] :is(#content, #content-b) .hl-red    { --_ink: var(--hl-red-ink); }
+html[data-theme="dark"] :is(#content, #content-b) .hl-blue   { --_ink: var(--hl-blue-ink); }
+html[data-theme="dark"] :is(#content, #content-b) .hl-orange { --_ink: var(--hl-orange-ink); }
+html[data-theme="dark"] :is(#content, #content-b) .hl-purple { --_ink: var(--hl-purple-ink); }
+html[data-theme="dark"] :is(#content, #content-b) .hl-teal   { --_ink: var(--hl-teal-ink); }
+html[data-theme="dark"] :is(#content, #content-b) .hl-pink   { --_ink: var(--hl-pink-ink); }
+html[data-theme="dark"] :is(#content, #content-b) :is(mark, .hl-yellow, .hl-green, .hl-red, .hl-blue, .hl-orange, .hl-purple, .hl-teal, .hl-pink) {
+  background-color: color-mix(in srgb, var(--_ink) 32%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--_ink) 72%, transparent);
+  color: #eef1f7;
+  border-radius: 3px;
+}
+
+/* Vivid solid swatches in the highlight toolbar (the muddy --hl-* fills are
+   near-indistinguishable on the dark toolbar). */
+html[data-theme="dark"] #hl-toolbar .hl-swatch[data-action="yellow"] { background: var(--hl-yellow-ink); }
+html[data-theme="dark"] #hl-toolbar .hl-swatch[data-action="green"]  { background: var(--hl-green-ink); }
+html[data-theme="dark"] #hl-toolbar .hl-swatch[data-action="red"]    { background: var(--hl-red-ink); }
+html[data-theme="dark"] #hl-toolbar .hl-swatch[data-action="blue"]   { background: var(--hl-blue-ink); }
+html[data-theme="dark"] #hl-toolbar .hl-swatch[data-action="orange"] { background: var(--hl-orange-ink); }
+html[data-theme="dark"] #hl-toolbar .hl-swatch[data-action="purple"] { background: var(--hl-purple-ink); }
+html[data-theme="dark"] #hl-toolbar .hl-swatch[data-action="teal"]   { background: var(--hl-teal-ink); }
+html[data-theme="dark"] #hl-toolbar .hl-swatch[data-action="pink"]   { background: var(--hl-pink-ink); }
 
 /* ── Live-reload change highlights ────────────────────────────── */
 @keyframes block-change-flash {

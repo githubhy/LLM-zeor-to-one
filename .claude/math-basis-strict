@@ -1,0 +1,6 @@
+# Surveys held to [opt:MATH-BASIS] at ERROR severity: backlog cleared, keep it clear.
+# A survey earns a line here by reaching zero findings, not by declaration.
+# Promoting the GLOBAL severity instead would block pushes on unreviewed surveys,
+# which is how a gate gets switched off.
+#
+# Empty: the corpus carries an N/D basis backlog (see todos/).

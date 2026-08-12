@@ -89,7 +89,7 @@ def test_warn_severity_does_not_block(tmp_path):
 
 def test_bare_section_ref_fires(tmp_path):
     """A bare '§3.7.6 Step 3' on a content line must error."""
-    content = "This is the form used by box-plus implementations (§3.7.6 Step 3).\n"
+    content = "This is the form used by self-attention implementations (§3.7.6 Step 3).\n"
     rc, out, err = run_bare_refs(tmp_path, content)
     assert rc != 0
     assert "bare section-ref" in (out + err).lower()
@@ -99,7 +99,7 @@ def test_bare_section_ref_fires(tmp_path):
 def test_marked_section_ref_passes(tmp_path):
     """A properly marked secref must not fire."""
     content = (
-        "This is the form used by box-plus implementations "
+        "This is the form used by self-attention implementations "
         "(<!-- secref:3.7.6-step-3 -->[§3.7.6 Step 3](#sec-3.7.6-step-3)).\n"
     )
     rc, out, err = run_bare_refs(tmp_path, content)
@@ -236,3 +236,115 @@ def test_bare_section_4_alone_not_flagged(tmp_path):
     # Either result is acceptable: the §X form without a dot is intentionally
     # not matched by BARE_SEC_RE, so this should pass (exit 0)
     assert rc == 0, f"§4 (no dot) should not be detected: {out}\n{err}"
+
+
+# ── Check #4 — image paths: skip examples inside inline code ──────────
+
+def _run_full(tmp_path, content):
+    """Run full validate-refs over a one-file temp dir; returns (rc, out+err)."""
+    d = tmp_path / "wikis"
+    d.mkdir()
+    (d / "doc.md").write_text(content, encoding="utf-8")
+    r = subprocess.run([sys.executable, str(VALIDATE), str(d)],
+                       capture_output=True, text=True, encoding="utf-8")
+    return r.returncode, r.stdout + r.stderr
+
+
+def test_image_inside_inline_code_not_validated(tmp_path):
+    """bug 2026-07-11-04: a `![alt](path)` shown as a documentation example inside
+    backticks is not a real image reference and must not trigger 'Image not found'."""
+    content = "# Doc\n\nEmbed via `![F-S3](../sim/.../fig.png)` if rendered.\n"
+    rc, out = _run_full(tmp_path, content)
+    assert "Image not found" not in out, out
+
+
+def test_real_missing_image_still_validated(tmp_path):
+    """Positive control: an actual (non-backticked) missing image still errors."""
+    content = "# Doc\n\n![F-S3](./missing-figure.png)\n"
+    rc, out = _run_full(tmp_path, content)
+    assert "Image not found" in out, out
+
+
+# ── Duplicate-anchor-ID check (bugs 2026-07-10-06 / -10) ─────────────
+
+def run_dup_anchors(tmp_path, content, severity="error"):
+    """Write `content` and run validate-refs --bare-refs-only with an explicit
+    --dup-anchor-severity override. Returns (exit_code, stdout+stderr)."""
+    f = tmp_path / "doc.md"
+    f.write_text(content, encoding="utf-8")
+    cmd = [sys.executable, str(VALIDATE), "--bare-refs-only",
+           f"--dup-anchor-severity={severity}", str(f)]
+    r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8")
+    return r.returncode, r.stdout + r.stderr
+
+
+def test_duplicate_anchor_id_fires_at_error(tmp_path):
+    """Two <a id="sec-3.5"> in one file must error at --dup-anchor-severity=error."""
+    content = (
+        '## <a id="sec-3.5"></a>3.5 Multi-Head Attention\n'
+        "\n"
+        '<a id="p-35-multi-head-attention-1"></a><!-- para:35-multi-head-attention-1 --> <a id="sec-3.5"></a>\n'
+        "Body text.\n"
+    )
+    rc, out = run_dup_anchors(tmp_path, content, "error")
+    assert rc != 0, f"duplicate sec-3.5 should error: {out}"
+    assert "duplicate anchor" in out.lower()
+    assert "sec-3.5" in out
+
+
+def test_duplicate_landmark_anchor_id_fires(tmp_path):
+    """Two identical landmark ids (a section with two Step-1 sequences) must error."""
+    content = (
+        '<a id="sec-8.1.1-step-1"></a>  **Step 1 — first.**\n'
+        '<a id="sec-8.1.1-step-1"></a>  **Step 1 — second sequence.**\n'
+    )
+    rc, out = run_dup_anchors(tmp_path, content, "error")
+    assert rc != 0
+    assert "sec-8.1.1-step-1" in out
+
+
+def test_duplicate_anchor_warn_does_not_block(tmp_path):
+    """At --dup-anchor-severity=warn a duplicate reports but exits 0."""
+    content = (
+        '## <a id="sec-3.5"></a>3.5 Title\n'
+        '<a id="sec-3.5"></a>\n'
+    )
+    rc, out = run_dup_anchors(tmp_path, content, "warn")
+    assert rc == 0, f"warn must not block: {out}"
+    assert "duplicate anchor" in out.lower()
+
+
+def test_duplicate_anchor_off_silent(tmp_path):
+    """At --dup-anchor-severity=off the check is silent and does not block."""
+    content = (
+        '## <a id="sec-3.5"></a>3.5 Title\n'
+        '<a id="sec-3.5"></a>\n'
+    )
+    rc, out = run_dup_anchors(tmp_path, content, "off")
+    assert rc == 0
+    assert "duplicate anchor" not in out.lower()
+
+
+def test_unique_anchors_pass(tmp_path):
+    """Distinct anchor ids must not fire even at error severity."""
+    content = (
+        '## <a id="sec-3.5"></a>3.5 A\n'
+        '## <a id="sec-3.6"></a>3.6 B\n'
+        '<a id="eq-1"></a>\n'
+    )
+    rc, out = run_dup_anchors(tmp_path, content, "error")
+    assert rc == 0, f"unique anchors should pass: {out}"
+    assert "duplicate anchor" not in out.lower()
+
+
+def test_duplicate_anchor_inside_code_fence_ignored(tmp_path):
+    """An <a id> shown twice as an example inside a fenced code block is not a real
+    anchor and must not fire."""
+    content = (
+        "```\n"
+        '<a id="sec-3.5"></a>3.5 Example\n'
+        '<a id="sec-3.5"></a>3.5 Example again\n'
+        "```\n"
+    )
+    rc, out = run_dup_anchors(tmp_path, content, "error")
+    assert rc == 0, f"anchors inside a code fence should be ignored: {out}"

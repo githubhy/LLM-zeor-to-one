@@ -37,8 +37,19 @@ if [ -z "${BASH_VERSION:-}" ]; then
   echo "ERROR: this installer requires bash (got non-bash shell). Run as: bash $0" >&2
   exit 2
 fi
-if ! command -v python3 >/dev/null 2>&1; then
-  echo "ERROR: python3 not found in PATH. Install python3 and re-run." >&2
+# Resolve a real Python 3 (>= 3.8). On Windows `python3` is often the Microsoft
+# Store app-execution stub: it resolves in PATH (so `command -v` passes) but any
+# real invocation prints "Python was not found" and exits non-zero. Probe each
+# candidate with a version check — the same strategy hooks/py-launcher.sh uses —
+# and use the first that actually runs 3.8+.
+PY=""
+for _cand in python3 python py; do
+  if "$_cand" -c 'import sys; sys.exit(0 if sys.version_info[:2] >= (3, 8) else 1)' >/dev/null 2>&1; then
+    PY="$_cand"; break
+  fi
+done
+if [ -z "$PY" ]; then
+  echo "ERROR: no working Python >= 3.8 in PATH (tried python3, python, py). Install one and re-run." >&2
   exit 2
 fi
 
@@ -114,10 +125,11 @@ SRC_TELEMETRY="$SOURCE_ROOT/hooks/log-turn-telemetry.py"
 SRC_DETECT="$SOURCE_ROOT/hooks/detect-ttl.py"
 SRC_TICK="$SOURCE_ROOT/hooks/cache-warmer-tick.sh"
 SRC_EXTEND="$SOURCE_ROOT/hooks/cache-warmer-extend.sh"
+SRC_LAUNCHER="$SOURCE_ROOT/hooks/py-launcher.sh"
 
 # Cache-warmer command strings the installer writes (used for matching during
 # uninstall and verification — substring match tolerates minor manual edits).
-STOP_CMD='python3 "'"$HOOK_CMD_PATH"'/log-turn-telemetry.py"'
+STOP_CMD='bash "'"$HOOK_CMD_PATH"'/py-launcher.sh" "'"$HOOK_CMD_PATH"'/log-turn-telemetry.py"'
 PROMPT_CMD='sh "'"$HOOK_CMD_PATH"'/cache-warmer-extend.sh"'
 
 GITIGNORE_LINES=(
@@ -130,7 +142,7 @@ log() { echo "[$ACTION] $*"; }
 # ─── helpers ──────────────────────────────────────────────────────────────────
 validate_settings_json() {
   if [[ -f "$SETTINGS_FILE" ]]; then
-    if ! python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$SETTINGS_FILE" 2>/dev/null; then
+    if ! "$PY" -c "import json,sys; json.load(open(sys.argv[1]))" "$SETTINGS_FILE" 2>/dev/null; then
       echo "ERROR: $SETTINGS_FILE exists but is not valid JSON." >&2
       echo "       Inspect or remove it, then re-run. Aborting to avoid corruption." >&2
       exit 4
@@ -142,7 +154,7 @@ settings_has_hook() {
   # Args: hook_type cmd_substring → exit 0 if present, 1 if not
   local hook_type="$1" needle="$2"
   [[ -f "$SETTINGS_FILE" ]] || return 1
-  python3 - "$SETTINGS_FILE" "$hook_type" "$needle" <<'PYEOF'
+  "$PY" - "$SETTINGS_FILE" "$hook_type" "$needle" <<'PYEOF'
 import json, sys
 path, hook_type, needle = sys.argv[1], sys.argv[2], sys.argv[3]
 data = json.load(open(path))
@@ -152,6 +164,18 @@ for grp in data.get("hooks", {}).get(hook_type, []):
             sys.exit(0)
 sys.exit(1)
 PYEOF
+}
+
+gitignore_present() {
+  # A gitignore line counts as present if it appears verbatim OR with a leading
+  # **/ glob — some setups broaden `.claude/diagnostics/` to `**/.claude/diagnostics/`.
+  # Without this tolerance, --check / verify_install report a false MISSING (and
+  # append_gitignore_line would add a redundant second form) on a working install.
+  local line="$1" file="$TARGET/.gitignore"
+  [[ -f "$file" ]] || return 1
+  grep -qxF "$line" "$file" && return 0
+  grep -qxF "**/$line" "$file" && return 0
+  return 1
 }
 
 # ─── install action ───────────────────────────────────────────────────────────
@@ -177,7 +201,7 @@ merge_hook() {
     log "DRY: merge $hook_type hook into $SETTINGS_FILE (async=$async_flag)"
     return
   fi
-  python3 - "$SETTINGS_FILE" "$hook_type" "$cmd" "$async_flag" <<'PYEOF'
+  "$PY" - "$SETTINGS_FILE" "$hook_type" "$cmd" "$async_flag" <<'PYEOF'
 import json, sys, time
 from pathlib import Path
 path = Path(sys.argv[1])
@@ -209,7 +233,7 @@ PYEOF
 
 append_gitignore_line() {
   local line="$1" comment="$2" file="$TARGET/.gitignore"
-  if [[ -f "$file" ]] && grep -qxF "$line" "$file"; then
+  if gitignore_present "$line"; then
     log "skip (already in .gitignore): $line"
   elif $DRY_RUN; then
     log "DRY: append $line -> $file"
@@ -230,7 +254,8 @@ verify_install() {
            "$HOOK_DIR/log-turn-telemetry.py" \
            "$HOOK_DIR/detect-ttl.py" \
            "$HOOK_DIR/cache-warmer-tick.sh" \
-           "$HOOK_DIR/cache-warmer-extend.sh"; do
+           "$HOOK_DIR/cache-warmer-extend.sh" \
+           "$HOOK_DIR/py-launcher.sh"; do
     if [[ -f "$f" ]]; then
       echo "  ✓ $f"
     else
@@ -249,7 +274,7 @@ verify_install() {
   fi
   if [[ "$MODE" == "project" ]]; then
     for line in "${GITIGNORE_LINES[@]}"; do
-      if [[ -f "$TARGET/.gitignore" ]] && grep -qxF "$line" "$TARGET/.gitignore"; then
+      if gitignore_present "$line"; then
         echo "  ✓ .gitignore: $line"
       else
         echo "  ✗ MISSING: .gitignore line: $line" >&2; failed=$((failed+1))
@@ -263,7 +288,7 @@ verify_install() {
 }
 
 cmd_install() {
-  for f in "$SRC_COMMAND" "$SRC_TELEMETRY" "$SRC_DETECT" "$SRC_TICK" "$SRC_EXTEND"; do
+  for f in "$SRC_COMMAND" "$SRC_TELEMETRY" "$SRC_DETECT" "$SRC_TICK" "$SRC_EXTEND" "$SRC_LAUNCHER"; do
     [[ -f "$f" ]] || { echo "ERROR: missing source $f" >&2; exit 3; }
   done
 
@@ -283,6 +308,7 @@ cmd_install() {
   copy_file "$SRC_DETECT"    "$HOOK_DIR/detect-ttl.py"          true
   copy_file "$SRC_TICK"      "$HOOK_DIR/cache-warmer-tick.sh"   true
   copy_file "$SRC_EXTEND"    "$HOOK_DIR/cache-warmer-extend.sh" true
+  copy_file "$SRC_LAUNCHER"  "$HOOK_DIR/py-launcher.sh"         true
 
   # The command body is scope-agnostic: it falls back to ~/.claude/hooks/ when
   # the tick script is absent from the project, and the tick script resolves
@@ -309,7 +335,7 @@ cmd_install() {
     log "Dry-run complete; no changes written."
   fi
   log "  slash command: $cmd_dest"
-  log "  hooks:         $HOOK_DIR/{log-turn-telemetry,detect-ttl,cache-warmer-extend}.py + cache-warmer-tick.sh"
+  log "  hooks:         $HOOK_DIR/{log-turn-telemetry,detect-ttl}.py + {cache-warmer-tick,cache-warmer-extend,py-launcher}.sh"
   log "  settings:      $SETTINGS_FILE"
   [[ "$MODE" == "project" ]] && log "  gitignore:     $TARGET/.gitignore"
   echo
@@ -338,6 +364,7 @@ cmd_check() {
   check_path "TTL detector"         "$HOOK_DIR/detect-ttl.py"
   check_path "Tick helper"          "$HOOK_DIR/cache-warmer-tick.sh"
   check_path "Auto-extend hook"     "$HOOK_DIR/cache-warmer-extend.sh"
+  check_path "Python launcher"      "$HOOK_DIR/py-launcher.sh"
 
   if settings_has_hook "Stop" "log-turn-telemetry.py"; then
     log "  REGISTERED: Stop hook in $SETTINGS_FILE"
@@ -356,7 +383,7 @@ cmd_check() {
 
   if [[ "$MODE" == "project" ]]; then
     for line in "${GITIGNORE_LINES[@]}"; do
-      if [[ -f "$TARGET/.gitignore" ]] && grep -qxF "$line" "$TARGET/.gitignore"; then
+      if gitignore_present "$line"; then
         log "  PRESENT: .gitignore line: $line"
         present=$((present+1))
       else
@@ -388,7 +415,7 @@ strip_hook() {
     return
   fi
   [[ -f "$SETTINGS_FILE" ]] || { log "skip (settings absent): $SETTINGS_FILE"; return; }
-  python3 - "$SETTINGS_FILE" "$hook_type" "$needle" <<'PYEOF'
+  "$PY" - "$SETTINGS_FILE" "$hook_type" "$needle" <<'PYEOF'
 import json, sys, time
 from pathlib import Path
 path = Path(sys.argv[1])
@@ -424,7 +451,7 @@ PYEOF
 
 remove_gitignore_line() {
   local line="$1" file="$TARGET/.gitignore"
-  if [[ ! -f "$file" ]] || ! grep -qxF "$line" "$file"; then
+  if ! gitignore_present "$line"; then
     log "skip (gitignore line absent): $line"
     return
   fi
@@ -432,8 +459,9 @@ remove_gitignore_line() {
     log "DRY: remove gitignore line: $line"
     return
   fi
-  # grep -v with exact-line match isn't trivial; use awk
-  awk -v target="$line" '$0 != target' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+  # Remove the verbatim line and the **/-broadened variant; exact whole-line
+  # match (awk ==) so a substring of an unrelated rule is never collateral.
+  awk -v t="$line" -v tg="**/$line" '$0 != t && $0 != tg' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
   log "removed gitignore line: $line"
 }
 
@@ -467,6 +495,7 @@ cmd_uninstall() {
   # Both forms: .sh is current; .py lingers from pre-2026-06-11-12 installs.
   remove_path "$HOOK_DIR/cache-warmer-extend.sh"
   remove_path "$HOOK_DIR/cache-warmer-extend.py"
+  remove_path "$HOOK_DIR/py-launcher.sh"
 
   strip_hook "Stop"             "log-turn-telemetry.py"
   strip_hook "UserPromptSubmit" "cache-warmer-extend"

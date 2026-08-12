@@ -6,7 +6,7 @@
 <!-- sec:A.1 -->
 ### <a id="sec-A.1"></a>A.1 The residual stream as a sum over paths
 
-<a id="p-a1-the-residual-stream-as-a-sum-over-paths-1"></a><!-- para:a1-the-residual-stream-as-a-sum-over-paths-1 --> Unrolling the additive update of Equation <!-- ref:2-1 -->[(1)](fundamentals.md#eq-1) from $\mathbf{x}_0 = W_E\,\mathrm{onehot}(t)$ gives the final state as a plain sum of every component's write:
+<a id="p-a1-the-residual-stream-as-a-sum-over-paths-1"></a><!-- para:a1-the-residual-stream-as-a-sum-over-paths-1 --> Unrolling the additive update of Equation [(1)](fundamentals.md#eq-1) <!-- xref:2-1 --> from $\mathbf{x}_0 = W_E\,\mathrm{onehot}(t)$ gives the final state as a plain sum of every component's write:
 
 <a id="eq-1"></a><!-- eq:A-1 -->
 $$

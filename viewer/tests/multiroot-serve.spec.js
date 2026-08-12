@@ -100,7 +100,11 @@ test('a directory (or empty) markdown id returns 404 and does NOT crash the serv
     // roota/sub is a real directory inside a root — the exact EISDIR trigger.
     const asDir = await page.request.get(`http://localhost:${p}/api/md/roota/sub`);
     expect(asDir.status()).toBe(404);
-    // Empty id (`GET /api/md/`) must also be a clean 404, not a 500 / crash.
+    // Empty id (`GET /api/md/`) is a clean 404 too. Note it does NOT exercise
+    // the isRegularFile guard in this fixture: with two roots, rootForFile('')
+    // is null, so markdownPathFor returns null and the `!filePath` branch
+    // short-circuits first. Kept as a guard against an empty id ever reaching
+    // the stat; the roota/sub case above is what actually gates the EISDIR fix.
     const empty = await page.request.get(`http://localhost:${p}/api/md/`);
     expect(empty.status()).toBe(404);
     // The server survived both malformed reads: a normal fetch still succeeds.

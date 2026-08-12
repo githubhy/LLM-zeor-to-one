@@ -5,6 +5,9 @@ Usage:
     python validate_gate.py <study-name> <gate> <topic>
 
 Gates:
+    G0  Phase 1 → 2  (Scenario → Implementation) — derivation-soundness gate.
+                     Standing (skill-options RIS-DERIV, default on); checks the
+                     per-candidate derivation ledger BEFORE any implementation.
     G1  Phase 2 → 3  (Implementation → Baseline)
     G2  Phase 3 → 4  (Baseline → Sensitivity)
     G3  Phase 4 → 5  (Sensitivity → Precision)
@@ -20,6 +23,7 @@ Exit codes:
 
 from __future__ import annotations
 
+import fnmatch
 import importlib
 import json
 import subprocess
@@ -37,24 +41,78 @@ def _check(ok: bool, msg: str, results: list[tuple[bool, str]]) -> None:
     results.append((ok, msg))
 
 
+def _non_candidate_patterns(study: str) -> list[str]:
+    """fnmatch globs of module stems that are NOT derivation candidates (drivers, figure
+    generators, diagnostics, probes, sweep/batch harnesses). Declared per-study in the manifest
+    key ``derivation_ledger_non_candidates`` (a list of exact stems and/or globs like ``*_figure``).
+
+    Why this exists: ``_find_candidate_modules`` globs EVERY ``.py`` under implementation/<topic>/,
+    but a real study directory also holds tooling — a benchmark-conformance campaign has
+    ~18 drivers/figures/probes alongside a handful of true derivation candidates, so the G0-advisory
+    fired on all of them every push (an upstream G0-ledger-drift todo). Absent key =>
+    empty => legacy behaviour (every module is a candidate), so other studies are unaffected.
+    """
+    manifest = REPO_ROOT / "artifacts" / study / "study-manifest.json"
+    try:
+        data = json.loads(manifest.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError, OSError):
+        return []
+    pats = data.get("derivation_ledger_non_candidates") if isinstance(data, dict) else None
+    return [str(p) for p in pats] if isinstance(pats, list) else []
+
+
 def _find_candidate_modules(study: str, topic: str) -> list[str]:
-    """Return importable module names under implementation/<topic>/ (excluding utils)."""
+    """Return the study's candidate names for the G0 per-candidate ledger check.
+
+    THREE-LAYER resolution (decisions/2026-07-26-g0-candidate-resolution-layering). Two
+    independent fixes for the same defect — the impl-dir scan over-scoping onto tooling —
+    were developed in parallel; they compose rather than compete, so both are kept and
+    neither side's study manifests need rewriting:
+
+    1. **Allow-list (authoritative).** A manifest ``candidates`` list, when present and
+       non-empty, IS the candidate set. Fixes studies laid out by PHASE
+       (baseline/sensitivity/precision) plus infra (plot_*, run_*, rtl_golden, bittrue)
+       rather than one module per candidate — infra modules are not algorithm candidates
+       and carry no derivation, so requiring a ledger entry for each is wrong.
+    2. **Scan minus deny-list.** Otherwise scan implementation/<topic>/ and drop any stem
+       matching a manifest ``derivation_ledger_non_candidates`` glob (see that helper) —
+       the lighter annotation for a large campaign dir that is mostly true candidates.
+    3. **Legacy scan.** Neither key declared => every module is a candidate (unchanged).
+
+    Allow-list wins when both are declared: it is explicit and fails safe (a newly-added
+    driver is excluded by default instead of needing a new deny pattern).
+    """
+    ok, manifest = _json_loadable(REPO_ROOT / "artifacts" / study / "study-manifest.json")
+    if ok and isinstance(manifest, dict):
+        cands = manifest.get("candidates")
+        if isinstance(cands, list) and cands:
+            return [str(c) for c in cands]
     impl_dir = REPO_ROOT / "implementation" / topic
     if not impl_dir.is_dir():
         return []
-    return [
-        p.stem
-        for p in impl_dir.glob("*.py")
-        if p.stem not in ("__init__", "utils", "__pycache__")
-    ]
+    excl = _non_candidate_patterns(study)
+    out = []
+    for p in impl_dir.glob("*.py"):
+        stem = p.stem
+        if stem in ("__init__", "utils", "__pycache__"):
+            continue
+        if any(fnmatch.fnmatch(stem, pat) for pat in excl):
+            continue
+        out.append(stem)
+    return out
 
 
 def _json_loadable(path: Path) -> tuple[bool, dict | list | None]:
+    # encoding='utf-8' is REQUIRED, not cosmetic (CLAUDE.md [opt:UTF8-WRITE]): a bare open() uses the
+    # locale code page, which on Windows is GBK/CP936, so any non-ASCII glyph in a manifest (an em-dash,
+    # a curly quote, '->') raises UnicodeDecodeError. Worse, UnicodeDecodeError is NOT in the except
+    # clause below (it is a ValueError, not a JSONDecodeError), so the gate CRASHED with a traceback
+    # instead of reporting a clean FAIL. Both halves of that are fixed here.
     try:
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             data = json.load(f)
         return True, data
-    except (json.JSONDecodeError, OSError):
+    except (json.JSONDecodeError, UnicodeDecodeError, OSError):
         return False, None
 
 
@@ -78,6 +136,170 @@ def _resolve_topic(topic: str) -> str:
 # ---------------------------------------------------------------------------
 # Gate validators
 # ---------------------------------------------------------------------------
+
+def _check_ledger_entries(
+    entries: list,
+    modules: list[str] | None = None,
+) -> list[tuple[bool, str]]:
+    """Pure validation of derivation-ledger entries.
+
+    Kept free of REPO_ROOT / filesystem access so it is unit-testable with
+    in-memory fixtures (test_validate_gate_g0.py). ``gate_g0`` loads the ledger
+    + candidate modules from disk and delegates the per-entry checks here.
+
+    Contract (skill-options RIS-DERIV):
+      * every entry: a ``survey_ref`` or ``spec_ref``, ``no_missing_step is True``,
+        and a ``tier`` in {load-bearing, catalog};
+      * load-bearing entries additionally: ``independent_rederivation == 'verified'``,
+        >= 1 ``limit_checks``, a non-empty ``assumptions`` list, and an
+        ``external_values`` list (each imported constant/coefficient/comparison value
+        reproduced from an acquired source per citation-integrity; ``[]`` is allowed
+        only with an ``external_values_note`` explaining there are none).
+    """
+    results: list[tuple[bool, str]] = []
+    _check(bool(entries), "derivation_ledger has >= 1 entry", results)
+
+    if modules:
+        ledger_ids = {
+            str(e.get("candidate", "")).replace("-", "_")
+            for e in entries
+            if isinstance(e, dict)
+        }
+        missing = [m for m in modules if m.replace("-", "_") not in ledger_ids]
+        _check(
+            not missing,
+            f"every candidate module has a ledger entry (missing: {missing})",
+            results,
+        )
+
+    valid_tiers = {"load-bearing", "catalog"}
+    for e in entries:
+        if not isinstance(e, dict):
+            _check(False, "ledger entry is a JSON object", results)
+            continue
+        cid = e.get("candidate", "?")
+        tier = str(e.get("tier", "")).strip().lower().replace("_", "-")
+        _check(
+            tier in valid_tiers,
+            f"[{cid}] tier in {{load-bearing, catalog}} (got {e.get('tier')!r})",
+            results,
+        )
+        _check(
+            bool(e.get("survey_ref") or e.get("spec_ref")),
+            f"[{cid}] carries a survey_ref/spec_ref (Report §4 eq↔function left column)",
+            results,
+        )
+        _check(
+            e.get("no_missing_step") is True,
+            f"[{cid}] no_missing_step == true",
+            results,
+        )
+        if tier == "load-bearing":
+            _check(
+                str(e.get("independent_rederivation", "")).strip().lower() == "verified",
+                f"[{cid}] load-bearing: independent_rederivation == 'verified' (re-derived from axioms)",
+                results,
+            )
+            lc = e.get("limit_checks")
+            _check(
+                isinstance(lc, list) and len(lc) >= 1,
+                f"[{cid}] load-bearing: >= 1 limit_check (reduction-to-known-limit)",
+                results,
+            )
+            asm = e.get("assumptions")
+            _check(
+                isinstance(asm, list) and len(asm) >= 1,
+                f"[{cid}] load-bearing: non-empty assumptions list",
+                results,
+            )
+            # external_values: every cited constant/coefficient/comparison value was
+            # REPRODUCED from an acquired source (citation-integrity), not carried from
+            # the survey/memory. This is the field that catches the appendix-derivation defect
+            # class (fabricated Chen&Fossorier comparison / wrong-sign J-function
+            # coefficient) — an imported-value error that a complete, self-consistent
+            # re-derivation and a same-math oracle both pass. Distinct from
+            # no_missing_step (a derivation can be step-complete yet import one wrong
+            # constant). An empty list is allowed ONLY with an explicit note (the
+            # figure-operating-conditions "explicit n/a beats silent absence" pattern).
+            ev = e.get("external_values")
+            _check(
+                isinstance(ev, list),
+                f"[{cid}] load-bearing: 'external_values' present as a list "
+                f"(each imported constant reproduced from an acquired source; "
+                f"[] + external_values_note if the derivation imports none)",
+                results,
+            )
+            if isinstance(ev, list):
+                if ev:
+                    for i, v in enumerate(ev):
+                        ok_v = (
+                            isinstance(v, dict)
+                            and bool(str(v.get("source", "")).strip())
+                            and v.get("reproduced") is True
+                        )
+                        _check(
+                            ok_v,
+                            f"[{cid}] external_values[{i}] has a non-empty 'source' "
+                            f"(local:/spec: acquired path) and reproduced == true",
+                            results,
+                        )
+                else:
+                    _check(
+                        bool(str(e.get("external_values_note", "")).strip()),
+                        f"[{cid}] load-bearing with empty external_values needs an "
+                        f"'external_values_note' (explicit 'derivation imports no "
+                        f"external constants')",
+                        results,
+                    )
+    return results
+
+
+def gate_g0(study: str, topic: str) -> list[tuple[bool, str]]:
+    """G0: Phase 1 → 2 — derivation-soundness gate (standing; RIS-DERIV default on).
+
+    Requires a derivation ledger proving each candidate's math was independently
+    re-derived from first principles BEFORE implementation. The ledger lives in the
+    ``derivation_ledger`` block of artifacts/<study>/study-manifest.json (accepts a
+    standalone artifacts/<study>/derivation-ledger.json sidecar as a fallback).
+    """
+    results: list[tuple[bool, str]] = []
+    topic = _resolve_topic(topic)
+    base = REPO_ROOT / "artifacts" / study
+
+    _, manifest = _json_loadable(base / "study-manifest.json")
+    manifest = manifest if isinstance(manifest, dict) else {}
+    ledger = manifest.get("derivation_ledger")
+    if ledger is None:  # fallback: standalone sidecar
+        for f in [base / "derivation-ledger.json", *base.glob("derivation*ledger*.json")]:
+            ok, d = _json_loadable(f)
+            if ok:
+                ledger = d
+                break
+
+    if isinstance(ledger, dict):
+        entries = (
+            list(ledger.values())
+            if ledger and all(isinstance(v, dict) for v in ledger.values())
+            else [ledger]
+        )
+    elif isinstance(ledger, list):
+        entries = ledger
+    else:
+        entries = []
+
+    _check(
+        bool(entries),
+        "derivation ledger present (manifest 'derivation_ledger' block or "
+        "artifacts/<study>/derivation-ledger.json)",
+        results,
+    )
+    if not entries:
+        return results
+
+    modules = _find_candidate_modules(study, topic)
+    results += _check_ledger_entries(entries, modules)
+    return results
+
 
 def gate_g1(study: str, topic: str) -> list[tuple[bool, str]]:
     """G1: Implementation → Baseline."""
@@ -432,6 +654,7 @@ def gate_report(study: str, topic: str) -> list[tuple[bool, str]]:
 
 
 GATES = {
+    "G0": gate_g0,
     "G1": gate_g1,
     "G2": gate_g2,
     "G3": gate_g3,
@@ -441,6 +664,15 @@ GATES = {
 
 
 def main() -> int:
+    # Gate messages carry non-ASCII glyphs (e.g. the eq<->function arrow). On Windows the console
+    # defaults to the locale code page (GBK/CP936), so printing one raises UnicodeEncodeError and the
+    # gate dies with a traceback MID-RUN — after printing several PASSes, which reads like a crash in
+    # the study rather than a console-encoding problem. CLAUDE.md [opt:UTF8-WRITE] mandates handling
+    # stdout encoding; do it here so every RIS study on Windows is immune.
+    for _stream in (sys.stdout, sys.stderr):
+        if hasattr(_stream, "reconfigure"):
+            _stream.reconfigure(encoding="utf-8", errors="replace")
+
     argv = sys.argv[1:]
     flags_csv = ""
     if "--flags" in argv:
@@ -449,7 +681,7 @@ def main() -> int:
         del argv[i:i + 2]
 
     if len(argv) < 2 or argv[1].upper() not in GATES:
-        print(f"Usage: {sys.argv[0]} <study-name> <G1|G2|G3|G4|REPORT> [<topic>] [--flags <ids>]", file=sys.stderr)
+        print(f"Usage: {sys.argv[0]} <study-name> <G0|G1|G2|G3|G4|REPORT> [<topic>] [--flags <ids>]", file=sys.stderr)
         return 2
 
     study = argv[0]
@@ -458,8 +690,8 @@ def main() -> int:
     active_flags = [f.strip().upper() for f in flags_csv.split(",") if f.strip()]
 
     gate_fn = GATES[gate]
-    # G1 + REPORT use the topic (module / report-filename lookup); G2–G4 use study-namespaced paths
-    if gate in ("G1", "REPORT"):
+    # G0 + G1 + REPORT use the topic (module / report-filename lookup); G2–G4 use study-namespaced paths
+    if gate in ("G0", "G1", "REPORT"):
         results = gate_fn(study, topic)
     else:
         results = gate_fn(study)

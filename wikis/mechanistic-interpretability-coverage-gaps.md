@@ -9,7 +9,8 @@
 - Priority additions, in order: **(1)** superposition → SAE / features; **(2)** what *code* models represent (execution-state / world-model probing); **(3)** the intervention toolkit + one discovered real-model circuit.
 - Buckets A–C extend the existing anatomy appendices in-charter; D–E lean toward a new **Appendix I (Mechanistic Interpretability)** plus forward-links from the safety / design chapters. Every fold is citation-gated: acquire sources first, cite from the acquired source, never from memory.
 
-## 1. What the survey already covers (so we don't re-add it)
+<!-- sec:1 -->
+## <a id="sec-1"></a>1. What the survey already covers (so we don't re-add it)
 
 The anatomy appendices already do circuit-level MI well, and this note credits that so the gaps below are real:
 
@@ -22,7 +23,8 @@ The anatomy appendices already do circuit-level MI well, and this note credits t
 
 The through-line: the survey teaches *what circuits are* and *what one head computes*. It does not yet teach *how features are represented across the stream*, *how circuits are discovered and validated in a real model*, or *what a code model specifically represents*.
 
-## 2. Bucket A — the representational half of MI (features, not just circuits)
+<!-- sec:2 -->
+## <a id="sec-2"></a>2. Bucket A — the representational half of MI (features, not just circuits)
 
 Almost the entire MI treatment is circuit/weight-level; the feature/activation side is a single line at [§C.10].
 
@@ -30,33 +32,38 @@ Almost the entire MI treatment is circuit/weight-level; the feature/activation s
 - **Sparse autoencoders / dictionary learning** — the single biggest omission. SAEs (with the gated / top-$k$ / JumpReLU variants) are the current standard for pulling monosemantic features out of a polysemantic stream; the reconstruction-plus-sparsity objective, the $L_0$/$L_1$ tension, and the evaluation (loss recovered vs feature interpretability) are all absent.
 - **Features ≠ neurons / polysemanticity** as a systematic treatment — the survey's "neuron as a matched filter" ([§C.2], [§A.6]) is the *clean* case; the messy, polysemantic case is the point of modern MI.
 
-## 3. Bucket B — the causal-intervention methodology
+<!-- sec:3 -->
+## <a id="sec-3"></a>3. Bucket B — the causal-intervention methodology
 
 [§A.22] ablates heads to prove necessity, but the survey never lays out *how circuits are localized and validated*:
 
 - **Activation patching / causal tracing, path patching, attribution patching, causal scrubbing, distributed alignment search (DAS)** — the causal family that turns "this component looks important" into a measured, counterfactual claim.
 - **Logit lens / tuned lens** as *named* tools — the underlying math is latent in [§A.21] (a component's write, read through the unembedding), but reading *intermediate* residual states through the unembedding, and the tuned-lens correction, are not framed.
 
-## 4. Bucket C — a discovered real-model circuit, and the head zoo
+<!-- sec:4 -->
+## <a id="sec-4"></a>4. Bucket C — a discovered real-model circuit, and the head zoo
 
 - **No reverse-engineered circuit in a trained model.** The survey *hand-builds* induction ([§A.9]) and *derives* grokking ([§C.8]) but never *discovers* a circuit that a real model learned on its own — the "we didn't design it, we found it" case (IOI, greater-than, docstring).
 - **A thin head taxonomy.** Induction and previous-token heads are covered; the empirical menagerie is not — duplicate-token, name-mover / negative-name-mover, copy-suppression, successor heads.
 
-## 5. Bucket D — code-specific MI (the highest-value gap for *this* survey)
+<!-- sec:5 -->
+## <a id="sec-5"></a>5. Bucket D — code-specific MI (the highest-value gap for *this* survey)
 
 This is a *coding* survey, and the MI of code models is where it can be differentiated rather than generic:
 
 - **What code models represent** — syntactic / AST structure, variable binding and scope, types, control flow, and especially **execution-state / "world-model" probing**: do the activations track program state as the model reads code? The emergent-world-representation line is the natural anchor.
 - **Code-relevant circuits** — bracket / indentation matching, variable tracking, and copy-from-context. [§A.22] notes induction underpins in-context copying but never specializes it to code completion or repository-context copying, which is the survey's own subject.
 
-## 6. Bucket E — the payoff and the epistemics (bridges to existing chapters)
+<!-- sec:6 -->
+## <a id="sec-6"></a>6. Bucket E — the payoff and the epistemics (bridges to existing chapters)
 
 - **MI → control** — activation steering, representation engineering, and weight editing (ROME / MEMIT). The FFN-as-key-value-memory idea is latent at [§A.6] / [§C.2]; the *editing* payoff and the tie to the design-guidance chapter are not drawn.
 - **MI → safety** — circuit-level auditing, backdoor / sleeper-agent detection, deception probes: the natural link from these appendices to the safety chapter, currently unlinked.
 - **Scalable / automated interpretability** — neuron and feature auto-labeling, automated circuit discovery, attribution graphs / circuit tracing.
 - **Limits & faithfulness** — interpretability illusions, ablation ≠ necessity, "attention weights are not explanations", and how MI claims are evaluated. The survey presents circuits confidently; the field's own caveats do not appear.
 
-## 7. Priorities, placement, and the charter line
+<!-- sec:7 -->
+## <a id="sec-7"></a>7. Priorities, placement, and the charter line
 
 **If we add three things, in order:** (1) a **superposition → SAE / features** treatment — the representational half the survey is missing, already half-opened at [§C.10]; (2) a **code-representation & code-circuit** treatment — the domain-specific payoff; (3) the **intervention toolkit + one discovered real-model circuit** — so the survey teaches not just what circuits *are* but how they are *found and validated*.
 
@@ -64,7 +71,8 @@ This is a *coding* survey, and the MI of code models is where it can be differen
 
 **Charter caveat.** The anatomy appendices are an *architecture* teardown that *uses* MI as a lens; they are not an interpretability survey. The additions above are scoped to keep that character: first-principles, math-rich, and tied back to the concrete toy / GPT-2 / Llama models the appendices already build.
 
-## 8. Sources to acquire (pointers, not yet verified in-source)
+<!-- sec:8 -->
+## <a id="sec-8"></a>8. Sources to acquire (pointers, not yet verified in-source)
 
 Per the citation-integrity rule, none of the below is cited until its full text is acquired into `download/` and the specific claim is read there. This list is the acquisition target for the buildout plan, grouped by cluster; arXiv IDs are candidates to fetch and verify.
 

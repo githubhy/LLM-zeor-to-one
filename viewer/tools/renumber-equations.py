@@ -6,7 +6,11 @@ opening $$.  Cross-references use <!-- ref:STABLE-ID --> immediately before
 the parenthesized number, e.g. Equation <!-- ref:cn-tanh -->[(37)](#eq-37).
 
 Cross-file references use <!-- xref:STABLE-ID --> after the linked number,
-e.g. Equation [(37)](appendix-a.md#eq-37) <!-- xref:cn-tanh -->.
+e.g. Equation [(37)](appendix-a.md#eq-37) <!-- xref:cn-tanh -->. The linked
+anchor is usually the generator's own `#eq-N`, but a hand-written stable
+anchor (`#eq-rope-recursion`) is also supported: xref propagation then
+updates only the visible number and leaves that anchor untouched (see
+propagate_xrefs()).
 
 This script:
   1. Scans the file for <!-- eq:ID --> markers in document order.
@@ -29,6 +33,9 @@ import re
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _corpus import survey_units, all_files, describe_scope  # noqa: E402
+
 EQ_MARKER = re.compile(r'<!--\s*eq:([\w.\-/]+)\s*-->')
 REF_MARKER = re.compile(
     r'(<!--\s*ref:([\w.\-/]+)\s*-->)\s*'
@@ -37,8 +44,35 @@ REF_MARKER = re.compile(
 TAG_PAT = re.compile(r'\\tag\{[^}]*\}')
 ANCHOR_PAT = re.compile(r'<a\s+id="eq-(\d+)"></a>')
 # Cross-file: [(N)](file.md#eq-N) <!-- xref:STABLE-ID -->
+# The link text may carry a descriptive prefix before the number --- the
+# multimodal survey writes "[Chapter 1, (13)](fundamentals.md#eq-13)" so a reader
+# knows the target is in another chapter.  Group 1 captures that prefix (usually
+# empty) so a rewrite preserves it.  Before this the pattern required a bare
+# "[(N)]", which silently excluded 20 cross-file references from propagation --
+# the same latent staleness the xref: marker exists to prevent, one level down.
+#
+# The anchor fragment (group 4) is intentionally NOT restricted to `\d+`: some
+# equations carry a hand-written stable anchor (`#eq-rope-recursion`,
+# `#eq-10-1`) alongside the generator's own `#eq-N`, because a stable slug is
+# a better citation target than a positional number for anything referenced
+# from outside the survey (todos/2026-08-07-handwritten-eq-anchors.md,
+# decisions/2026-08-07-handwritten-eq-anchor-propagation.md). `propagate_xrefs`
+# below rewrites the visible number for both forms but only rewrites the
+# anchor itself when it is the generator's numeric form -- a non-numeric
+# anchor is left untouched so a renumber never breaks a hand-written link.
 XREF_FULL = re.compile(
-    r'\[\((\d+)\)\]\(([^)]+\.md)#eq-(\d+)\)\s*<!--\s*xref:([\w.\-/:]+)\s*-->'
+    r'\[([^\]]*?)\((\d+)\)\]\(([^)]+\.md)#eq-([\w.\-]+)\)\s*<!--\s*xref:([\w.\-/:]+)\s*-->'
+)
+# A SAME-FILE ref: marker whose link points at a SIBLING file. REF_MARKER cannot
+# match this (it requires `(#eq-N)` or a bare `(N)`), and propagate_xrefs keys on
+# `xref:`, so this shape is in a blind spot of both passes: never reported as an
+# orphan, never renumbered. The link is correct today and goes stale silently the
+# next time the target file renumbers. See
+# todos/2026-08-02-crossfile-ref-marker-latent-staleness and
+# bugs/2026-08-02-cross-file-eq-refs-marked-same-file (where 18 siblings of
+# this shape WERE reported, only because they were also unlinked).
+REF_CROSSFILE_MISMARKED = re.compile(
+    r'<!--\s*ref:([\w.\-/]+)\s*-->\s*\[\((\d+)\)\]\(([^)]+\.md)#eq-(\d+)\)'
 )
 
 
@@ -119,8 +153,10 @@ def propagate_xrefs(target_path, id_to_num, check_only=False):
 
         def replacer(m):
             nonlocal file_changes
-            link_file = m.group(2)
-            xref_id = m.group(4)
+            prefix = m.group(1)
+            link_file = m.group(3)
+            anchor = m.group(4)
+            xref_id = m.group(5)
 
             # Only update xrefs pointing to the renumbered file
             if link_file != target_name:
@@ -135,7 +171,12 @@ def propagate_xrefs(target_path, id_to_num, check_only=False):
                 return m.group(0)
 
             new_num = id_to_num[xref_id]['num']
-            result = f'[({new_num})]({link_file}#eq-{new_num}) <!-- xref:{xref_id} -->'
+            # A hand-written anchor (not the generator's plain `eq-<digits>`
+            # form) is a stable citation target and must survive a renumber
+            # unchanged -- only the visible number tracks the new position.
+            new_anchor = f'eq-{new_num}' if anchor.isdigit() else f'eq-{anchor}'
+            result = (f'[{prefix}({new_num})]({link_file}#{new_anchor}) '
+                      f'<!-- xref:{xref_id} -->')
             if result != m.group(0):
                 file_changes += 1
             return result
@@ -233,6 +274,20 @@ def renumber(path, check_only=False):
     if orphans:
         print(f'WARNING: {len(orphans)} orphaned ref IDs: {sorted(orphans)}')
 
+    # Marker-kind check: a ref: marker pointing into a sibling file is wrong even
+    # when its link currently resolves. This is a kind error, not a link error --
+    # so it is reported on the marker, not on whether the number happens to match.
+    mismarked = []
+    for i, line in enumerate(lines):
+        for m in REF_CROSSFILE_MISMARKED.finditer(line):
+            mismarked.append((i + 1, m.group(1), m.group(3), m.group(4)))
+    if mismarked:
+        print(f'ERROR: {len(mismarked)} cross-file reference(s) marked '
+              f'<!-- ref: --> (same-file) instead of <!-- xref: -->:')
+        for lineno, rid, target, num in mismarked:
+            print(f'  line {lineno}: ref:{rid} -> {target}#eq-{num} '
+                  f'(rewrite as [({num})]({target}#eq-{num}) <!-- xref:{rid} -->)')
+
     print(f'Tag updates: {tag_changes}, Anchor updates: {anchor_changes}, '
           f'Ref updates: {ref_changes}')
 
@@ -267,7 +322,7 @@ def renumber(path, check_only=False):
     if id_to_num:
         xref_ok = propagate_xrefs(path, id_to_num, check_only=check_only)
 
-    return seq_ok and len(orphans) == 0 and xref_ok
+    return seq_ok and len(orphans) == 0 and xref_ok and not mismarked
 
 
 def list_md_files(directory):
@@ -296,15 +351,22 @@ def main():
         sys.exit(1)
 
     if target.is_dir():
-        files = list_md_files(target)
+        # A directory may be a single survey OR a corpus root such as
+        # `surveys/` (what .githooks/pre-push passes). The old code treated
+        # both as one survey, so a corpus root resolved to its 12 flat legacy
+        # files and no survey subdirectory was ever checked (bugs/2026-07-10-09).
+        units, skipped = survey_units(target)
+        files = all_files(units)
         if not files:
             print(f'No .md files found in {target}')
             sys.exit(1)
+        print(describe_scope(units, skipped, 'equations'))
         all_ok = True
-        for f in files:
-            print(f'\n--- {f.name} ---')
-            if not renumber(f, check_only=args.check):
-                all_ok = False
+        for unit in units:
+            for f in unit.files:
+                print(f'\n--- {f.relative_to(target) if f.is_relative_to(target) else f} ---')
+                if not renumber(f, check_only=args.check):
+                    all_ok = False
         sys.exit(0 if all_ok else 1)
     else:
         ok = renumber(target, check_only=args.check)

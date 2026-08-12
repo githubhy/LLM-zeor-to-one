@@ -78,7 +78,7 @@ Orphaned equation / citation markers are covered by renumber-equations.py
 and link-references.py respectively.
 
 Usage:
-  python viewer/tools/lint-math.py surveys/attention-demo/
+  python viewer/tools/lint-math.py surveys/mechanistic-interpretability/
   python viewer/tools/lint-math.py surveys/
   python viewer/tools/lint-math.py surveys/ --errors-only
 """
@@ -151,9 +151,9 @@ def lint_file(path, errors_only=False, check_11_enabled=True):
         # diamond "\ufffd") is never legitimate in source markdown: it marks
         # bytes that failed to decode, typically an em-dash or "§" lost
         # during a non-UTF-8 (GBK / CP1252) file write — the same crash
-        # class as the Windows code-page write bug.  Such corruptions have
-        # reached committed survey corpora before (a silently-replaced
-        # em-dash).  Flag every
+        # class as bug 2026-06-22-01.  Two such corruptions reached the
+        # committed survey corpus (appendix-g.md, appendix-d.md; bug
+        # 2026-06-24-01), each a silently-replaced em-dash.  Flag every
         # occurrence so the corruption cannot re-enter the corpus.  Runs
         # before the fence/display `continue`s because the byte
         # corruption is context-independent.
@@ -538,6 +538,16 @@ def check_display_math_blank_line(lines):
     def _check_after_close(i):
         # `i` is the 1-based line number of the `$$` close. Flag when the
         # following line is non-blank and not another `$$` opener.
+        # Skip an INDENTED close: a `$$` whose line starts with whitespace
+        # sits inside a list item (or other indented block), whose tight-vs-
+        # blank rules are owned by check_broken_ordered_list (failure modes
+        # 1-3). This check targets the plain-paragraph case only, per the
+        # docstring above. Firing on a tight numbered-list equation is a false
+        # positive: the "fix" (a blank line) would break GitHub list numbering
+        # (failure mode 1), so #6 and #6d would contradict. (bug 2026-07-11-02)
+        close_line = lines[i - 1] if 0 < i <= len(lines) else ''
+        if close_line[:1].isspace():
+            return
         next_line = lines[i] if i < len(lines) else ''
         next_stripped = next_line.strip()
         # OK if EOF, blank, or another display line (a `$$` delimiter or a

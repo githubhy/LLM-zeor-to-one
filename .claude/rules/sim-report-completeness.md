@@ -39,7 +39,7 @@ need not have all 14 sections, but must not *silently* drop an [M] artifact —
 drop it explicitly with a one-line reason ("explicit n/a beats silent
 absence").
 
-## Two emphases this rule front-stops
+## Five emphases this rule front-stops
 
 **Theory is a predictor, not only a bound.** Every result with a closed
 form (a scaling-law loss prediction, a `pass@k`-vs-`k` curve, an
@@ -62,6 +62,96 @@ fix — design choices, not compliance). For a benchmark that presumes a
 decoding setup without mandating it, the honest claim is "an eval of *this
 configuration* clears the bar," not "the benchmark mandates this
 configuration."
+
+**A published benchmark score is not a target — decompose it.**
+`[opt:SIM-REQBASIS · default ON · toggle .claude/skill-options.json]` When the
+report benchmarks against an **externally published number** (a model card's
+reported MMLU, a leaderboard entry, a paper's headline `pass@1`), that number is
+**reference performance + a configuration stack** (prompt template, few-shot $k$
+and exemplar pool, decoding params, harness version, answer-extraction rule),
+*not* a bare capability measurement. Section 2 states the decomposition
+`published = reference + configuration delta`, with the reference **sourced** to
+the artifact that reports it (per `.claude/rules/citation-integrity.md`), and the
+verdict names **which basis it is measured against**: a margin measured against a
+number produced under *your* harness and prompt is a real delta; a margin against
+a vendor-published number is mostly harness and prompt difference and must **not**
+be cited as a capability gain. The failure mode is a "+N point" headline that is
+largely answer-extraction and few-shot formatting — reproducible on every re-run,
+because the number was never wrong; the *story about it* was. If the reference
+cannot be reproduced under your harness, disclose that and benchmark against the
+published value with the caveat (explicit n/a beats silent absence). This is
+`.claude/rules/calibration-residuals.md` check 4 (metric-basis reconciliation)
+applied to the published number itself.
+
+**The baseline is under test too — validate the control at its own best operating
+point before publishing a margin against it.**
+`[opt:SIM-BASELINE · default ON · toggle .claude/skill-options.json]` A comparative
+result is a *difference*, so it is exactly as sensitive to the control arm as to the
+treatment — but the scrutiny is never symmetric. The treatment is the thing being
+proposed and gets derivations, sweeps and adversarial review; the control inherits an
+obvious-looking default configuration and is never itself questioned. **A handicapped
+control inflates the treatment effect, and it reproduces perfectly on every re-run**,
+so no amount of repetition, seeding discipline or CI-tightening will surface it.
+
+Before publishing a margin, state for the **baseline** what you would state for the
+candidate: its configuration, why that configuration, and — the load-bearing one —
+evidence that it is not being run below its own best setting. The cheapest sufficient
+check is usually to vary the baseline's one most-arbitrary knob and confirm the chosen
+setting is not dominated. In LLM work that knob is nearly always the decoding
+temperature / top-$p$, the few-shot $k$, or the retriever's top-$k$ — a decoding
+method compared against greedy, or a reranker compared against a retriever run at a
+$k$ that starves it, is measuring its own baseline's handicap. The shape to watch for:
+the baseline's *simpler* variant beating its *elaborated* one is proof the elaborated
+arm is miscalibrated, not proof the treatment is good. Upstream measured a case where
+roughly **half** a published gain was the baseline's miscalibration; forty-plus runs
+never surfaced it. This is `.claude/rules/calibration-residuals.md` check 6 ("check
+the rig's preconditions, **especially on the control**") applied one level up, at the
+moment a comparative margin is published rather than when a residual is attributed.
+
+**A single reference value has no dispersion — carry the contributing
+population.** `[opt:SIM-REFPOP · default ON · toggle .claude/skill-options.json]`
+Extends `[opt:SIM-REQBASIS]`. A published benchmark number is one lab's run under
+one harness: the **spread across independent reproductions is the matched noise
+floor** for any margin measured against it
+(`.claude/rules/calibration-residuals.md` check 6 corollary — significance is not
+materiality). A `+0.5` point margin means one thing when independent harnesses
+reproduce the reference within 0.3 points and something else when they span 3
+points, and a single published value cannot tell you which. This is not
+hypothetical for LLM benchmarks: the same model on the same test split routinely
+differs by several points across evaluation harnesses, purely from prompt-template
+and answer-extraction differences.
+
+**Obligation, graded by the claim — not by the result.** Wherever the report
+publishes a **margin** against a reference, it carries the contributing
+population as *structured data*, not prose:
+
+```
+reference_performance: { value, basis_condition, selection_rule,
+                         source, n, contributors: [ {source, value,
+                         condition, harness} ] }
+```
+
+Elsewhere it is best-effort, and an unavailable population is recorded
+`(not-published)` — explicit n/a beats silent absence. Acquisition is via
+`source-fetch` and the model card / paper; never from memory
+(`.claude/rules/citation-integrity.md`).
+
+**Two constraints that make it honest rather than decorative:**
+
+- **Only same-basis values may be pooled**, and every contributor carries its
+  `condition`. A 0-shot number, a 5-shot number, and a 5-shot-CoT number for one
+  model on one benchmark are **three different quantities, not a spread**; pooling
+  them manufactures dispersion that does not exist. Check 4 again, one level down.
+- **N is small and self-selected.** A benchmark's published reproductions are few,
+  and a lab with an awkward result need not publish. **State N and the raw values;
+  never percentile or quantile language** — "our result sits at the 60th
+  percentile" over five self-selected samples is not a statistic. The population
+  bounds a claim; it does not confer significance.
+
+The `selection_rule` field is load-bearing, not bookkeeping: whether a reported
+number is a single run, a best-of-$n$, or a mean over seeds is part of the value's
+meaning, and a margin against a best-of-$n$ reference is not the same claim as a
+margin against a mean.
 
 ## Anti-patterns (mechanically checked)
 
@@ -95,4 +185,10 @@ standalone, parallel to `check-citation-sources.py`):
   params, few-shot $k$, seeds/CIs) this rule builds on.
 - `.claude/rules/citation-integrity.md` — external-value provenance the
   Section-2 anchors and Section-13 statement must satisfy.
+- `.claude/skills/reference-implementation-study/phases/phase-1b-derivation-gate.md` —
+  the Phase-1.5 **G0 derivation-soundness gate** (`[opt:RIS-DERIV]`, default on).
+  Its per-candidate derivation ledger (independent re-derivation, limit checks,
+  assumptions) pre-populates the Section-4 **equation↔function table left column**:
+  G0 attests the *equation* is sound before Phase 2; the Section-4 table then attests
+  the *code* matches it. The two gates are complementary, not redundant.
 - Worked instance: a reproduction/eval study's Phase-6 report.

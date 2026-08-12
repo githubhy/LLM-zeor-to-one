@@ -1,9 +1,28 @@
-# Cross-link corpus scope — ONE corpus group the crosslink gate scans.
-# Lines are paths (files or dirs); '#' comments and blanks ignored.
-# Cross-linking is opt-in per corpus: to extend coverage to another survey,
-# add its directory (+ any related wikis) here. Keeping unrelated surveys out
-# avoids cross-survey false-positive candidates. (Multi-group support is a
-# future extension.)
+# Cross-link corpus groups — the crosslink gate scans each group INDEPENDENTLY.
+#
+# Format: a `[group-name]` header opens a group; following path lines (files or
+# dirs) belong to it. '#' comments and blank lines are ignored. A file with no
+# `[group]` header parses as a single group named `default` (legacy form).
+#
+# Each group is its own TF-IDF corpus: a cross-link candidate NEVER spans two
+# groups. That is the point — it keeps unrelated surveys from proposing links at
+# each other, while letting every corpus be checked on its own terms.
+#
 # Governs: .claude/hooks/validate-refs-on-dirty.sh (Stop-gate) and
 # .githooks/pre-push. Severity toggle: .claude/crosslink-severity.
+# To scope /cross-link to one group:
+#     python viewer/tools/crosslink.py groups --group llm-methods
+#
+# Grouping is DATA-DRIVEN, not vibes: section-level TF-IDF + complete-linkage
+# agglomeration (cut 0.20), satellites/wikis assigned by nearest-survey.
+# Re-derive / audit after adding a survey:
+#     python viewer/tools/crosslink-cluster.py propose
+#     python viewer/tools/crosslink-cluster.py validate
+# Never hand-expand this file with grep — use `crosslink.py groups` or --scope-file.
+
+[llm-methods]
 surveys/llms-for-coding
+surveys/mechanistic-interpretability
+surveys/multimodal-llms
+wikis/mechanistic-interpretability-coverage-gaps.md
+wikis/laptop-scale-training-feasibility.md

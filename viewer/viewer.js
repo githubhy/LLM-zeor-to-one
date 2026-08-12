@@ -263,105 +263,11 @@ md.renderer.rules.fence = function(tokens, idx) {
 // Converts <mark>color: text</mark> → <mark class="hl-color">text</mark>
 const HIGHLIGHT_COLORS = HighlightShared.HIGHLIGHT_COLORS || ['yellow', 'green', 'red', 'blue', 'orange', 'purple', 'teal', 'pink'];
 const HL_COLOR_ALT = HighlightShared.HL_COLOR_ALT || HIGHLIGHT_COLORS.join('|');
-const HL_REGEX = new RegExp(
-  `<mark>(${HL_COLOR_ALT}):\\s*`,
-  'gi'
-);
-
-function processHighlights(html) {
-  return html.replace(HL_REGEX, (_, color) => `<mark class="hl-${color.toLowerCase()}">`);
-}
-
-// ---------------------------------------------------------------------------
-// Display-math shielding
-// ---------------------------------------------------------------------------
-// Extract multi-line $$...$$ blocks BEFORE markdown-it's block parser runs,
-// so that lines starting with +, -, *, etc. inside math are never mistaken
-// for lists, emphasis, or other markdown constructs.
-
-function shieldDisplayMath(markdown) {
-  const blocks = [];
-  const lineMap = [];   // lineMap[shieldedLine] = originalLine
-  const lines  = markdown.split('\n');
-  const output = [];
-  let inMath   = false;
-  let inFence  = false;
-  let mathLines = [];
-  let hlColor  = null;  // color prefix on the opening $$ line, if any
-  let origIdx  = 0;
-
-  for (const line of lines) {
-    const stripped = line.trim();
-
-    // Track fenced code blocks so we don't touch $$ inside them
-    if (!inMath && /^(`{3,}|~{3,})/.test(stripped)) {
-      inFence = !inFence;
-      lineMap.push(origIdx);
-      output.push(line);
-      origIdx++; continue;
-    }
-    if (inFence) { lineMap.push(origIdx); output.push(line); origIdx++; continue; }
-
-    // Single-line $$...$$ on its own line (with optional ==color: prefix and
-    // ==suffix). Must be detected BEFORE the multi-line opening rule below,
-    // otherwise a line like `$$x$$` would open math (matching `$$`) and then
-    // never find a matching close on its own line.
-    if (!inMath) {
-      const singleLine = stripped.match(
-        new RegExp(`^(?:==(${HL_COLOR_ALT}):\\s*)?\\$\\$([^\\$\\n][\\s\\S]*?)\\$\\$(==)?$`)
-      );
-      if (singleLine) {
-        const color = singleLine[1] || null;
-        const content = singleLine[2];
-        blocks.push(content);
-        const colorAttr = color ? ` data-hl-color="${color}"` : '';
-        lineMap.push(origIdx);
-        output.push(`<div data-math-block="${blocks.length - 1}"${colorAttr}></div>`);
-        origIdx++; continue;
-      }
-    }
-
-    // Opening delimiter: bare $$ or ==color: $$
-    if (!inMath) {
-      const colorM = stripped.match(new RegExp(`^==(${HL_COLOR_ALT}):\\s*\\$\\$$`));
-      if (stripped === '$$' || colorM) {
-        inMath    = true;
-        hlColor   = colorM ? colorM[1] : null;
-        mathLines = [];
-        origIdx++; continue;      // consume opening $$
-      }
-    }
-
-    // Closing delimiter: bare $$ or $$==
-    if (inMath && (stripped === '$$' || stripped === '$$==')) {
-      inMath = false;
-      blocks.push(mathLines.join('\n'));
-      const colorAttr = hlColor ? ` data-hl-color="${hlColor}"` : '';
-      lineMap.push(origIdx - mathLines.length - 1);   // map placeholder to opening $$
-      output.push(`<div data-math-block="${blocks.length - 1}"${colorAttr}></div>`);
-      hlColor = null;
-      origIdx++; continue;        // consume closing $$
-    }
-
-    if (inMath) {
-      mathLines.push(line);
-      origIdx++; continue;
-    }
-
-    lineMap.push(origIdx);
-    output.push(line);
-    origIdx++;
-  }
-
-  // Unclosed block — restore original lines so nothing is silently lost
-  if (inMath) {
-    const openLine = hlColor ? `==${hlColor}: $$` : '$$';
-    output.push(openLine);
-    output.push(...mathLines);
-  }
-
-  return { text: output.join('\n'), blocks, lineMap };
-}
+// processHighlights + shieldDisplayMath live in viewer/lib/highlight-shared.js so that
+// offline checkers (viewer/tools/verify-katex-render.cjs) drive the SAME pipeline the
+// browser does, rather than a reimplementation of it. See bugs/2026-07-09-02.
+const processHighlights = HighlightShared.processHighlights;
+const shieldDisplayMath = HighlightShared.shieldDisplayMath;
 
 // Escape a string for use inside a double-quoted HTML attribute value.
 function escapeAttr(str) {
@@ -592,21 +498,40 @@ function installFootnoteRefHandlers() {
   refs.forEach((a) => {
     if (a.dataset.notesHandlerWired === '1') return;
     a.dataset.notesHandlerWired = '1';
-    a.addEventListener('click', (e) => {
-      const noteId = a.dataset.noteId || '';
-      // Only intercept our note-* ids; other footnotes keep default behavior.
-      if (!/^note-/.test(noteId)) return;
-      e.preventDefault();
-      scrollSidebarToNoteEntry(noteId);
-    });
+    const noteId = a.dataset.noteId || '';
+    // Highlight-attached notes (`note-*`): route to the sidebar entry + a short
+    // text tooltip — unchanged.
+    if (/^note-/.test(noteId)) {
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        scrollSidebarToNoteEntry(noteId);
+      });
+      a.addEventListener('mouseenter', () => {
+        if (noteRefTooltipTimer) clearTimeout(noteRefTooltipTimer);
+        noteRefTooltipTimer = setTimeout(() => showNoteRefTooltip(a, noteId), 250);
+      });
+      a.addEventListener('mouseleave', () => { hideNoteRefTooltip(); });
+      return;
+    }
+    // Ordinary footnote: its definition <li> is hidden off-screen, so open an
+    // in-situ peek (hover-intent + click-to-pin/toggle), mirroring the eq/ref/
+    // sec peek handlers. Without a peek surface, keep the native jump.
+    if (!peekPopover) return;
+    const defId = (a.getAttribute('href') || '').slice(1);
+    if (!defId) return;
     a.addEventListener('mouseenter', () => {
-      const noteId = a.dataset.noteId;
-      if (!noteId || !/^note-/.test(noteId)) return;
-      if (noteRefTooltipTimer) clearTimeout(noteRefTooltipTimer);
-      noteRefTooltipTimer = setTimeout(() => showNoteRefTooltip(a, noteId), 250);
+      peekClearTimers();
+      peekShowTimer = setTimeout(() => showFootnotePeek(a, defId, false), 300);
     });
     a.addEventListener('mouseleave', () => {
-      hideNoteRefTooltip();
+      if (peekShowTimer) { clearTimeout(peekShowTimer); peekShowTimer = null; }
+      peekHideTimer = setTimeout(hidePeek, 350);
+    });
+    a.addEventListener('click', (e) => {
+      e.preventDefault();                        // stop the jump to the hidden #fnN
+      peekClearTimers();
+      if (!peekPopover.hidden && peekFnId === defId) { hidePeek(); return; }  // toggle off
+      showFootnotePeek(a, defId, true);
     });
   });
 }
@@ -667,6 +592,7 @@ const peekGoto    = document.getElementById('peek-goto');
 let peekShowTimer = null;
 let peekHideTimer = null;
 let peekGotoId    = null;
+let peekFnId      = null;   // defId of the footnote currently peeked (for click-toggle)
 let peekReturnFocus = null;
 
 function peekClearTimers() {
@@ -679,6 +605,8 @@ function hidePeek() {
   peekPopover.hidden = true;
   peekBody.innerHTML = '';
   peekGotoId = null;
+  peekFnId = null;
+  if (peekGoto) peekGoto.hidden = false;       // restore "Go to" if a footnote peek hid it
   // Restore focus to the trigger when the peek was opened via click/keyboard
   // (review wrnjhusbu — keyboard reachability).
   if (peekReturnFocus && document.body.contains(peekReturnFocus)) {
@@ -793,6 +721,47 @@ function showPeek(anchorEl, parsed, focusOnOpen) {
   return true;
 }
 
+// Ordinary footnotes ([^fn-...], or any non-`note-` label) keep their
+// definition list hidden off-screen (style.css `#content .footnotes`) because
+// the viewer surfaces footnotes as peeks, not a bottom endnote list. The native
+// `#fnN` jump therefore lands on an invisible <li> and shows nothing, so an
+// ordinary footnote ref opens an in-situ peek instead (bug 2026-06-15-03).
+// Reuses the eq/ref/sec peek popover and all of its dismiss wiring.
+function buildFootnotePeek(defId) {
+  const def = document.getElementById(defId);
+  if (!def) return null;
+  const clone = def.cloneNode(true);
+  clone.querySelectorAll('.footnote-backref').forEach((b) => b.remove());
+  const wrap = document.createElement('div');
+  wrap.className = 'peek-ref';
+  wrap.innerHTML = clone.innerHTML;
+  return wrap.innerHTML.trim() ? wrap : null;
+}
+function showFootnotePeek(anchorEl, defId, focusOnOpen) {
+  const content = buildFootnotePeek(defId);
+  if (!content) return false;                  // unresolvable → caller keeps native jump
+  hidePeek();                                  // one peek at a time (also restores Go-to)
+  peekBody.appendChild(content);
+  peekFnId = defId;
+  peekGotoId = null;                           // the canonical <li> is hidden — nowhere to go
+  if (peekGoto) peekGoto.hidden = true;        // so suppress the "Go to" footer for footnotes
+  peekPopover.hidden = false;
+  peekPopover.style.left = '-9999px';
+  peekPopover.style.top = '-9999px';
+  const rect = anchorEl.getBoundingClientRect();
+  const w = peekPopover.offsetWidth || 420;
+  const h = peekPopover.offsetHeight || 460;
+  const { left, top } = clampToolbarBox(rect, w, h);
+  peekPopover.style.left = left + 'px';
+  peekPopover.style.top = top + 'px';
+  if (focusOnOpen) {
+    peekReturnFocus = anchorEl;
+    const closeBtn = document.getElementById('peek-close');
+    if (closeBtn) closeBtn.focus();
+  }
+  return true;
+}
+
 // Mirror a peek into the Docs right-pane Peek segment and switch to it. The
 // content is a clone of what the floating popover shows; a "Go to" footer
 // reuses the same jump as the popover so the pane is fully interactive.
@@ -845,10 +814,19 @@ if (peekPopover) {
   document.addEventListener('pointerdown', (e) => {
     if (peekPopover.hidden) return;
     if (peekPopover.contains(e.target)) return;
-    if (e.target.closest('a[href^="#eq-"], a[href^="#ref-"], a[href^="#sec-"]')) return;
+    if (e.target.closest('a[href^="#eq-"], a[href^="#ref-"], a[href^="#sec-"], a[href^="#fn"]')) return;
     hidePeek();
   });
-  window.addEventListener('scroll', () => { if (!peekPopover.hidden) hidePeek(); }, true);
+  // Dismiss on *page* scroll (the popover is anchored to a computed position and
+  // would detach), but NOT on scrolls originating inside the popover — an
+  // overflowing equation/reference body has its own scrollbar, and a capture-phase
+  // window listener would otherwise eat those inner scrolls and close the peek the
+  // instant the user drags its scrollbar (bug 2026-06-17-01).
+  window.addEventListener('scroll', (e) => {
+    if (peekPopover.hidden) return;
+    if (peekPopover.contains(e.target)) return;
+    hidePeek();
+  }, true);
   // Hover-bridge: keep the peek alive while the pointer is over it.
   peekPopover.addEventListener('mouseenter', peekClearTimers);
   peekPopover.addEventListener('mouseleave', () => { peekHideTimer = setTimeout(hidePeek, 350); });
@@ -932,6 +910,8 @@ function renderSplitContent(markdown, file, anchor) {
       const src = img.getAttribute('src');
       if (src && !src.startsWith('/') && !src.startsWith('http')) img.setAttribute('src', `/${dir}/${src}`);
     });
+    // Relative asset links (figures/*.svg, *.pdf) resolve against the pane
+    // file's directory like images do, not the SPA root where they 404.
     cbBodyEl.querySelectorAll('a[href]').forEach((a) => {
       const href = a.getAttribute('href');
       if (!href || href.startsWith('/') || href.startsWith('#')) return;
@@ -1577,7 +1557,24 @@ function findInlineEntryAtMark(markEl) {
   if (entries.length === 0) return null;
   if (entries.length === 1) return entries[0];
 
-  // Disambiguate by DOM-position-ratio ↔ source-position-ratio.
+  // Disambiguate by DOM ORDER ↔ SOURCE ORDER. The rendered highlight <mark>s and
+  // the inline manifest entries both run left-to-right in the same order, so the
+  // k-th highlight mark in the block is the k-th entry sorted by sourceStart. This
+  // is EXACT — unlike a rendered-vs-source position *ratio*, which the markup-length
+  // mismatch of a "rich" highlight (a [link], `code`, or $math$ whose source is far
+  // longer than its rendered text) can skew enough to resolve a click on the 2nd mark
+  // to the 1st entry, so a recolor rewrites the wrong opener (bug 2026-06-16).
+  const sorted = entries.slice().sort((a, b) => a.sourceStart - b.sourceStart);
+  const targetMark = (markEl.closest && markEl.closest('mark')) || markEl;
+  const hlMarks = Array.from(blockEl.querySelectorAll('mark[class*="hl-"]'));
+  const clickedIdx = hlMarks.indexOf(targetMark);
+  if (clickedIdx >= 0 && hlMarks.length === sorted.length) {
+    return sorted[clickedIdx];
+  }
+
+  // Fallback — only when the highlight-mark count does not match the inline-entry
+  // count (e.g. a block mixing inline and sidecar highlights, or a stale manifest):
+  // the original rendered-vs-source position-ratio heuristic.
   const blockText = blockEl.textContent || '';
   if (!blockText.length) return entries[0];
   const domPre   = textBeforeNode(markEl, blockEl);
@@ -4995,6 +4992,25 @@ async function applyHighlight(action) {
     selText   = selText.slice(lead, trail ? -trail : undefined);
   }
   if (!selText) { hideToolbar(); return; }
+
+  // Step 7B — Snap the splice points out of any inline-markup span they cut.
+  // selStart/selEnd are derived from the RENDERED text, which omits markdown's
+  // emphasis delimiters, so a selection that visually starts at "motion" lands
+  // between the `*` and the `m` of `*motion*`.  Wrapping there interleaves the
+  // delimiters (`*==blue: motion*` … `==`) instead of nesting them, and the
+  // marker renders as literal source.  See bugs/2026-07-09-02.
+  //
+  // Skipped for `clear`, whose range Step 6 has already widened to cover the
+  // existing `==` markers; widening it further would swallow the emphasis too.
+  if (action !== 'clear' && typeof HighlightShared.snapOutOfInlineSpans === 'function'
+      && type !== 'DISPLAY_MATH') {
+    const snapped = HighlightShared.snapOutOfInlineSpans(source, selStart, selEnd);
+    if (snapped.changed) {
+      selStart = snapped.selStart;
+      selEnd   = snapped.selEnd;
+      selText  = source.slice(selStart, selEnd);
+    }
+  }
 
   // Step 8 — Build markup
   // Guard: applying bold/italic/code to a DISPLAY_MATH selection wraps the

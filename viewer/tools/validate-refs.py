@@ -19,9 +19,9 @@ Checks performed:
                                     --bare-refs-only mode)
 
 Usage:
-  python viewer/tools/validate-refs.py surveys/transformer-attention/
-  python viewer/tools/validate-refs.py surveys/transformer-attention/ surveys/rag-systems/ --fix
-  python viewer/tools/validate-refs.py surveys/transformer-attention/ --json
+  python viewer/tools/validate-refs.py surveys/llms-for-coding/
+  python viewer/tools/validate-refs.py surveys/llms-for-coding/ surveys/multimodal-llms/ --fix
+  python viewer/tools/validate-refs.py surveys/llms-for-coding/ --json
   python viewer/tools/validate-refs.py --bare-refs-only <files-or-dirs>
   python viewer/tools/validate-refs.py --bare-refs-only --severity=warn <files>
 """
@@ -30,6 +30,9 @@ import json
 import re
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _corpus import survey_units, describe_scope  # noqa: E402
 
 # ── Patterns ──────────────────────────────────────────────────────────────────
 EQ_MARKER   = re.compile(r'<!--\s*eq:([\w.\-/]+)\s*-->')
@@ -40,7 +43,19 @@ XREF_FULL   = re.compile(
 )
 ANCHOR_PAT  = re.compile(r'<a\s+id="eq-(\d+)"></a>')
 TAG_PAT     = re.compile(r'\\tag\{(\d+)\}')
-IMG_PAT     = re.compile(r'!\[[^\]]*\]\(([^)]+)\)')
+# Alt text may contain BRACKETS -- a technical caption routinely says h[0], X[k], H[k,m].
+# The old class `[^\]]*` forbade them, so IMG_PAT silently failed to match those images and
+# they were never validated: the checker printed "7 valid" while 2 of 9 references had not
+# been looked at, and a deliberately-broken path passed clean (bug 2026-07-14-10). Allow one
+# level of nesting, and see IMG_OPEN below -- a `![` that yields no match is now reported,
+# so an image reference can never again vanish silently.
+IMG_PAT     = re.compile(r'(?<!\\)!\[(?:[^\[\]]|\[[^\[\]]*\])*\]\(([^)]+)\)')
+# The negative lookbehind is load-bearing: LaTeX's negative-thin-space `\!` before a
+# bracket -- e.g. `r^*\![n-D]` in a display-math block -- otherwise reads as an image
+# opener and the anti-false-green check below reports it as an unvalidated image.
+IMG_OPEN    = re.compile(r'(?<!\\)!\[')
+INLINE_CODE = re.compile(r'`[^`]*`')  # mask before IMG_PAT: a `![alt](path)` shown
+                                      # as a doc example is not a real image ref
 MD_LINK     = re.compile(r'\[[^\]]*\]\(([^)]*\.md)(?:#([^)]*))?\)')
 ANCHOR_LINK = re.compile(r'\[[^\]]*\]\(#(eq-\d+)\)')
 
@@ -162,6 +177,60 @@ def comment_spans_on_line(line):
         spans.append((open_pos, close_pos + 3))
         pos = close_pos + 3
     return spans
+
+
+# ── Duplicate-anchor-ID check (bugs 2026-07-10-06 / -10) ─────────────────────
+
+ANY_ANCHOR_RE = re.compile(r'<a\s+id="([^"]+)"></a>')
+
+DUP_ANCHOR_SEVERITY_FILE = (
+    Path(__file__).resolve().parents[2] / ".claude" / "duplicate-anchor-severity"
+)
+
+
+def read_dup_anchor_severity(default="warn"):
+    """Read `.claude/duplicate-anchor-severity` (off|warn|error); default warn.
+
+    Mirrors `.claude/bare-refs-severity`: the toggle governing whether a duplicate
+    anchor id blocks a push. Advisory (warn) during rollout, error once swept.
+    """
+    try:
+        val = DUP_ANCHOR_SEVERITY_FILE.read_text(encoding="utf-8").strip().lower()
+    except (OSError, UnicodeDecodeError):
+        return default
+    return val if val in ("off", "warn", "error") else default
+
+
+def find_duplicate_anchor_ids(path):
+    """Return [(anchor_id, first_lineno, dup_lineno)] for every `<a id="X">` whose
+    id repeats within the file. A duplicate HTML id is invalid and silently breaks
+    in-page navigation (the browser resolves a fragment to the first occurrence),
+    so an inbound secref/secxref can retarget to an empty element on a later edit.
+
+    Skips fenced code and HTML-comment spans so a documentation example anchor is
+    not mistaken for a real one.
+    """
+    try:
+        lines = Path(path).read_text(encoding="utf-8").splitlines()
+    except (OSError, UnicodeDecodeError):
+        return []
+    fence = compute_fence_state(lines)
+    in_comment = compute_comment_state(lines)
+    seen = {}
+    dups = []
+    for i, line in enumerate(lines):
+        if fence[i] or in_comment[i]:
+            continue
+        spans = comment_spans_on_line(line)
+        for m in ANY_ANCHOR_RE.finditer(line):
+            if any(s <= m.start() < e for s, e in spans):
+                continue
+            aid = m.group(1)
+            if aid in seen:
+                dups.append((aid, seen[aid], i + 1))
+            else:
+                seen[aid] = i + 1
+    return dups
 
 
 def bracket_spans_on_line(line):
@@ -342,7 +411,7 @@ def check_bare_section_refs(path):
                 continue
 
             # Skip if inside a [...] bracket — citation context (e.g.,
-            # [Vaswani et al., 2017, §3.2] or [RFC 8259 §7]).
+            # [Vaswani et al., 2017, §3.2] or [Vaswani et al., 2017, §3.2]).
             # This mirrors the bracket_spans_on_line exclusion in --init.
             if any(s <= col < e for s, e in b_spans):
                 continue
@@ -393,6 +462,7 @@ def scan_survey(survey_dir):
     anchors  = {}   # file -> set of int (anchor numbers)
     tags     = {}   # file -> list of int (tag numbers in order)
     images   = []   # (file, line, img_path)
+    unparsed_images = []  # (file, line, count) -- `![` the pattern could not parse
     md_links_list = []  # (file, line, link_file, link_anchor)
 
     for md_file in md_files:
@@ -435,11 +505,22 @@ def scan_survey(survey_dir):
                            for x in xrefs):
                     xrefs.append((md_file, lineno, xref_id, None, None, None))
 
-            # Images
-            for m in IMG_PAT.finditer(line):
+            # Images — mask inline-code spans first, so an `![alt](path)`
+            # documentation example inside backticks is not validated as a
+            # real image reference (bug 2026-07-11-04).
+            img_line = INLINE_CODE.sub(lambda m: ' ' * len(m.group(0)), line)
+            n_matched = 0
+            for m in IMG_PAT.finditer(img_line):
+                n_matched += 1
                 path = m.group(1)
                 if not path.startswith('http'):
                     images.append((md_file, lineno, path))
+            # Anti-false-green: an `![` the pattern could not parse is an image reference we
+            # did NOT validate. Say so loudly rather than quietly counting a smaller total --
+            # "N valid" must mean "we looked at N and all N are fine", never "we found N".
+            n_open = len(IMG_OPEN.findall(img_line))
+            if n_open > n_matched:
+                unparsed_images.append((md_file, lineno, n_open - n_matched))
 
             # MD links (not already captured as xrefs)
             for m in MD_LINK.finditer(line):
@@ -467,6 +548,7 @@ def scan_survey(survey_dir):
         'anchors': anchors,
         'tags': tags,
         'images': images,
+        'unparsed_images': unparsed_images,
         'md_links': md_links_list,
     }
 
@@ -571,6 +653,13 @@ def validate(survey, all_surveys):
         else:
             errors.append(f"Image not found: '{img_path}' in {md_file}:{lineno}")
 
+    # An image reference the pattern could not parse is one we never checked. Refuse to
+    # report a clean image count over it -- silence here is the false-green of bug
+    # 2026-07-14-10, where 2 of 9 references went unvalidated and a broken path passed.
+    for md_file, lineno, n in survey.get('unparsed_images', []):
+        errors.append(f"Unparseable image reference ({n} on the line) in {md_file}:{lineno} "
+                      f"— it was NOT validated. Check the alt text for unbalanced brackets.")
+
     # Check 5: order.json completeness
     order_file = survey_dir / 'order.json'
     if order_file.exists():
@@ -613,6 +702,18 @@ def validate(survey, all_surveys):
             links_ok += 1
         else:
             errors.append(f"Broken link: '{link_file}' in {md_file}:{lineno}")
+
+    # Check 10: Duplicate anchor ids within a file (bugs 2026-07-10-06 / -10).
+    # Severity via .claude/duplicate-anchor-severity (off|warn|error, default warn).
+    dup_sev = read_dup_anchor_severity()
+    dup_anchor_count = 0
+    if dup_sev != 'off':
+        for md_file in survey['files']:
+            for aid, first, dup in find_duplicate_anchor_ids(survey_dir / md_file):
+                dup_anchor_count += 1
+                msg = (f"Duplicate anchor id '{aid}' in {md_file}:{dup} "
+                       f"(first at line {first})")
+                (errors if dup_sev == 'error' else warnings).append(msg)
 
     # Count files with tags
     files_with_tags = sum(1 for f in survey['files'] if survey['tags'].get(f))
@@ -800,11 +901,17 @@ def main():
         help='Severity for bare-ref findings (default: error). '
              'Used during the warn-only migration window before enforcement.'
     )
+    parser.add_argument(
+        '--dup-anchor-severity', choices=['off', 'warn', 'error'], default=None,
+        help='Severity for duplicate-anchor-id findings. Defaults to '
+             '.claude/duplicate-anchor-severity (or warn if absent).'
+    )
     args = parser.parse_args()
 
     # --bare-refs-only: single-file mode, short-circuits before survey-walk logic
     if args.bare_refs_only:
         rc = 0
+        dup_sev = args.dup_anchor_severity or read_dup_anchor_severity()
         for target in args.dirs:
             p = Path(target)
             files = [p] if p.is_file() else sorted(p.rglob('*.md'))
@@ -825,16 +932,43 @@ def main():
                 if sec_findings and args.severity == 'error':
                     if any(level == 'error' for _, _, level, _ in sec_findings):
                         rc = 1
+
+                if dup_sev != 'off':
+                    label = "ERROR" if dup_sev == "error" else "WARN"
+                    for aid, first, dup in find_duplicate_anchor_ids(f):
+                        print(f'{f}:{dup}: [{label}] duplicate anchor id '
+                              f'"{aid}" (first defined at line {first})')
+                        if dup_sev == 'error':
+                            rc = 1
         sys.exit(rc)
 
-    # Scan all surveys
+    # Scan all surveys.
+    #
+    # Each argument may be a single survey directory OR a corpus root such as
+    # `surveys/` (what .githooks/pre-push passes). Previously every argument
+    # was handed straight to scan_survey(), which reads one survey via
+    # list_md_files() -> order.json else glob('*.md'); `surveys/` has no
+    # order.json, so the gate validated only the flat legacy files at its root
+    # and never opened a survey subdirectory (bugs/2026-07-10-09).
+    #
+    # Expansion is per-survey, NOT a flat rglob: eq/ref/secxref resolution is
+    # scoped to one survey's order.json, so flattening 29 surveys into one
+    # list would mis-resolve cross-references rather than merely under-scan.
     surveys = []
+    scanned_roots = []
     for d in args.dirs:
         p = Path(d)
         if not p.is_dir():
             print(f"Not a directory: {d}", file=sys.stderr)
             sys.exit(1)
-        surveys.append(scan_survey(p))
+        units, skipped = survey_units(p)
+        if not units:
+            print(f"No markdown in scope under {d}", file=sys.stderr)
+            sys.exit(2)
+        print(describe_scope(units, skipped, 'validate-refs'))
+        for unit in units:
+            scanned_roots.append(unit.root)
+            surveys.append(scan_survey(unit.root))
 
     # Fix mode
     if args.fix:

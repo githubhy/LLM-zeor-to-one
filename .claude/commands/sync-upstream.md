@@ -78,9 +78,17 @@ The viewer *framework* — server (`serve.js`), client (`viewer.js` + `lib/**`),
 
 ```bash
 # Leakage: no wireless/telecom terms may survive in ported config OR viewer content.
-# Expected self-hits (NOT leakage): this command file's own mapping table + grep,
-# and upstream-sync.json's provenance note — exclude them and read the rest.
-# vendor/ + node_modules/ are copied-verbatim third-party (minified false positives) — skip.
+# Expected self-hits (NOT leakage), exclude them and read the rest:
+#   * this command file's own mapping table + grep;
+#   * upstream-sync.json's provenance note;
+#   * CLAUDE.md's own /sync-upstream catalog entry (it names the upstream repo);
+#   * bench/deep-research-survey/scenarios/RESULTS-*.md — a record of experiments that
+#     were ACTUALLY RUN on those topics. Re-domaining it would falsify a measurement,
+#     not genericize a fixture. Repair its dangling record refs; leave the topics.
+# vendor/ + node_modules/ + test-results/ are third-party or generated — skip.
+# NOTE: viewer/tests/** still carries pre-existing telecom fixtures from the original
+# bootstrap (see todos/2026-08-12-upstream-sync-followups.md). Classify each hit as
+# sync-touched (fix now) vs pre-existing (todo) with `git status --porcelain -- <file>`.
 grep -rniE 'ldpc|3gpp|\birc\b|harq|\bofdm\b|otfs|\bntn\b|\b5g\b|wireless|\bfll\b|\bpll\b|beamform|zadoff|\bisac\b|\bbler\b' \
     CLAUDE.md AGENTS.md .claude/ viewer/ bench/ \
     --exclude-dir=node_modules --exclude-dir=vendor --exclude-dir=test-results \

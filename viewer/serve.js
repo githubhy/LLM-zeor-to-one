@@ -210,6 +210,35 @@ function readUtf8WithRevision(filePath) {
   return { text, revision: etagOf(text) };
 }
 
+// True only for an existing regular file. The check is wrapped because it
+// races: the entry can be unlinked between existsSync and statSync, and an
+// uncaught throw inside a request handler terminates the dev server.
+// assetPathFor already guards its own roots the same way.
+function isRegularFile(filePath) {
+  try {
+    return fs.existsSync(filePath) && fs.statSync(filePath).isFile();
+  } catch {
+    return false;
+  }
+}
+
+// Read a markdown file, mapping any filesystem error to an HTTP response
+// rather than an uncaught throw: the file can be unlinked or made unreadable
+// between the isRegularFile guard and this read. Returns null once it has
+// already responded, so callers just `if (!x) return;`.
+function readUtf8OrRespond(filePath, res) {
+  try {
+    return readUtf8WithRevision(filePath);
+  } catch (err) {
+    const code = err && err.code;
+    const status = code === 'ENOENT' ? 404 : (code === 'EACCES' || code === 'EPERM') ? 403 : 500;
+    res.writeHead(status, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end(status === 404 ? 'Not found' : `Read failed: ${code || 'UNKNOWN'}`);
+    console.error(`Read failed for ${filePath}:`, err);
+    return null;
+  }
+}
+
 function ensureWithin(root, filePath) {
   return filePath.startsWith(root + path.sep) || filePath === root;
 }
@@ -577,15 +606,17 @@ const server = http.createServer((req, res) => {
     // A target that resolves to a directory (or an empty id) passes the
     // existsSync check but is not a readable markdown file: readFileSync(dir)
     // throws an uncaught EISDIR that would terminate the process. Require a
-    // regular file so any non-file target is a clean 404 (bug 2026-06-17-01).
-    if (!filePath || !fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
+    // regular file so any non-file target is a clean 404. isRegularFile also
+    // absorbs the stat's own race (unlink between existsSync and statSync).
+    if (!filePath || !isRegularFile(filePath)) {
       res.writeHead(404);
       res.end('Not found');
       return;
     }
 
     if (req.method === 'GET') {
-      const current = readUtf8WithRevision(filePath);
+      const current = readUtf8OrRespond(filePath, res);
+      if (!current) return;
       res.writeHead(200, {
         'Content-Type': 'text/markdown; charset=utf-8',
         'Cache-Control': 'no-store',
@@ -599,7 +630,8 @@ const server = http.createServer((req, res) => {
     if (req.method === 'PUT') {
       const ifMatch = req.headers['if-match'];
       if (!ifMatch) {
-        const preview = readUtf8WithRevision(filePath);
+        const preview = readUtf8OrRespond(filePath, res);
+        if (!preview) return;
         res.writeHead(428, {
           'Content-Type': 'text/plain; charset=utf-8',
           'ETag': preview.revision,
@@ -617,7 +649,8 @@ const server = http.createServer((req, res) => {
           res.end('Not found');
           return;
         }
-        const current = readUtf8WithRevision(filePath);
+        const current = readUtf8OrRespond(filePath, res);
+        if (!current) return;
         if (ifMatch !== current.revision) {
           res.writeHead(409, {
             'Content-Type': 'text/plain; charset=utf-8',

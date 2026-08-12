@@ -30,18 +30,33 @@ Selected from the skill arguments (`$ARGUMENTS`):
 
 If either is missing, run `deep-research-survey` first or ask the user to supply the gap.
 
+The Phase-1.5 **G0 derivation-soundness gate** (`[opt:RIS-DERIV]`, default on) *verifies* this
+prerequisite rather than assuming it: it requires an independent re-derivation of each load-bearing
+operator before Phase 2 (`phases/phase-1b-derivation-gate.md`). Turn it off in
+`.claude/skill-options.json` only for a study that re-implements an already-derived reference with
+no new math.
+
 ## Phases
 
 Run in order with quality gates. Read each phase file just-in-time.
 
 | Phase | File | Goal | Gate |
 |-------|------|------|------|
-| 1. Scenario | `phases/phase-1-scenario.md` | Define task & data distribution, metrics, constraints, candidates | — |
+| 0. Derivation authoring *(conditional)* | `phases/phase-0-survey-derivation.md` | Author load-bearing math the survey LACKS into the survey (a reduced-precision variant, a new operator, a discretized recursion) — before there is a foundation to implement against | survey gates + 0-uncovered procedure↔equation inventory `[opt:RIS-PHASE0 · default ON · toggle .claude/skill-options.json]` |
+| 1. Scenario | `phases/phase-1-scenario.md` | Define task & data distribution, metrics, constraints, candidates | published-benchmark studies only: reference-perf `[opt:RIS-REFPERF · default ON · toggle .claude/skill-options.json]` |
+| 1.5 Derivation | `phases/phase-1b-derivation-gate.md` | Independent re-derivation of load-bearing operators — **before any code** | G0 `[opt:RIS-DERIV · default ON · toggle .claude/skill-options.json]` |
 | 2. Implementation | `phases/phase-2-implementation.md` | Code each candidate with uniform interface | G1 |
 | 3. Baseline | `phases/phase-3-baseline.md` | Multi-seed comparative eval study with CI | G2 |
 | 4. Sensitivity | `phases/phase-4-sensitivity.md` | Sweep hyperparameters and environment | G3 |
 | 5. Precision | `phases/phase-5-precision.md` | Reduced-precision / quantized realisation (skip if N/A) | G4 |
 | 6. Report | `phases/phase-6-report.md` | Consolidate findings + recommendation + red-team | — |
+
+**Phase 0 vs Phase 1.5.** They are complementary, not redundant: **P0 authors** the needed
+derivation INTO the survey (creating the foundation); **G0 independently re-derives** it to attest
+soundness before any code. Run P0 only when the study introduces load-bearing math the survey does
+not yet contain — otherwise skip straight to Phase 1. P0 also authors each new equation's
+reduction-to-known-limit (the finite operator recovering the form it generalizes) and the
+0-uncovered procedure↔equation inventory that pre-populates the G0 ledger + the Report §4 table.
 
 Gate validation: `python .claude/skills/reference-implementation-study/validate_gate.py <study-name> <gate>`
 
@@ -49,7 +64,7 @@ Gate validation: `python .claude/skills/reference-implementation-study/validate_
 
 ## Artefact Rules
 
-- **Persistent data**: save results so figures regenerate without rerunning compute (eval traces, scores).
+- **Persistent data**: save results so figures regenerate without rerunning compute (eval traces, scores). `[opt:RIS-FILE-FIRST · default ON · toggle .claude/skill-options.json]` — a sweep driver flushes **per cell** (per-point/per-seed/per-shard) to disk and resumes from what is already written, so a step-cap death, kill, or reap leaves partial evidence and relaunches at zero recompute (never a terminal-only or end-of-run-only write). Same discipline as `.claude/rules/workflow.md` BG-RUNINBG's flush+resume corollary and `deep-research-survey` DRS-HARDEN. *Off-behavior:* a sweep that writes only at the end loses everything on interruption.
 - **Interactive**: support zoom, pan, hover unless embedded in a static document.
 - **Reproducibility**: every config stored in JSON summary; all random seeds and decoding params explicit.
 - **Naming**: `artifacts/<study-name>/` with one subdirectory per phase.
@@ -66,9 +81,19 @@ Gate validation: `python .claude/skills/reference-implementation-study/validate_
 ## Skill Chaining
 
 ```
-deep-research-survey  →  reference-implementation-study
-       surveys/                implementation/<topic>/ + artifacts/ + docs/
+deep-research-survey  →  reference-implementation-study  →  kernel-bringup  →  accelerator-cost-study
+       surveys/                implementation/<topic>/         kernels/ (proven)     sim/<topic>/perf/
+                                + artifacts/ + docs/                                 (flow-measured cost)
 ```
+
+This skill produces a **hardware-independent, *relative*** cost model (FLOP and byte counts, memory
+footprint as a closed form) and deliberately runs no measurement flow. When you need *absolute* cost on
+a named accelerator — ms / achieved TFLOP/s / GB/s / joules per token — hand off after Phase 6 to the
+**accelerator-realization family**: `kernel-bringup` turns the validated realisation (Phase 5) into an
+optimized kernel **proven equivalent to a deterministic reference within a derived bound**, and
+`accelerator-cost-study` takes it through a real measurement flow (profiler + roofline + power sampling)
+to flow-measured latency/utilization/energy with a CONFIRM/REFUTE gate against this skill's relative
+model. Close with `results-reconciliation` if the report accreted those results incrementally.
 
 ## Gotchas
 

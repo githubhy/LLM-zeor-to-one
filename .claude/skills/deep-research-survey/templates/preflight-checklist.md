@@ -4,6 +4,10 @@ Fill in this checklist before launching research agents. The goal is to
 prevent silent agent death by keeping each agent within empirically safe
 bounds.
 
+## Outline sign-off (P0-3 / R-GOV)
+
+- [ ] R-GOV depth-tier table present in the outline artifact, **incl. every `supporting` row**, surfaced in the P0-3 brief and acknowledged (`[opt:DT-L2-OUTLINE · default ON · toggle .claude/skill-options.json]`; persisted as a `<!-- depth-tier-allocation -->` block in `survey/_scratch/00-*-outline.md` — the Layer-3′ drift-diff reads it back)
+
 ## Hard Limits
 
 - [ ] Each agent within the active scale's question limit (`config/operational-scale.json`: standard **≤5**, wide **≤7**)

@@ -1,0 +1,16 @@
+# Cross-link keep-out list. Documents/surveys deliberately NOT in any corpus group.
+# `crosslink.py coverage` reports every survey/wiki that is neither grouped
+# (.claude/crosslink-scope) nor listed here, so a new document is never silently
+# unscanned.
+#
+# One path per line: a file, or a directory (all its top-level chapters kept out).
+# `#` comments allowed. Adding an entry here is a DELIBERATE "do not cross-link this".
+#
+# The mirror image of a corpus group: a group says "link these together", this file
+# says "these belong to no group, on purpose". A survey that is neither is a bug.
+
+# --- Tooling fixture, not research content ---------------------------------
+# The worked reference example that every gate step is validated against. It is
+# deliberately self-contained: cross-links into the real corpus would couple the
+# fixture to content that changes, which is exactly what a fixture must not do.
+surveys/attention-demo

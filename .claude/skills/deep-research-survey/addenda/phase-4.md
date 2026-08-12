@@ -5,7 +5,7 @@ Apply each block iff `proposed` is set OR its id is in the active `flags` set
 / `richness` is set or `R-DEPTH` is in `flags`); read `R-GOV` in `addenda/phase-2.md`
 first — it tiers which methods/results get the heavy treatment below.
 
-**P1-2 — memory-guided synthesis (replaces the blind UNION merge). PROMOTED TO BASELINE 2026-06-03 — now the default method for the large/high-stakes multi-agent synthesis path in `phases/phase-4-synthesis.md`; this flag is a retained no-op alias. Promoted on survey-scale A/B evidence (RESULTS Updates 8/11/14); see `decisions/2026-06-03-01`. The block below is kept for provenance.** Write sections
+**P1-2 — memory-guided synthesis (replaces the blind UNION merge). PROMOTED TO BASELINE 2026-06-03 — now the default method for the large/high-stakes multi-agent synthesis path in `phases/phase-4-synthesis.md`; this flag is a retained no-op alias. Promoted on survey-scale A/B evidence (RESULTS Updates 8/11/14); see `upstream decision 2026-06-03-01`. The block below is kept for provenance.** Write sections
 SEQUENTIALLY, not as independent parallel drafts. Maintain a running global-state
 memory of every symbol/term defined, every equation/result stated, and what each
 prior section covered. Before writing section k, reuse the established notation and

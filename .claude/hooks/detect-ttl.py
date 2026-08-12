@@ -14,6 +14,12 @@ CLI use:
     # prints "3600" or "300" to stdout
 """
 
+# py-launcher.sh accepts any Python >= 3.8, but the `X | None` return
+# annotations below are PEP 604 syntax evaluated at def-time (3.10+). Deferring
+# annotation evaluation keeps this hook importable on 3.8/3.9. Keep this line
+# first (a __future__ import must precede all other code).
+from __future__ import annotations
+
 import argparse
 import json
 import sys

@@ -9,7 +9,8 @@
       "standard": 15,
       "wide": 40,
       "kind": "soft",
-      "note": "wide=40 is ABOVE the only measured death boundary (~28 searches, the 2026-03 unbounded-query agent-death incident). Highest-risk knob; the calibration sweep must clear or trim it. Until then it leans entirely on the safety nets."
+      "note": "wide=40 is ABOVE the only measured death boundary (~28 searches, the 2026-03 unbounded-query agent-death incident). Highest-risk knob; the calibration sweep must clear or trim it. Until then it leans entirely on the safety nets. SUPERSEDED AS THE BINDING LIMIT AT WIDE SCALE by `searches_per_session` -- this knob bounds ONE agent; the session pool bounds the fan-out.",
+      "sizing_rule": "EFFECTIVE per-agent budget = min(searches_per_agent, (searches_per_session - holdback) / n_agents). Size the fan-out with this, not with searches_per_agent alone. Worked example (an upstream wide-scale run that got this wrong): 10 agents at wide=40 requested 400 against a 200-call session pool, exhausted it mid-run, and left the main thread ZERO searches for Phase-4/5 verification. The correct sizing was min(40, (200-25)/10) = 17 searches/agent."
     },
     "questions_per_agent": {
       "standard": 5,
@@ -26,7 +27,10 @@
     "downloads_per_day": {
       "standard": 50,
       "wide": 200,
-      "holdback": [10, 15],
+      "holdback": [
+        10,
+        15
+      ],
       "kind": "external-quota",
       "note": "SELF-IMPOSED budget only. The external Anna's-Archive service quota is the hard ceiling and is NOT documented in-repo — if the real limit is below this value, fetches beyond it fail regardless. A ceiling on intent, not a guarantee; a flag cannot lift the physical limit."
     },
@@ -35,6 +39,16 @@
       "wide": 200,
       "kind": "structural",
       "note": "Multi-file-architecture trigger. wide=200 KB accepts ~2x per-read token cost (~30-66K vs ~15-33K tokens/read)."
+    },
+    "searches_per_session": {
+      "standard": 200,
+      "wide": 200,
+      "kind": "external-quota",
+      "holdback": [
+        20,
+        30
+      ],
+      "note": "HARNESS-ENFORCED session-wide cap on WebSearch calls, SHARED across the main thread and every subagent -- NOT a per-agent budget and NOT raisable by a flag (the harness rejects further calls with a budget-exhausted message; only CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION moves it). Measured 200 on 2026-07-27. This is the binding constraint at wide scale: `searches_per_agent` is per-agent, so N agents at wide=40 REQUEST 40N and silently degrade once the shared pool empties. See `sizing_rule` below and todos/2026-07-27-drs-session-websearch-budget-cap.md."
     }
   },
   "safety_net_invariants": [
@@ -44,7 +58,8 @@
     "synthesis stays on the main thread; agents collect raw evidence only",
     "citation-integrity gate unchanged; downloads stay quota-bounded",
     "bounded escalating retry on detected death (<=2 relaunches/agent, 2nd attempt trimmed, resume-from-checkpoint) runs BEFORE the main-thread fallback — see retry_policy",
-    "restart-intensity ceiling: if an agent class dies more than twice (i.e. retries exhausted), stop respawning, fall back to main-thread research, AND emit a visible coverage-gap marker into the report for that subtopic"
+    "restart-intensity ceiling: if an agent class dies more than twice (i.e. retries exhausted), stop respawning, fall back to main-thread research, AND emit a visible coverage-gap marker into the report for that subtopic",
+    "session-search accounting: size the fan-out by `sizing_rule` (min of the per-agent knob and the shared session pool net of holdback), and reserve `searches_per_session.holdback` for main-thread Phase-4/5 verification -- an evidence fan-out that consumes the whole pool leaves synthesis unable to check itself"
   ],
   "invariant_rule": "`scale: wide` is INVALID if any safety_net_invariant is disabled. Wide mode raises throughput; it never removes a safety net. The residual it does NOT close is 'alive but byzantine' (a confident-but-shallow return) — surfaced, not eliminated, by the coverage gate + a thin-return flag.",
   "retry_policy": {
@@ -70,7 +85,8 @@
       "no_glob_exact_paths": "Give the agent EXACT file paths (local papers/model-cards/specs in download/ or docs/specs/, the exemplar file) in the brief. Forbid Glob / filesystem exploration — wasted Glob calls were the single largest step sink.",
       "webfetch_limited": "Prefer WebSearch result snippets + targeted local-source grep/Read of line ranges; cap full-page WebFetch at <=2 per agent (each fetch is a step AND a context-bulk sink).",
       "empty_return_is_death": "The orchestrator treats an empty-string agent return as a DEATH signal (if (!r || String(r).trim() === '')), not success — a step-capped agent COMPLETES with an empty final message, which a !!r check misreads.",
-      "step_budget_headroom": "Size each agent so every question keeps >= ~10 tool calls of headroom under the ~36-40-call step cap: with the waste removed, ~3-4 questions/agent (not the legacy 5). `knobs.questions_per_agent` is the UPPER bound; this is the effective working size. Splitting the same total questions across more agents raises per-question depth and breadth — it does NOT narrow or shallow the research (coverage is unchanged; synthesis still sees all files; R-COVER gates completeness)."
+      "step_budget_headroom": "Size each agent so every question keeps >= ~10 tool calls of headroom under the ~36-40-call step cap: with the waste removed, ~3-4 questions/agent (not the legacy 5). `knobs.questions_per_agent` is the UPPER bound; this is the effective working size. Splitting the same total questions across more agents raises per-question depth and breadth — it does NOT narrow or shallow the research (coverage is unchanged; synthesis still sees all files; R-COVER gates completeness).",
+      "persist_cited_sources": "[opt:EV-PERSIST · default ON · toggle .claude/skill-options.json] Any external source a claim will CITE must be persisted to `download/` (via source-fetch or a direct fetch), not merely WebFetched transiently. A source read live but not saved is a citation-integrity gap that surfaces only at reference-compilation (the 2026-07-04 Qi PT-RS paper was WebFetched by an evidence agent with no `download/` path, discovered at the references stage and re-fetched). If an evidence-ledger claim rests on a WebFetched PDF, the agent or the orchestrator must save it and record the local path in the ledger entry."
     },
     "off_restores": "agent_hardening: off restores the legacy schema-first deliverable + 5-question sizing + unrestricted Glob/WebFetch (pre-2026-06-25 behavior). Provided for A/B and backward-compat; NOT recommended — it is the broken path.",
     "status": "SHIPPED default-ON 2026-06-25 (gotcha-#9 broken-original rewrite). Structural-checked. The death-RATE A/B is owed but deferred: it would re-run the exact expensive failure, and the mechanism is already transcript-measured. Refs (upstream provenance): the evidence-agent-hardening bug, the hardening decision, and the phase-3 file-first-deliverable todo."

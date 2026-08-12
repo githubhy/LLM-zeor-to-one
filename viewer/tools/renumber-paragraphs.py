@@ -24,6 +24,9 @@ import re
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _corpus import survey_units, all_files, describe_scope  # noqa: E402
+
 try:
     from markdown_it import MarkdownIt
 except ImportError:
@@ -35,6 +38,25 @@ PARA_MARKER = re.compile(r'<!--\s*para:([\w.\-/]+)\s*-->')
 PARA_ANCHOR = re.compile(r'<a\s+id="p-([\w.\-/]+)"></a>')
 EQ_MARKER = re.compile(r'<!--\s*eq:')
 DISPLAY_MATH = re.compile(r'^\s*\$\$')
+
+# Project-viewer highlight markup (`==blue: ... ==`) may wrap a `$$` delimiter
+# on the same line, so an opener can read `  ==blue: $$`. DISPLAY_MATH does not
+# match that — it requires `$$` at the start — so the opener goes UNSEEN, its
+# closer is then taken for an opener, and every `$$` pairing for the rest of the
+# file inverts. One such line (tracking-loops.md:752) put 76% of a 3756-line
+# chapter "inside display math", made 284 paragraph markers unassignable, and
+# so reported them all as orphans. renumber-equations.py has stripped these
+# wrappers since bugs/2026-05-06-01; this file never did.
+# See bugs/2026-07-31-renumber-paragraphs-blind-to-highlight-wrapped-math.
+HIGHLIGHT_PREFIX = re.compile(r'^(\s*)==\w+:\s*')
+HIGHLIGHT_SUFFIX = re.compile(r'\s*==$')
+
+
+def _strip_highlight(s):
+    """Drop a `==color:` prefix / trailing `==` so `$$` detection sees the
+    delimiter. Leading whitespace is preserved so indentation still reads."""
+    s = HIGHLIGHT_PREFIX.sub(r'\1', s)
+    return HIGHLIGHT_SUFFIX.sub('', s)
 LIST_PREFIX = re.compile(r'^(\s*(?:[-*+]|\d+[.)])\s+)')
 BQ_PREFIX = re.compile(r'^(\s*>\s?)')
 # Footnote definition line (`[^id]: body`, ≤3 leading spaces per CommonMark).
@@ -182,6 +204,7 @@ def display_math_line_set(lines):
     in_math = False
     start = -1
     for i, line in enumerate(lines):
+        line = _strip_highlight(line)
         if DISPLAY_MATH.match(line):
             stripped = line.strip()
             # Single-line block: `$$ ... $$` opens AND closes on one line.
@@ -240,7 +263,7 @@ def renumber(path: Path, check_only=False, init=False):
         if line in display_lines:
             continue
         line_text = lines[line] if 0 <= line < len(lines) else ''
-        if DISPLAY_MATH.match(line_text):
+        if DISPLAY_MATH.match(_strip_highlight(line_text)):
             continue
         if EQ_MARKER.search(line_text):
             continue
@@ -326,13 +349,27 @@ def main():
         sys.exit(1)
 
     if target.is_dir():
-        files = list_md_files(target)
+        # A directory may be a single survey OR a corpus root such as
+        # `surveys/` (what .githooks/pre-push passes); the old code treated
+        # both as one survey and so never descended (bugs/2026-07-10-09).
+        #
+        # references.md is EXCLUDED, matching normalize-survey.py step 3. A
+        # reference entry must start at column 0 for check-citation-sources to
+        # parse it, and a paragraph anchor would push each `[N]` off column 0 —
+        # so paragraph markers are deliberately not maintained there, and every
+        # references.md reports drift by construction. Including them would
+        # have made this gate fire on correct input across all 29 surveys.
+        units, skipped = survey_units(target)
+        files = [f for f in all_files(units) if f.name != 'references.md']
         if not files:
             print(f'No .md files in {target}', file=sys.stderr)
             sys.exit(1)
+        print(describe_scope(units, skipped, 'paragraphs')
+              + '; references.md excluded (see normalize-survey step 3)')
         all_ok = True
         for f in files:
-            print(f'\n--- {f.name} ---')
+            rel = f.relative_to(target) if f.is_relative_to(target) else f
+            print(f'\n--- {rel} ---')
             if not renumber(f, check_only=args.check, init=args.init):
                 all_ok = False
         sys.exit(0 if all_ok else 1)

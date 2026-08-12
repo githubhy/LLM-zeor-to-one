@@ -1,0 +1,4 @@
+# Program-level rollup pages checked by check-rollup-freshness.py (pre-push, blocking).
+# A rollup asserts program status + cites subset artifacts; this registry says which pages to check.
+#
+# Empty: this repo has no program-level rollup page yet.

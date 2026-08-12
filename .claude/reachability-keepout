@@ -1,0 +1,11 @@
+# Reachability keep-out. Wikis that are DELIBERATELY standalone -- process, harness, or
+# methodology documents with no survey host, whose readers arrive from CLAUDE.md, a rule,
+# a plan, or a report rather than from a survey section.
+#
+# `crosslink.py reach` reports every wiki under wikis/ that no survey can reach by a
+# reader-facing link (mentions inside HTML comments do NOT count -- they are invisible in
+# the rendered page). Anything not listed here must be linked from the section it supports.
+#
+# This is NOT the same list as .claude/crosslink-keepout. That one declares "not in any
+# TF-IDF corpus group"; this one declares "no survey reader is expected to arrive here".
+# A doc can legitimately be in one, both, or neither.

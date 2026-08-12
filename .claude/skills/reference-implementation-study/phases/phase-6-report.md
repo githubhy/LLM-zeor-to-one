@@ -30,6 +30,16 @@ Run **`/study-signoff <study> <topic>`** (or `python .claude/skills/reference-im
   into the report's Audit-Trail section. Do this before believing the headline.
 - Run the **`citation-audit`** skill on external citations (the existing citation gate).
 
+**Corrections & retractions** `[opt:RIS-RETRACTION · default ON · toggle .claude/skill-options.json]` —
+standing (default-ON) discipline. A report accretes results over many turns; if a filed finding
+(a headline number, a claimed defect, an attribution) is later **refuted**, the report retracts it
+**explicitly** in the Section-13 Audit Trail — with the evidence that overturned it and the
+third-route (no-shared-code) result that settled it — never silently overwriting the prose. Mirrors
+`bugs/` retraction, lifted into the report spine (and complements the `results-reconciliation` skill,
+which catches the *stale framing* a silent overwrite leaves behind). *Off-behavior:* pre-2026-07-11, a
+refuted result is edited out with no retraction record, so a later reader cannot tell a number was
+withdrawn or why.
+
 ## Final Checklist
 - [ ] Number all display equations
 - [ ] Record milestone completion in the study manifest (`artifacts/<study>/study-manifest.json`)

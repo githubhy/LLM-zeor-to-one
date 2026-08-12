@@ -18,9 +18,9 @@ artifacts that always ship together**:
    derivation line terse.
 2. **The dedicated section** — a new anchored subsection that holds the *full*
    answer almost verbatim, in the "answer format" (intro → the core artifact as
-   a fenced block or table → term-by-term / row-by-row prose with linked refs →
-   "what it buys" → intuition / tie-in). It is link-targetable, so the Note (and
-   anything else) can point at it.
+   **untagged `$$` display math** (or a table) → term-by-term / row-by-row prose
+   with linked refs → "what it buys" → **physical meaning** → intuition / tie-in).
+   It is link-targetable, so the Note (and anything else) can point at it.
 
 The two are wired both ways: Note → section (forward link), section → the
 Note's host (back reference).
@@ -46,7 +46,14 @@ sweep — that is the whole point (see *How the update is guaranteed*).
   making permanent and link-targetable.
 
 Not for: brand-new derivations that belong in the main flow (write those as
-ordinary numbered content); fixing prose in place (just edit it).
+ordinary numbered content); fixing prose in place (just edit it); **naming or
+tightening the definition of an existing symbol/term at its own point of
+introduction** — that is a one-clause inline gloss, not a Note+section fold.
+Rule of thumb: if the answer's supporting math already sits within a line or two
+of where the question arose, it wants a **gloss**; fold only knowledge that is
+genuinely new *and* belongs somewhere other than where the question was asked.
+(This boundary was added after the skill was over-applied to a bare symbol
+definition — see `prompts/2026-07-06-wcm-spatial-correlation-duality.md` Conv 16.)
 
 ## Modes
 
@@ -212,14 +219,49 @@ These rules are load-bearing — they are why the edit stays cheap and clean:
 
 Write the heading with the marker + inline anchor exactly like its siblings
 (`<!-- sec:A.13 -->` on the line above, then `### <a id="sec-A.13"></a>A.13
-Title`), then the body. **Reproduce verbatim-sensitive math (program
-statements, annotated equations) as fenced code blocks, NOT as numbered
-`$$…$$` equations** — this keeps the answer verbatim AND avoids minting new
-`\tag{N}` equations, which would cascade every later equation number through
-the rest of the appendix. A **concrete-values table is a markdown table** (not
-a numbered equation), so it is cascade-free; use one for "how large is X?"
-folds. Reference existing equations with the marked+linked form
+Title`), then the body. Reference existing equations with the marked+linked form
 (`<!-- ref:A-3 -->[(3)](#eq-3)`) and existing sections with `secref`/`secxref`.
+A **concrete-values table is a markdown table** (not a numbered equation), so it
+is cascade-free; use one for "how large is X?" folds.
+
+**Math exhibits are math: write them as UNTAGGED `$$…$$` display blocks, never
+as ASCII art in a fenced code block** `[opt:EF-MATHEXHIBIT · default ON · toggle
+.claude/skill-options.json]`. An annotated equation belongs in KaTeX —
+`\underbrace{…}_{\text{label}}`, `\overbrace{…}^{\text{label}}`, `\substack{}`
+for multi-line labels, `\begin{aligned}` for a stepped derivation — not drawn
+with box-drawing characters and arrows. Fenced blocks are for genuinely
+**non-math** verbatim content: pseudocode, program listings, ASCII plots.
+
+Omitting `\tag{N}` is what keeps the exhibit cascade-free; the fence was never
+what did that. The two rules are independent, and only the first one matters:
+
+- **Do not mint a `\tag{N}`** for an exhibit. Untagged display math is a
+  first-class, warning-level citizen. `lint-math` check #9 emits `WARNING:
+  display-math block has no \tag{N}`, never an error.
+- **Do use `$$…$$`** so the exhibit renders as math, is searchable, respects the
+  reader's font/zoom, and stays accessible.
+
+Two reasons an exhibit must not be tagged — neither is the one this skill used
+to give:
+
+1. **Semantic.** An exhibit that re-displays or annotates an *existing* equation
+   must not mint a rival number for it. A reader must never be able to cite both
+   "(10)" and "(13)" for the same relation.
+2. **Cross-file.** Equation numbers cited from *outside* the survey directory
+   (e.g. a standalone wiki) are unprotected: `renumber-equations.py::propagate_xrefs`
+   only walks `target_path.parent`, and its `XREF_FULL` pattern only matches the
+   `[(N)](file.md#eq-N) <!-- xref:ID -->` form, so a stable-ID link with prose
+   text is invisible to it. `validate-refs.py` checks that an anchor *resolves*,
+   never that the visible number *matches*.
+
+An **in-file** cascade is *not* a reason: `renumber-equations.py` Step 4 rewrites
+every in-file `<!-- ref:ID -->` link automatically, and Step 6 propagates to
+siblings in the survey dir. Renumbering inside one file is a safe, routine,
+script-handled operation. (The earlier text claimed otherwise and used that false
+claim to justify ASCII art — see `[opt:EF-MATHEXHIBIT]`.)
+
+When you leave a block untagged, drop a one-line HTML comment above it recording
+why, so a later reader does not "fix" the lint warning into a cross-file break.
 
 ````markdown
 <!-- sec:A.13 -->
@@ -229,8 +271,18 @@ folds. Reference existing equations with the marked+linked form
 state the one-line answer; reference the relevant equations with marked+linked
 refs.>
 
-| <concrete-values table — or a fenced ASCII block for verbatim math> |
-|---|
+<!-- untagged by design: annotates Eq (24); a \tag would mint a rival number
+     for it and stale the cross-file citations in standalone wikis. See [opt:EF-MATHEXHIBIT]. -->
+$$
+<the annotated equation, as REAL math — \underbrace / \overbrace with
+ \substack{} labels, or \begin{aligned} for a stepped derivation.
+ NO \tag{N}, and no <!-- eq:ID --> marker.>
+$$
+
+<blank line after the closing $$ — else the next paragraph's inline math
+ renders as literal source (math-authoring.md, check #6d)>
+
+<or, for a "how large is X?" fold, a plain markdown concrete-values table>
 
 **Row by row / Term by term.**
 
@@ -242,8 +294,17 @@ number carries its `<!-- cite:N -->[[N]](references.md#ref-N)` source.>
 - <consequence 1, linking the follow-on equation/section>
 - <consequence 2>
 
+**Physical meaning.** <the mechanism in concrete terms — what is being summed,
+compared, normalized, or cached; what a reader would actually observe or measure
+— not only the symbolic derivation or a restatement of the governing equation. If
+the concept is one of a dual/analogous family, draw the picture PARALLEL to its
+siblings and name the one ingredient it adds. Required — [opt:EF-PHYSICAL ·
+default ON · toggle .claude/skill-options.json].>
+
 **Intuition.** <tie-in to a companion figure, a limit, or an SP analogy>
 ````
+
+**Physical meaning is a required element, not decoration** `[opt:EF-PHYSICAL · default ON · toggle .claude/skill-options.json]`. Land the *mechanism in physical terms* — what is actually summed or superposed, what interferes or cancels, what a reader would observe or measure — not only the symbolic derivation, a restatement of the governing equation, or a limit. When the concept belongs to a dual/analogous family (coherence bandwidth / time / distance; the Bello functions; delay ↔ Doppler ↔ angle spreads), draw the physical picture **parallel to its siblings** so the mechanism reads the same way across them, and name explicitly the one ingredient the concept adds over the others. A "Geometrically / Intuition" tie-in that only re-states the math does **not** satisfy this. It operationalizes the `.claude/rules/workflow.md` math-derivation "intuition for each major result" bar for folded explanations. Motivating case: the coherence-distance fold delivered the phase-accrual math but omitted the sum-of-plane-waves interference picture — and its parallel to frequency selectivity as a sum of delayed taps — until the reader asked for it (`prompts/2026-07-06-wcm-spatial-correlation-duality.md`, Conv 14).
 
 Citation integrity: cite only sources already verified in the survey's
 `references.md` (strong `local:`/`spec:` tags preferred); **never introduce a
@@ -274,6 +335,7 @@ python viewer/tools/link-references.py      DIR  --check     # cite markers cons
 python viewer/tools/validate-refs.py        DIR              # cross-file refs valid
 python viewer/tools/validate-refs.py --bare-refs-only --severity=error DIR   # must exit 0
 python viewer/tools/check-citation-sources.py DIR/references.md              # source tags intact
+node   viewer/tools/verify-katex-render.cjs FILE             # the exhibit actually RENDERS (see below)
 python viewer/tools/build-index.py          FILE             # rebuild the file's index if the repo uses per-file indices
 ```
 
@@ -281,6 +343,21 @@ python viewer/tools/build-index.py          FILE             # rebuild the file'
 `PostToolUse` hook. If any `--check` reports drift, fix it before finishing —
 do not hand-renumber. A green `/check-survey <survey-slug>` is the equivalent
 one-command gate.
+
+**Why `verify-katex-render.cjs` is not optional here.** `lint-math` checks math
+*delimiters* statically; it never runs KaTeX. Step 4 now mandates exhibits built
+from `\underbrace` / `\overbrace` / `\substack` / `aligned` — precisely the
+macros a static delimiter check cannot validate. An unsupported command or a
+mismatched brace passes `lint-math` and then renders as a red `.katex-error`
+node in the viewer. This tool drives the viewer's real vendored path (KaTeX
+0.16.21 + markdown-it 14.1.0 + texmath 1.0.0, same options as
+`viewer.js::renderedDisplayMathHtml`), checks display *and* inline spans, and
+additionally flags `$$` / `\begin{` leaking into the rendered HTML — the
+"renders as literal source" failure mode of `math-authoring.md` check #6d.
+Run it on the file you edited; it is Playwright-free and takes about a second.
+
+It is currently wired into **no** gate (`todos/2026-07-09-wire-katex-render-gate.md`),
+so a skill sweep is the only place it runs. Do not skip it.
 
 ### Step 7 — Log
 
@@ -295,7 +372,9 @@ if the user asks.
 - [ ] *(full, note-only)* Inline Note written at the host — with forward link (full) / no link (note-only) — no hand-written anchor.
 - [ ] *(prose)* Plain-prose paragraph(s) written at the host, bold lead-ins matching siblings, no Note box, no hand-written anchor.
 - [ ] *(full only)* Section home chosen: numbered subsection, appended at end of its block.
-- [ ] *(full only)* Section written in answer-format; verbatim math as fenced blocks / values as a table; refs marked+linked; every number read from an acquired source; no memory citations.
+- [ ] *(full only)* Section written in answer-format; refs marked+linked; every number read from an acquired source; no memory citations.
+- [ ] *(full only)* Math exhibits are UNTAGGED `$$…$$` KaTeX (`\underbrace`/`\substack`/`aligned`), not ASCII art in a fence; each carries a one-line "untagged by design" comment; fences reserved for pseudocode / listings / ASCII plots (`[opt:EF-MATHEXHIBIT]`).
+- [ ] *(full only)* Physical meaning delivered — mechanism in concrete terms, drawn parallel to sibling concepts where applicable — not just a symbolic/limit tie-in (`[opt:EF-PHYSICAL]`).
 - [ ] *(full only)* Both links wired (Note→section, section→host).
 - [ ] **No cascade**: no new numbered `$$` equation minted (equations `--check` reports 0 tag updates).
 - [ ] Sweep run: sections/paragraphs `--init` → all `--check` clean → equations `--check` no cascade → link-references/validate-refs/bare-refs/citation-sources clean → index rebuilt.
@@ -310,6 +389,8 @@ if the user asks.
 - `.claude/skills/source-fetch/SKILL.md` — acquire a source when a needed value
   is not yet in `download/`.
 - `/check-survey <survey-slug>` — the gate that runs the `--check` suite.
+- `viewer/tools/verify-katex-render.cjs` — the Step-6 render gate; complements
+  `lint-math` (delimiters, static) by running the viewer's real KaTeX.
 - Worked instance (the pattern this skill generalizes): the
   `appendix-a-qkv-first-principles.md` A.1 compact Note + the `A.13` dedicated
   "Concrete Dimensions in Real-World Models" section, session

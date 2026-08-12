@@ -29,15 +29,16 @@ rc=$?
 SEVERITY=$(cat "$PROJ/.claude/crosslink-severity" 2>/dev/null || echo warn)
 SCOPE_FILE="$PROJ/.claude/crosslink-scope"
 if [ "$SEVERITY" != "off" ] && [ -f "$SCOPE_FILE" ] && [ -f "$PROJ/viewer/tools/crosslink.py" ]; then
-  SCOPE=$(grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$SCOPE_FILE" | tr '\n' ' ')
+  # --scope-file parses the `[group]` headers; each group is an independent
+  # TF-IDF corpus, so a candidate never spans two groups.
   (
     cd "$PROJ" || exit 0
     if [ -f "$HOOKS_DIR/py-launcher.sh" ]; then
       bash "$HOOKS_DIR/py-launcher.sh" "$PROJ/viewer/tools/crosslink.py" \
-        check $SCOPE --changed --severity=warn || true
+        check --scope-file "$SCOPE_FILE" --changed --severity=warn || true
     else
       python "$PROJ/viewer/tools/crosslink.py" \
-        check $SCOPE --changed --severity=warn || true
+        check --scope-file "$SCOPE_FILE" --changed --severity=warn || true
     fi
   )
 fi

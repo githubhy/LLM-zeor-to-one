@@ -24,8 +24,13 @@ MUST_HAVE = [
     ("uncertainty on results (CI / bootstrap)",
      [r"\b95%\s*CI\b", r"(?i)confidence interval", r"(?i)\bbootstrap\b",
       r"(?i)\b(clopper|wilson)\b", r"\[\s*\d+\.\d+\s*,\s*\d+\.\d+\s*\]"]),
+    # `reproduc\w*` -- NOT the literal "reproduce". The governing rule's own 14-section spine names
+    # this section "Reproducibility Appendix", so the narrower pattern could not match a report
+    # that follows the spec exactly; four conformant reports were failing this must-have for their
+    # section NAME while carrying a full reproduce block with seeds
+    # (`bugs/2026-08-03-report-gate-cannot-match-its-own-spine-section-name`).
     ("reproduce recipe (command + seed)",
-     [r"(?im)^#{1,4}.*reproduce", r"(?i)regenerat\w+.*seed", r"(?i)\bseed\b.*\b(cfg|mc|boot)\b"]),
+     [r"(?im)^#{1,4}.*reproduc\w*", r"(?i)regenerat\w+.*seed", r"(?i)\bseed\b.*\b(cfg|mc|boot)\b"]),
     ("verification / sanity anchors",
      [r"(?i)verification", r"(?i)\binvariant", r"(?i)sanity[- ]anchor",
       r"(?i)\banchor\b", r"(?i)re-derivation"]),

@@ -93,7 +93,7 @@ def _dollar_flag(md_text, tmp_path):
 
 
 def test_single_line_display_then_prose_flagged(tmp_path):
-    # Single-line $$...$$ headline immediately followed by prose (bug-class 2026-06-01-03).
+    # The wikis/laptop-scale-training-feasibility.md:8 headline shape (bug 2026-06-01-03).
     md = "# H\n\nThe result is\n$$f(\pm m) = g(m),$$\nwhere $f$ is a density.\n"
     assert _dollar_flag(md, tmp_path)
 
@@ -122,6 +122,23 @@ def test_multiline_display_then_prose_still_flagged(tmp_path):
 
 def test_multiline_display_then_blank_not_flagged(tmp_path):
     md = "# H\n\n$$\na = b.\n$$\n\nwhere $a$ is a thing.\n"
+    assert not _dollar_flag(md, tmp_path)
+
+
+def test_indented_single_line_display_in_list_not_flagged(tmp_path):
+    # bug 2026-07-11-02: a `$$` inside a TIGHT numbered list must stay tight
+    # (failure mode 1: a blank line restarts the list at 1 on GitHub). The
+    # blank-line check owns only the plain-paragraph case; the list-item case
+    # belongs to check_broken_ordered_list. Firing here contradicts check #6.
+    md = ("# H\n\n1. Compute the anomaly:\n"
+          "   $$ M = M_0 + n t $$\n2. Solve Kepler's equation.\n")
+    assert not _dollar_flag(md, tmp_path)
+
+
+def test_indented_multiline_display_in_list_not_flagged(tmp_path):
+    # Same exemption for the multi-line form (close `$$` on its own indented line).
+    md = ("# H\n\n1. Compute the anomaly:\n"
+          "   $$\n   M = M_0 + n t\n   $$\n2. Solve Kepler's equation.\n")
     assert not _dollar_flag(md, tmp_path)
 
 

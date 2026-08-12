@@ -1,15 +1,23 @@
 {
   "upstream_path": "../data-channel-receiver",
   "upstream_url": "git@github-fen:FenLinger/data-channel-receiver.git",
-  "last_synced_commit": "9b118d3940d54307a76ebee350c10b2fe4cf22bf",
-  "last_synced_date": "2026-06-28",
-  "pending_sync_back": {
-    "branch": "sync-from-llm-zero-to-one",
-    "decision": "decisions/2026-06-28-02-sync-back-to-upstream.md",
-    "pushed": true,
-    "pr": "https://github.com/FenLinger/data-channel-receiver/pull/15",
-    "merged_to_upstream_main": false,
-    "round_trip_guard": "OUTBOUND sync-back (here -> upstream) of ONE generic improvement: the /enrich-equation command (single-equation, no-cascade derivation expander), genericized. When PR #15 merges to upstream main, last_synced_commit will already be at/after it OR advance the mark to the post-merge HEAD so the next INBOUND does not re-detect the round-tripped commit. Backstop: step-1 inbound filter skips commit subjects containing 'from llm-zero-to-one'."
-  },
-  "note": "High-water mark for /sync-upstream INBOUND (upstream -> here) = origin/main HEAD 9b118d3 (PRs #13 sionna + #14 pitch-perfector both merged to main). Bootstrapped 2026-06-13 from the upstream template repo (telecom/3GPP), retargeted to LLM/AI surveys. 2026-06-27: full backlog (7c3a3bf..5d485d7, 314 commits) synced in 5 batches. 2026-06-28: (a) the entire main config-path delta 5d485d7..9b118d3 is exactly the post-edit-lint.sh / validate-refs-on-dirty.sh generic robustness change (cross-platform Python resolver, per-tool optionality guards, corpus-scoped bare-ref blocking, crosslink.py presence guard; originated in sibling pitch-perfector, merged via PR #14) — applied as an equivalent merge into this repo's fuller toolchain; the sionna PR #13 changes were viewer/ (non-config, out of /sync-upstream scope). (b) a one-time catch-up import from sibling ../pitch-perfector brought this repo to harness parity: two-directional /sync-upstream (--back), commands bg/refine-plan/review-plan/add-reference/enrich/add-dataset, skills method-eval/skill-improvement, rule figure-operating-conditions, hook log-turn-telemetry, scripts notify.sh/compose-notify-msg.py + install-git-hooks. /sync-upstream is now two-directional; its inbound skip-guard keys on 'from llm-zero-to-one' (this repo's own outbound tag), so a sibling's 'from pitch-perfector' sync-back is still imported. As of 2026-06-28 the INBOUND scope was broadened to include the viewer application (viewer/** — server, client JS, lib, styles, PWA, tests; not just viewer/tools), so the next INBOUND diffs <last_synced_commit>..HEAD for config + viewer/ paths (framework code applies directly; only embedded demo/fixture content is re-adapted, local divergences preserved). OUTBOUND is /sync-upstream --back (PR #15, pending). Viewer (non-config) gaps vs main (figure-pipeline.js, sionna viewer test gates) tracked in todos/2026-06-28-import-viewer-figure-pipeline-from-upstream.md. See decisions/2026-06-28-01/02 and the claude-infra-ported-from-data-channel-receiver memory."
+  "last_synced_commit": "cedfccb2e67589ecf09a8ecdf22e6b7b4dc47a5b",
+  "last_synced_date": "2026-08-12",
+  "note": "High-water mark for /sync-upstream INBOUND (upstream -> here) = origin/main HEAD cedfccb2. Bootstrapped 2026-06-13 from the upstream template repo (telecom/3GPP), retargeted to LLM/AI surveys. 2026-08-12: synced 9b118d3..cedfccb2 (origin/main) -- 162 files / ~20.3K insertions across 245 config+viewer commits, ~2 months of upstream harness work. SCOPE NOTE: the upstream working copy is live and was sitting on a feature branch (plan/tr38901-calibration-campaign) at first read, and its LOCAL main was 1647 commits behind origin/main -- always `git fetch` and diff against origin/main, not HEAD and not the local branch ref. Ported: ~30 new viewer/tools gates + tests; the viewer app deltas (viewer.js switched to the shared highlight lib, serve.js stat/read-race hardening, footnote in-situ peek, exact DOM-order highlight disambiguation, style.css); ~20 gate-severity toggles; the rebuilt .githooks/pre-push + new .githooks/pre-commit; the SessionStart hooksPath install + PreToolUse foreground-background guard, with the shared hooks moved from settings.local.json into the TRACKED settings.json; 4 new rules (calibration-residuals, cross-language-port, release-documentation, reset-durability); new skills harness-harvest / results-reconciliation / upstream-pr; spec-provenance re-domained (3GPP ladder -> arXiv-version / model-card / harness-release ladder, fetcher dropped); and the ASIC family re-domained to kernel-bringup + accelerator-cost-study. SKIPPED as round-trips: 444aeb0d and 710afc6f (this repo's own sync-backs, PRs #36 and #15, both merged upstream -- pending_sync_back cleared). NOT imported because they are upstream BRANCH-only, not on main: .claude/hooks/check-hook-wiring.sh and the campaign-execution harness (campaign.json manifests, lib/prereg.py, check-campaign.py, build-ledger.py, campaign-status.py, rules/campaign-execution.md). Re-domained skills diverge from upstream BY DESIGN, so a later inbound run will show kernel-bringup / accelerator-cost-study / spec-provenance as here-only -- they are SKIP-domain for --back, not sync-back candidates. See decisions/2026-08-12-01, todos/2026-08-12-upstream-sync-followups.md, and the claude-infra-ported-from-data-channel-receiver memory.",
+  "completed_sync_backs": [
+    {
+      "branch": "sync-from-llm-zero-to-one",
+      "pr": "https://github.com/FenLinger/data-channel-receiver/pull/15",
+      "what": "the /enrich-equation command (single-equation, no-cascade derivation expander)",
+      "merged_to_upstream_main": true,
+      "upstream_commit": "710afc6f"
+    },
+    {
+      "branch": "sync-viewer-fixes-from-llm-zero-to-one",
+      "pr": "https://github.com/FenLinger/data-channel-receiver/pull/36",
+      "what": "generic viewer fixes (EISDIR guard, multi-span highlight, e2e robustness)",
+      "merged_to_upstream_main": true,
+      "upstream_commit": "444aeb0d"
+    }
+  ]
 }

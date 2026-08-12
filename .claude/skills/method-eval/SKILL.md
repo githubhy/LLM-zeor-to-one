@@ -62,6 +62,64 @@ KV-memory)? sub-quadratic (or the claimed complexity) in sequence length? surviv
 low-resource / adversarial-prompt tail? holds up under quantization (int8 / int4) without a metric
 cliff?}.
 
+**Standing evaluation-hardening** (default-ON `.claude/skill-options.json` options — apply each
+unless the registry sets it `off`; these are the antidote to the "a check satisfied by the bug it
+should catch" failure — five instances in the 2026-07-10 LLR session,
+`field-notes/2026-07-10-hand-enumerated-invariant-drift.md`):
+
+- **Adversarial-metric** `[opt:ME-ADVERSARIAL-METRIC · default ON · toggle .claude/skill-options.json]`
+  — the rubric MUST include a *degenerate-case* item: name the trivial solution that would satisfy
+  the metric WITHOUT solving the problem (a constant output; a saturating offset that annihilates
+  the messages; an all-zero decoder), construct it, and confirm the metric/oracle **REJECTS** it.
+  Clearing the metric only by triviality is a FAIL of the metric. (Motivating: a `max σ*` tuning
+  objective rewarded a trivial fixed point until floor-gated.)
+- **Oracle-independence audit** `[opt:ME-INDEPENDENCE-AUDIT · default ON · toggle .claude/skill-options.json]`
+  — before an oracle is trusted, list what it **shares** with the artifact: code paths, imported
+  functions, and load-bearing **assumptions** (symmetry, Gaussianity, a scaling law). If it shares
+  the assumption under test it is **not** independent — replace or supplement it with a route that
+  shares neither. *Agreement between instruments that share a bug is not evidence* (three
+  "independent" MI computations that all assumed a broken symmetry; a loop-reference that copied the
+  implementation's own indexing line — same bug, undetected).
+- **RED-first oracle** `[opt:ME-RED-ORACLE · default ON · toggle .claude/skill-options.json]` —
+  borrow TDD's iron law for the oracle itself: run it on one deliberately-broken input and show it
+  **fails** before trusting it to confirm a good one. An oracle never seen to reject is not known to
+  discriminate; record the RED alongside the GREEN.
+- **Metric declaration** `[opt:ME-METRIC-DECL · default ON · toggle .claude/skill-options.json]` —
+  every rubric criterion and every verdict claim NAMES its metric (GMI in bits vs DE threshold in dB
+  vs win-rate vs tokens/s); a cross-metric comparison ("X beats Y") requires an explicit stated
+  bridge putting both on the same axis. (Motivating: an agent verdicted "CONTRADICTED" by comparing a
+  GMI number directly to a threshold number — two different axes.)
+- **Result-vs-proof arbitration** `[opt:ME-RESULT-VS-PROOF · default ON · toggle .claude/skill-options.json]`
+  — when a numerical **result** contradicts a **proof/theorem**, suspect the *result* first and settle
+  it by a third route sharing no code with either side; do **not** file a defect against the proven
+  artifact until the measurement is independently reproduced. (A false high-severity bug was filed
+  against a proven-optimal component before the measurement was re-checked.)
+- **File-first harness** `[opt:ME-FILE-FIRST · default ON · toggle .claude/skill-options.json]` —
+  the prototype/oracle harness persists per-claim / per-cell **incrementally** to disk, so a step-cap
+  death or kill leaves evidence (never a terminal-only write). Same discipline as `deep-research-survey`
+  DRS-HARDEN.
+- **Real exit code** `[opt:ME-REAL-EXIT · default ON · toggle .claude/skill-options.json]` — "RUN it,
+  paste stdout" is strengthened to capture the *real* exit code, reported **separately from any pipe**:
+  `| tail`/`| head` masks it, and on PowerShell `-ErrorAction SilentlyContinue` / `2>&1` on a native
+  exe fake success. Reading stdout is not reading the exit code.
+- **No delegated wait** `[opt:ME-NO-DELEGATED-WAIT · default ON · toggle .claude/skill-options.json]` —
+  a verify/verdict agent returns its finding as TEXT in its own turn; it must **not** spawn background
+  work (an MC script + a "waiter") and return a "still running… waiting" stub. A stub is an empty
+  result in disguise — the Workflow journal's `agents_empty_result=0` does not catch it, so the
+  pipeline's final return is a non-answer. (Observed: a Stage-3 independent-verify agent did exactly
+  this; the substantive verdict had to be reproduced by the orchestrator.)
+- **Pre-registered falsifier** `[opt:ME-FALSIFIER · default ON · toggle .claude/skill-options.json]` —
+  each viability criterion pre-registers its **falsifier** (the observation that would reject the
+  candidate) BEFORE the run, so a rubric criterion is a `{criterion, oracle, falsifier}` triple and the
+  verdict states which falsifier fired. This is what makes "a null result is valid" honest rather than
+  post-hoc.
+
+These ride the existing pipeline: the Stage-2 (Review+Implement) prompt adds the shared-surface
+ledger + the RED run + per-cell file-first flush + real-exit capture; the Stage-3 (Test+Verdict)
+prompt states the degenerate case it ruled out, names each claim's metric, confirms the decisive
+oracle shares nothing with the failure mode, returns its verdict as text (no delegated wait), and —
+on a result-vs-proof conflict — reproduces the number by a third route before believing it.
+
 ### 2. Run the N-agent pipeline (Workflow)
 
 Three INDEPENDENT stages — independence is the whole point (a second agent must re-derive from
@@ -74,7 +132,7 @@ const SHARED = `READ: the register README methodology + oracles; the prior decis
 const out = await pipeline([TOPIC],
   (t) => agent(`FIRST-PRINCIPLES DERIVER for ${t.title}. ${t.derive} Write wikis/${t.slug}-derivation.md (math-authoring rules, \\tag{N}). Predict viability. ${SHARED}`, {phase:'Derive', agentType:'survey-enricher'}),
   (prev,t) => agent(`MATH REVIEWER + IMPLEMENTER for ${t.title}. Prior derivation summary: """${prev}""". (1) Independently re-derive and CORRECT the wiki in place. (2) Implement a prototype at sim/<survey>/temp/${t.slug}_eval.py with a self-validation harness (seeded numpy/torch; score with the reference eval harness). ${t.implement} ${SHARED}`, {phase:'Review+Implement', agentType:'general-purpose'}),
-  (prev,t) => agent(`IMPLEMENTATION REVIEWER + TESTER for ${t.title}. Implementer report: """${prev}""". (1) Review code against the corrected math; hunt bugs the self-validation misses (softmax/axis errors, causal-mask off-by-one, pass@k estimator bias, long-context degradation, low-resource tail, CI over the wrong axis). RUN it. (2) Test on the rubric: ${t.test}. Return a FINAL VERDICT (adopt/reject/redundant) with NUMBERS (harness accuracy / pass@k / perplexity + Wilson/bootstrap CIs, tokens/s latency). ${SHARED}`, {phase:'Test+Verdict', agentType:'general-purpose'}),
+  (prev,t) => agent(`IMPLEMENTATION REVIEWER + TESTER for ${t.title}. Implementer report: """${prev}""". (1) Review code against the corrected math; hunt bugs the self-validation misses (softmax/axis errors, causal-mask off-by-one, pass@k estimator bias, long-context degradation, low-resource tail, CI over the wrong axis). RUN it. (2) BOUND-ACHIEVABILITY: for EVERY bound the derivation asserts (upper/lower/ceiling/floor), either EXHIBIT the concrete input that attains it or PROVE none can — do not certify a bound you cannot construct a witness for. Check the bound's two axes are counted on the same population (a classic error: a "ceiling" that mixes counts over disjoint sets — e.g. a budget over one population, recall over another — is not a bound; the ideal point may lie off the asserted line). This class has survived three agents including an adversarial reviewer. (3) Test on the rubric: ${t.test}. Return a FINAL VERDICT (adopt/reject/redundant) with NUMBERS (harness accuracy / pass@k / perplexity + Wilson/bootstrap CIs, tokens/s latency). ${SHARED}`, {phase:'Test+Verdict', agentType:'general-purpose'}),
 )
 return out
 ```

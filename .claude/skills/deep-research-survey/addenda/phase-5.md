@@ -73,12 +73,38 @@ not quality" failure):
 Gate sign-off on per-fraction thresholds; emit the fractions into the
 "## Self-evaluation scorecard" alongside the P0-2 dimensions.
 
+**[Layer 3′ — depth-tier coverage] Deterministic tier drift-diff (rides R-RUBRIC / R-COVER).**
+`[opt:DT-L3-DRIFT · default ON · toggle .claude/skill-options.json]` Before sign-off,
+run `python viewer/tools/depth-tier-coverage.py <survey-dir>` and fold its markdown
+summary into the report (append to the "## Self-evaluation scorecard", or a
+"## Depth-tier coverage" footer). It emits a delivered tier tally plus four
+deterministic checks against the R-GOV allocation persisted at P0-3 (DT-L2-OUTLINE):
+**`TIER-DRIFT`** (a delivered `Depth tier:` label diverging from its approved outline
+row — the load-bearing check that covers the edit path both motivating bugs took; add
+`--severity error` to gate once the persisted outline exists), `MISSING-TIER`, a
+narrow `OVER-DELIVERED` (a `catalog` section carrying a `$$` block), and `n/a-FORM`
+(a `catalog` section with no explicit `n/a` marker; accepts both `n/a (…)` and
+`n/a — …`). Review each `TIER-DRIFT` row: either it is an intended, decision-logged
+re-tier (update the outline table to clear it) or an un-approved depth change (fix the
+label, or deliver the depth). The tool **self-scopes to tier-using surveys**: a survey
+with no `Depth tier:` labels is out of scope (clean no-op, no nudge to add a table),
+and a tier-using survey that skipped the Layer-2 outline sign-off is flagged
+`NO-ALLOCATION-TABLE` — so a corpus-wide run only exercises lte-dl + future tier-mode
+surveys, never the dormant no-tier ones (no blanket retrofit; decision 2026-07-08-05).
+This is NOT a landmark/`$$` depth heuristic — a section
+is never judged under-derived from the absence of equations (depth is often
+argumentative or cross-linked out; the original heuristic Layer 3 was dropped after a
+3-agent review, `proposals/2026-07-08-depth-tier-gating.md`, decision 2026-07-08-03).
+Complements the always-on vocabulary gate `check-depth-tiers.py` (Layer 1) and the
+outline sign-off (Layer 2). *Off (`DT-L3-DRIFT` off):* no coverage summary is emitted;
+Layer 1 and the outline sign-off remain the depth-tier guardrails.
+
 **[P2-2] Cost / latency telemetry.** Emit a one-line telemetry footer in the report:
 tokens, wall-clock, and estimated USD per survey and per agent (the Workflow runtime
 exposes `budget.spent()` and per-agent counts). Use it to make the agent-sizing
 limits data-driven instead of a frozen 2026-03 heuristic.
 
-**[P3-1] Token-efficient citation audit (locus-targeted + materiality triage). PROMOTED TO BASELINE 2026-05-31 — now the default behaviour of `.claude/skills/citation-audit/SKILL.md` (Phases 1 & 3); this flag is a retained no-op alias. Promoted on directional N=1 A/B evidence by user directive, ahead of the proposal's multi-topic gate; see `decisions/2026-05-31-03` and `proposals/2026-05-31-citation-audit-token-efficiency.md` [§5.1]. The block below is kept for provenance.** Cut the
+**[P3-1] Token-efficient citation audit (locus-targeted + materiality triage). PROMOTED TO BASELINE 2026-05-31 — now the default behaviour of `.claude/skills/citation-audit/SKILL.md` (Phases 1 & 3); this flag is a retained no-op alias. Promoted on directional N=1 A/B evidence by user directive, ahead of the proposal's multi-topic gate; see `upstream decision 2026-05-31-03` and `proposals/2026-05-31-citation-audit-token-efficiency.md` [§5.1]. The block below is kept for provenance.** Cut the
 Phase-5 citation-audit cost without losing detection. (a) MATERIALITY TRIAGE: after the
 Phase-1 ledger, classify each citation `numeric-load-bearing` / `claim-load-bearing` /
 `decorative`. Only the two load-bearing classes get a source-opening verify agent;

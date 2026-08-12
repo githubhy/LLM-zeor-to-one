@@ -35,11 +35,11 @@ const BASIC_DOC = [
   '',
   '## Section One',
   '',
-  'The FLL error is small when the loop bandwidth is narrow.',
+  'The attention error is small when the context window is narrow.',
   '',
   '## Section Two',
   '',
-  'The PLL operates on the phase discriminator output.',
+  'The decoder operates on the logit projection output.',
 ].join('\n');
 
 // Document with paragraph anchors embedded in paragraphs.
@@ -48,13 +48,13 @@ const ANCHOR_DOC = [
   '',
   '## Section One',
   '',
-  '<a id="p-section-one-1"></a> The FLL error is small.',
+  '<a id="p-section-one-1"></a> The attention error is small.',
   '',
   '<a id="p-section-one-2"></a> Second paragraph with anchor.',
   '',
   '## Section Two',
   '',
-  '<a id="p-section-two-1"></a> The PLL operates on the phase.',
+  '<a id="p-section-two-1"></a> The decoder operates on the logits.',
 ].join('\n');
 
 const MOCK_GIT_INFO = {
@@ -456,8 +456,8 @@ test('T12: settings panel radio persists citation mode to localStorage and survi
   try {
     await page.goto(`http://localhost:${port}?file=doc.md`, { waitUntil: 'domcontentloaded' });
     // Wait on rendered content, not the PWA 'load' event: under host load 'load'
-    // can fail to settle (service worker + KaTeX fonts), the foreign-host flake in
-    // todo citation-t12-e2e-timeout. This mirrors the reload path's content wait below.
+    // can fail to settle (service worker + KaTeX fonts) and time out the nav.
+    // This mirrors the reload path's content-based wait below.
     await expect(page.locator('#content p').first()).toBeVisible();
 
     // Open settings panel

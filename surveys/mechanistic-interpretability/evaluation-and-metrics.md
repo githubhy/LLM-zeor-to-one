@@ -38,7 +38,7 @@ $$
 
 - <a id="p-103-sae-evaluation-metrics-load-bearing-2"></a><!-- para:103-sae-evaluation-metrics-load-bearing-2 --> **Sparsity $L_0$** — mean nonzero features per token, $L_0 = \mathbb{E}_{\mathbf{x}}\lVert\mathbf{f}(\mathbf{x})\rVert_0$; the direct empirical target the L1 penalty only approximates.
 - **Reconstruction** — MSE $\lVert\mathbf{x}-\hat{\mathbf{x}}\rVert_2^2$, or scale-invariant explained variance $1 - \mathrm{Var}(\mathbf{x}-\hat{\mathbf{x}})/\mathrm{Var}(\mathbf{x})$.
-- **Cross-entropy loss recovered** — the downstream metric of Equation <!-- ref:6-3 -->[(3)](method-inventory-dictionary.md#eq-3): how much of the LM's next-token loss survives splicing the SAE reconstruction back in, relative to zero-ablation.
+- **Cross-entropy loss recovered** — the downstream metric of Equation [(3)](method-inventory-dictionary.md#eq-3) <!-- xref:6-3 -->: how much of the LM's next-token loss survives splicing the SAE reconstruction back in, relative to zero-ablation.
 - **Auto-interp score** — the explain-simulate-correlate proxy of § <!-- secxref:8.1 -->[§8.1](method-inventory-automation.md#sec-8.1).
 
 <a id="p-103-sae-evaluation-metrics-load-bearing-3"></a><!-- para:103-sae-evaluation-metrics-load-bearing-3 --> The core lesson of the field's re-evaluation (§ <!-- secxref:12.2 -->[§12.2](state-of-the-art-and-practice.md#sec-12.2)) is that the classic sparsity–fidelity frontier (loss recovered vs. $L_0$) does **not** track what matters (<!-- secxref:D.3 -->[§D.3](appendix-d-sae-derivations.md#sec-D.3)) downstream — interpretability, disentanglement, usefulness — which is what the benchmarks in § <!-- secref:10.4 -->[§10.4](#sec-10.4) were built to measure.

@@ -120,6 +120,29 @@ Section numbers may be digit-first (`3.7.6`, `4.4`, `10.2.1`) or letter-dot (`D.
 
 **Sub-section landmarks.** Bold or italic landmark phrases of the form `**<Kind> <Index>**` (e.g., `**Step 3 — Recombine.**`, `**Lemma D.6-A**`) inside a numbered section get their own anchor. The renumber script's heuristic auto-injects `<a id="sec-X.Y.Z-<kind>-<index>"></a>` for landmarks whose `<Kind>` is in the configurable `LANDMARK_KINDS` list (`Step | Stage | Phase | Case | Part | Path | Variant | Branch | Note | Item | Assumption | Lemma | Theorem | Proposition | Corollary | Definition | Example | Remark | Algorithm | Procedure | Fact | Claim | Table | Figure`) and whose `<Index>` is an enumerator-shaped token (a digit, single letter, or compound ID like `D.6-A`).
 
+**H1-title surveys: anchor the H1.** A survey may put the section number in the body
+file's H1 (`# 3 - Inference, Decoding and Serving`), with subsections as `## 3.x`.
+`match_heading` excludes H1 by design, so such a heading is invisible to the grammar --
+but an `<a id="sec-3"></a>` placed after the `# ` **is** a link target:
+`build_survey_heading_index` and `check-section-ownership.py` index a `sec-` anchor on
+any heading line, and `inject_heading_anchor` (`^(#{2,6}\s+)`) will neither inject into
+nor strip an H1. Write it by hand, or the top-level section is unreachable and
+`secxref:N` cannot resolve. Do **not** widen the grammar to match numbered H1s:
+`crosslink.py` would then index an entire body file as one section.
+
+**Section ownership (one number, one owner).** Within a survey directory, a file may
+not declare a section number `N` whose `N.x` subsections live in a *different* file.
+`secxref` resolution is first-definition-wins over `order.json`, so the reference
+silently lands in the declaring file. This is **not** a duplicate-heading problem —
+the heading appears exactly once — and no duplicate check will find it. The failure
+shape upstream measured: an `index.md` numbered its front matter `## 1.`–`## 5.` while
+the body files owned `1.x`–`5.x`, and `secxref:3` resolved to the index's
+"3. Reader's guide" instead of the body section. Two layouts are legal, and both
+satisfy the rule: *H2-sections* (`index.md` owns 1–2 as H2; body files start at
+`## 3.`) and *H1-title* (the body file's H1 carries the number, subsections are
+`## N.x`, and `index.md` front matter is unnumbered).
+`viewer/tools/check-section-ownership.py` enforces this in the pre-push gate.
+
 **Section ref markers.** When prose references a section by number, place a ref marker immediately before a Markdown link to the section anchor:
 
 ```markdown
@@ -135,6 +158,8 @@ When writing new refs, use the bare form `§X.Y.Z` (or `§X.Y.Z Kind N` for a su
 **Bare-form prohibition.** A bare `§X.Y.Z` mention in prose that is *not* inside a marker + link is forbidden; `validate-refs.py` check #12 enforces this. The bare-form prohibition is the gate that ensures every section reference is clickable.
 
 **External-spec section refs.** When prose mentions a section number that belongs to an EXTERNAL standard (IEEE, RFC, etc.) rather than to a section within the local survey corpus, the `§X.Y.Z` is not a candidate for auto-linking. Wrap it in a single pair of square brackets — `[RFC 8259 §7]` or `[§7]` — so the linter's bracket-span exclusion silences the bare-ref check. This is the same exclusion that handles `[Smith 2020, §17.5]` author-year+section citation forms. The bracket-wrap is the canonical opt-out for prose section numbers that should not be auto-linked.
+
+**Cross-survey section refs.** A `§X.Y` that points to a section in a *different* survey (one not in the current survey's `order.json`) must **not** be written bare and must **not** use `secxref`: `secxref` resolves via *this* survey's `order.json` and would orphan or mis-resolve, and `renumber-sections --init` would auto-link a bare `§X.Y` to the same-numbered section of the *current* survey (the wrong target). Write it as a plain relative link with descriptive text and **no** `§` glyph — `[interpretability survey, circuits section](../mechanistic-interpretability/circuits-across-models.md#sec-9.2)` — the same treatment as a wiki-target link. Full rule: `.claude/rules/cross-linking.md` (directional syntax convention). `[opt:SX-DEGLYPH · default ON · toggle .claude/skill-options.json]`
 
 **Renumber script.** `viewer/tools/renumber-sections.py` has the same contract as `renumber-equations.py`:
 

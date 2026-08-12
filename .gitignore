@@ -35,3 +35,40 @@ viewer/dist/
 # Regenerable connector SigLIP feature cache (1.4GB) — reproduce recomputes it
 artifacts/connector-ablation/features.npz
 artifacts/**/features.npz
+
+# Machine-local Claude Code settings. Upstream had this TRACKED until 2026-07-26,
+# which published a personal notification topic (public-by-name — anyone with repo
+# read access could subscribe or publish) in a Stop hook that then fired in every
+# clone, plus one machine's permission allowlist carrying a stale absolute
+# scratchpad path from an unrelated session. Genuinely shared hooks belong in the
+# tracked .claude/settings.json; anything machine-specific stays here and out of git.
+.claude/settings.local.json
+
+# check-tdd-evidence --prove crash sentinel (transient; marks source as BROKEN in-flight)
+.claude/tdd-prove-inflight.json
+
+# Ad-hoc scratch dirs. EXCEPT surveys/**/_scratch/ — that is the deep-research-survey
+# evidence-ledger convention and is deliberately TRACKED; a bare `_scratch/` silently
+# un-stages every new survey's evidence ledger.
+_scratch/
+!surveys/**/_scratch/
+# Root-level _scratch/ holds two tracked audit records that predate this rule, so
+# ignore its CONTENTS rather than the directory: gitignore cannot re-include a file
+# whose parent DIRECTORY is excluded, which is why the plain `!_scratch/<file>` form
+# silently does nothing.
+!/_scratch/
+/_scratch/*
+!/_scratch/h9audit-*.md
+
+# Resumable per-run scratch checkpoints (leading-underscore _*_ckpt_*.json); the
+# deliverable is the final summary artifact, not the churning per-flush checkpoint.
+artifacts/**/_*_ckpt_*.json
+
+# Centrally-extracted plain text of PDFs already committed under download/.
+# Derived duplicate text does not belong in history.
+surveys/*/_scratch/txt/
+
+# Rasterised page images from copyrighted PDFs — throwaway intermediates for reading
+# a figure. The PDF in download/ is the artifact of record; the extracted numbers go in
+# the _scratch ledger. Never commit the page images themselves.
+surveys/**/_scratch/*_png/

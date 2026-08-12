@@ -1,0 +1,11 @@
+# Supported-minimum floors for the repo tooling and survey/eval work.
+# For a REPRODUCIBLE install (cloud migration, CI, bit-exact result re-runs) pin a
+# lock file instead; numpy in particular gates RNG (PCG64) reproducibility.
+numpy>=1.24
+scipy>=1.10
+plotly>=5.15
+pytest>=7.0
+kaleido>=0.2
+markdown-it-py>=3.0
+matplotlib>=3.7          # figure generation (surveys/**/figures, plot scripts)
+pymupdf>=1.24            # fitz: PDF text extraction for source/citation verification

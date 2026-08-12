@@ -49,24 +49,115 @@ CITE_MARKER_CROSSFILE = re.compile(
     r'(?:\[\[(\d+)\]\]\(([^)]+?)#ref-\d+\)|\[(\d+)\])'
 )
 ANCHOR_PAT = re.compile(r'<a\s+id="ref-(\d+)"></a>')
-REF_ENTRY = re.compile(r'^\[(\d{1,2})\]\s')
+REF_ENTRY = re.compile(r'^\[(\d{1,3})\]\s')
 FENCE = re.compile(r'^(`{3,}|~{3,})')
 
 # --init helpers
-COMPOUND_CITE = re.compile(r'\[(\d{1,2}(?:\s*,\s*\d{1,2})+)\]')
-BARE_CITE = re.compile(r'(?<!\[)\[(\d{1,2})\](?!\()')
+COMPOUND_CITE = re.compile(r'\[(\d{1,3}(?:\s*,\s*\d{1,3})+)\]')
+BARE_CITE = re.compile(r'(?<!\[)\[(\d{1,3})\](?!\()')
+
+
+# ── Math / code masking ─────────────────────────────────────────────────────
+#
+# `--init` rewrites bare `[N]` and compound `[N, M]` into citation links. Those
+# token shapes are AMBIGUOUS: a numeric interval in math -- `$\delta \in [1,5]$`
+# m, `$x \in [40, 100]$` m, `$\beta \in [0,1]$` -- is spelled identically to a
+# compound citation. Rewriting one destroys the equation AND fabricates two
+# citations that no author wrote, which then read as sourced.
+#
+# The digit cap used to hide part of this by accident (`[40, 100]` survived only
+# because `100` is three digits), so widening REF_ENTRY/BARE_CITE/COMPOUND_CITE
+# to three digits -- needed for bibliographies of 100+ entries -- REMOVES that
+# accidental shield. The two changes must land together.
+#
+# So: never substitute inside fenced code, inline code, display math or inline
+# math. See bugs/2026-08-02-link-references-rewrites-math-intervals.
+
+def _split_protected(line, in_display):
+    """Split one line into [(text, is_protected), ...] plus the new display state.
+
+    Protected: inline code spans, inline math, and every line of a display-math
+    block. Escaped `\\$` is not a delimiter.
+    """
+    stripped = line.strip()
+    if stripped == '$$':
+        return [(line, True)], not in_display
+    if in_display:
+        return [(line, True)], True
+    if stripped.startswith('$$') and stripped.endswith('$$') and len(stripped) > 4:
+        return [(line, True)], False
+
+    parts = []
+    buf = []
+    i, n = 0, len(line)
+    while i < n:
+        c = line[i]
+        if c in '`$' and not (i and line[i - 1] == '\\'):
+            close = None
+            j = i + 1
+            while j < n:
+                if line[j] == c and line[j - 1] != '\\':
+                    close = j
+                    break
+                j += 1
+            if close is not None:
+                if buf:
+                    parts.append((''.join(buf), False))
+                    buf = []
+                parts.append((line[i:close + 1], True))
+                i = close + 1
+                continue
+        buf.append(c)
+        i += 1
+    if buf:
+        parts.append((''.join(buf), False))
+    return parts, False
+
+
+def _sub_outside_math(pattern, repl, line, in_display):
+    """Apply `pattern.sub(repl, ...)` only to the unprotected parts of `line`."""
+    parts, new_state = _split_protected(line, in_display)
+    out = [seg if prot else pattern.sub(repl, seg) for seg, prot in parts]
+    return ''.join(out), new_state
 
 
 # ── Helpers ─────────────────────────────────────────────────────────────────
 
+# A bibliography heading is a level-1/2 ATX heading whose visible text is exactly
+# "References", allowing an inline anchor and a leading section number:
+#     # References   |   ## References   |   ## 13. References
+#     ## <a id="sec-refs"></a>References
+# Deliberately NOT matched: deeper sub-headings that merely mention the word
+# ("### B.9 Key References for This Appendix", "### D.4 Delay-scaling references")
+# and headings whose text embeds a link to references.md ("#### srsRAN ... (references.md#ref-5)").
+REFS_HEADING = re.compile(
+    r'^(#{1,2})\s+'
+    r'(?:<a\s+id="[^"]*"></a>)?\s*'
+    r'(?:[\d.]+\.?\s*)?'
+    r'[Rr]eferences\s*$'
+)
+ANY_HEADING = re.compile(r'^(#{1,6})\s')
+
+
 def find_refs_section(lines):
-    """Return (start, end) line indices bounding the References heading."""
+    """Return (start, end) line indices bounding the References heading.
+
+    The heading may sit at any ATX level: the corpus writes `# References` in
+    ten surveys and `## References` in one. The section ends at the next heading
+    of the same or shallower level, so a level-1 bibliography is not truncated
+    by its own `##` sub-groupings.
+    """
     start = None
+    level = None
     for i, line in enumerate(lines):
-        if re.match(r'^##\s.*[Rr]eferences', line):
-            start = i
-        elif start is not None and re.match(r'^##\s', line) and i > start + 1:
-            return start, i
+        m = REFS_HEADING.match(line)
+        if m:
+            start, level = i, len(m.group(1))
+            continue
+        if start is not None and i > start + 1:
+            m2 = ANY_HEADING.match(line)
+            if m2 and len(m2.group(1)) <= level:
+                return start, i
     return (start, len(lines)) if start is not None else (None, None)
 
 
@@ -94,16 +185,20 @@ def find_bib_file(survey_dir):
             candidates.append(md_path)
     if not candidates:
         print(
-            f'ERROR: no chapter under {survey_dir} contains a "## References" '
-            f'heading',
+            f'ERROR: no chapter under {survey_dir} contains a References heading',
             file=sys.stderr,
         )
         sys.exit(1)
     if len(candidates) > 1:
+        # A chapter may legitimately carry its own "## References" nav section
+        # (e.g. radar/index.md). The canonical bibliography is references.md.
+        preferred = [p for p in candidates if p.name == 'references.md']
+        if len(preferred) == 1:
+            return preferred[0]
         names = ', '.join(p.name for p in candidates)
         print(
             f'ERROR: multiple chapters under {survey_dir} contain a '
-            f'"## References" heading: {names}',
+            f'References heading: {names}',
             file=sys.stderr,
         )
         sys.exit(1)
@@ -137,6 +232,7 @@ def init_cite_markers(lines, ref_start, ref_end, bib_numbers,
     """
     result = []
     in_fence = False
+    in_display = False
 
     anchor_prefix = f'{link_target}' if link_target else ''
 
@@ -149,6 +245,8 @@ def init_cite_markers(lines, ref_start, ref_end, bib_numbers,
             result.append(line)
             continue
         if re.search(r'<!--\s*cite:\d+\s*-->', line):
+            # still track display-math state so a later line is masked correctly
+            _, in_display = _split_protected(line, in_display)
             result.append(line)
             continue
 
@@ -161,7 +259,6 @@ def init_cite_markers(lines, ref_start, ref_end, bib_numbers,
                 f'<!-- cite:{n} -->[[{n}]]({anchor_prefix}#ref-{n})'
                 for n in nums
             )
-        line = COMPOUND_CITE.sub(_compound, line)
 
         # 2. Remaining bare [N]
         def _bare(m):
@@ -169,7 +266,14 @@ def init_cite_markers(lines, ref_start, ref_end, bib_numbers,
             if n not in bib_numbers:
                 return m.group(0)
             return f'<!-- cite:{n} -->[[{n}]]({anchor_prefix}#ref-{n})'
-        line = BARE_CITE.sub(_bare, line)
+
+        # Both substitutions run ONLY outside math / inline code. A numeric
+        # interval such as `$\delta \in [1,5]$` is token-identical to a compound
+        # citation, so an unmasked sub silently destroys the equation and mints
+        # two fabricated citations.
+        line, state_after = _sub_outside_math(COMPOUND_CITE, _compound, line, in_display)
+        line, _ = _sub_outside_math(BARE_CITE, _bare, line, in_display)
+        in_display = state_after
 
         result.append(line)
     return result
@@ -243,6 +347,11 @@ def collect_markers(files_lines):
     return bibs, cites
 
 
+# Orphans found by any report() call in this process.  A module-level accumulator
+# because run_directory() calls report() per survey and main() needs the union.
+ORPHANS_SEEN = set()
+
+
 def report(files_lines):
     bibs, cites_by_file = collect_markers(files_lines)
     all_cites = set().union(*cites_by_file.values()) if cites_by_file else set()
@@ -250,6 +359,7 @@ def report(files_lines):
     orphans = sorted(all_cites - bibs, key=int)
     uncited = sorted(bibs - all_cites, key=int)
     if orphans:
+        ORPHANS_SEEN.update(orphans)
         print(f'WARNING  orphaned citations (no bib): {orphans}',
               file=sys.stderr)
     if uncited:
@@ -388,6 +498,20 @@ def main():
     if args.check:
         if changed:
             print('CHECK: file(s) need updates', file=sys.stderr)
+            sys.exit(1)
+        if ORPHANS_SEEN:
+            # An orphaned citation is a link to an anchor that was never
+            # created -- it renders, and it goes nowhere.  This used to be a
+            # warning printed alongside exit 0, because `changed` only fires
+            # when EXISTING markers need re-syncing and a corpus with zero
+            # `bib:` markers has nothing to sync.  That is precisely the
+            # half-migrated state a SIGPIPE-truncated `--init` leaves behind,
+            # and it left ~90 dangling links passing every gate in the repo
+            # (bugs/2026-08-02-head-pipe-sigpipe-truncated-citation-migration).
+            # Uncited references stay a warning: an entry deliberately listed
+            # but not cited inline is legitimate.
+            print(f'CHECK: {len(ORPHANS_SEEN)} orphaned citation(s) with no '
+                  f'matching bib marker: {sorted(ORPHANS_SEEN)}', file=sys.stderr)
             sys.exit(1)
         print('CHECK: up to date')
         sys.exit(0)

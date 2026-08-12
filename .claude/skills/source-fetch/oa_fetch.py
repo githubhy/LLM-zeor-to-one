@@ -107,6 +107,50 @@ def from_openalex(query):
             url, aid = _arxiv_pdf(ax); out.append({"pdf_url": url, "source": "openalex->arxiv", "title": title, "doi": doi, "arxiv_id": aid})
     return out
 
+def from_openalex_doi(doi):
+    """Keyless DOI -> OA PDF via OpenAlex's /works/doi: endpoint.
+
+    This exists because the `doi:` path used to consult ONLY Unpaywall, which
+    is email-gated: with no UNPAYWALL_EMAIL configured a `doi:` query ran zero
+    stages and returned zero candidates, which reads identically to "not open
+    access". That inference was actually drawn, twice, about papers that were
+    retrievable (see todos/2026-08-02-oa-fetch-misses-fully-oa-springeropen-doi).
+    OpenAlex needs no key and carries the same best_oa_location field."""
+    if not doi:
+        return []
+    mail = f"?mailto={_q(EMAIL)}" if EMAIL else ""
+    w = _json(f"https://api.openalex.org/works/doi:{_q(doi)}{mail}")
+    if not w or w.get("error"):
+        return []
+    pdf = ((w.get("best_oa_location") or {}).get("pdf_url")
+           or (w.get("open_access") or {}).get("oa_url"))
+    if not pdf:
+        return []
+    return [{"pdf_url": pdf, "source": "openalex-doi", "title": w.get("title"), "doi": doi}]
+
+
+# Publishers whose ENTIRE catalogue is open access and whose PDF URL is a pure
+# function of the DOI. For these, a resolver miss is inexcusable -- the PDF is
+# one request away -- so they get a direct construction as a last resort.
+FULLY_OA_PREFIXES = {
+    "10.1186": "https://link.springer.com/content/pdf/{doi}.pdf",   # BMC / SpringerOpen
+    "10.1371": "https://journals.plos.org/plosone/article/file?id={doi}&type=printable",
+    "10.3390": None,        # MDPI: pattern needs the article path, not derivable from the DOI
+}
+
+
+def from_fully_oa_publisher(doi):
+    """Construct the PDF URL directly for a fully-open-access publisher prefix."""
+    if not doi:
+        return []
+    prefix = doi.split("/", 1)[0]
+    tmpl = FULLY_OA_PREFIXES.get(prefix)
+    if not tmpl:
+        return []
+    return [{"pdf_url": tmpl.format(doi=doi), "source": f"fully-oa-publisher:{prefix}",
+             "doi": doi}]
+
+
 def from_crossref(query):
     d = _json(f"https://api.crossref.org/works?query.bibliographic={_q(query)}&rows=1&select=DOI,title")
     items = (d.get("message") or {}).get("items") or []
@@ -228,19 +272,44 @@ def _dedupe(cands):
             seen.add(u); ranked.append(c)
     return ranked
 
-def resolve_oa(query):
-    """Open-access cascade ONLY (papers): Semantic Scholar -> OpenAlex -> Crossref(->Unpaywall).
-    Touches no shadow library and no SLUM. A `doi:` query skips the title APIs and goes to
-    Unpaywall directly. Returns ranked candidates (possibly empty)."""
+def resolve_oa(query, trace=None):
+    """Open-access cascade ONLY (papers): Semantic Scholar -> OpenAlex -> Crossref ->
+    OpenAlex-by-DOI -> Unpaywall -> fully-OA publisher pattern. Touches no shadow library
+    and no SLUM. Returns ranked candidates (possibly empty).
+
+    `trace` (optional list) accumulates one record per stage: whether it RAN, was SKIPPED
+    and why, and how many candidates it produced. An empty result with no trace is
+    indistinguishable from "never looked" -- which is precisely how two retrievable papers
+    came to be recorded as not-open-access. A caller that reports zero candidates should
+    report this trace alongside it."""
+    def _stage(name, fn, skip_reason=None):
+        if skip_reason:
+            if trace is not None:
+                trace.append({"stage": name, "status": "SKIPPED", "reason": skip_reason})
+            return []
+        got = fn() or []
+        if trace is not None:
+            trace.append({"stage": name, "status": "ran", "candidates": len(got)})
+        return got
+
     cands = []
     doi = query.split("doi:", 1)[1].strip() if query.lower().startswith("doi:") else None
     if not doi:
-        cands += from_semanticscholar(query)
-        cands += from_openalex(query)
+        cands += _stage("semanticscholar", lambda: from_semanticscholar(query))
+        cands += _stage("openalex-search", lambda: from_openalex(query))
         doi, _ctitle = from_crossref(query)
+        if trace is not None:
+            trace.append({"stage": "crossref", "status": "ran", "doi": doi})
     if doi:
-        up = from_unpaywall(doi)
-        if up: cands.append({"pdf_url": up, "source": "unpaywall", "doi": doi})
+        # Keyless, and it runs on the `doi:` path too -- the gap that made a
+        # fully-OA SpringerOpen DOI look unobtainable.
+        cands += _stage("openalex-doi", lambda: from_openalex_doi(doi))
+        cands += _stage(
+            "unpaywall",
+            lambda: [{"pdf_url": u, "source": "unpaywall", "doi": doi}
+                     for u in [from_unpaywall(doi)] if u],
+            skip_reason=None if EMAIL else "UNPAYWALL_EMAIL not set")
+        cands += _stage("fully-oa-publisher", lambda: from_fully_oa_publisher(doi))
     return _dedupe(cands)
 
 def resolve_shadow(query, book=False):
@@ -249,7 +318,7 @@ def resolve_shadow(query, book=False):
     it until the OA cascade is exhausted (papers) and run it directly (books)."""
     return _dedupe(from_libgen(query, book=book) + from_annas(query, book=book))
 
-def resolve(query, book=False):
+def resolve(query, book=False, trace=None):
     """Resolve to ranked PDF candidates. Short-circuits: an `arxiv:` query returns immediately;
     a paper returns the OA cascade and only falls through to the shadow libraries (and SLUM) if
     OA found nothing; a book goes straight to the shadow libraries (OA APIs are paper-centric).
@@ -259,7 +328,7 @@ def resolve(query, book=False):
         url, aid = _arxiv_pdf(query); return [{"pdf_url": url, "source": "arxiv-direct", "arxiv_id": aid}]
     if book:                                   # OA APIs are paper-centric -> shadow libraries only
         return resolve_shadow(query, book=True)
-    cands = resolve_oa(query)
+    cands = resolve_oa(query, trace=trace)
     if not cands:                              # OA came up empty -> we genuinely need the shadow stage
         cands = resolve_shadow(query, book=False)
     return cands
@@ -298,9 +367,13 @@ def main():
                 return True
         return False
 
-    cands = resolve(query, book=book)
+    trace = []
+    cands = resolve(query, book=book, trace=trace)
+    # `stage_trace` is not decoration: zero candidates with no trace is
+    # indistinguishable from "never looked", and that ambiguity is what caused
+    # two retrievable papers to be recorded as not-open-access.
     print(json.dumps({"query": query, "email_configured": bool(EMAIL), "annas_fallback": bool(ANNAS_KEY),
-                      "candidates": cands}, indent=2))
+                      "stage_trace": trace, "candidates": cands}, indent=2))
     if dl:
         if _try(cands):
             return 0

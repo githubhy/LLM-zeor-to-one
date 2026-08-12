@@ -8,16 +8,39 @@ gate (R-CARD, R-DEPTH, R-MATHREV, R-COVER, R-RUBRIC); without it the per-method 
 become a length tax on a long inventory.**
 
 **[R-GOV] Depth-tier governor (read first; precondition for all depth gates).** In the
-outline, tag every method/variant and every load-bearing result as one of
-`headline` / `load-bearing` / `catalog-only`. The heavy artifacts (full derivation,
+outline — **assigned in Phase 1, before the `P0-3` confirmation gate**, so the outline
+the user approves is already tiered (`[opt:DT-L2-OUTLINE · default ON · toggle .claude/skill-options.json]`) —
+tag every method/variant and every load-bearing result as one of
+`headline` / `load-bearing` / `catalog`. The heavy artifacts (full derivation,
 worked example, second-route cross-check, dedicated figure) apply to `headline` and
-`load-bearing` items only. A `catalog-only` item carries a compact stated-result + a
+`load-bearing` items only. A `catalog` item carries a compact stated-result + a
 one-line applicability note + an EXPLICIT `n/a (<reason>)` for each skipped artifact
 ("explicit n/a beats silent absence"). Depth is
 measured as a COVERAGE FRACTION over load-bearing items, never as prose volume (see
 R-RUBRIC). A tight survey that fully treats its few headline methods and catalogs the
 rest must score HIGHER than a bloated one that half-treats everything. This is the
 direct fix for the known "added length, not judged quality" failure of the P0-2 loop.
+The three tier names are a **fixed vocabulary, mechanically gated** by
+`viewer/tools/check-depth-tiers.py` (a `/check-survey` step): an invented or
+mistyped tier is a build error, since R-GOV is the precondition for every
+downstream depth gate and nothing else re-reads the authored `Depth tier:`
+label. One off-ladder label, `supporting`, is allowed-but-distinct — reserved
+for non-method **context** sections (standardization-provenance traces, not
+method cards, so not on the depth-budget ladder); adding or retiring a
+vocabulary value is a taxonomy change recorded in `decisions/` (2026-07-08-02).
+**Persisted allocation (the Layer-3′ north-star).**
+`[opt:DT-L2-OUTLINE · default ON · toggle .claude/skill-options.json]` Record the
+per-section tiers as a machine-readable table in the Phase-1 outline artifact
+(`survey/_scratch/00-*-outline.md`) under a `<!-- depth-tier-allocation -->`
+marker: a markdown table `| Section | Tier | Justification |`, one row per numbered
+section, the `Section` cell being the delivered heading-anchor id (`<a id="sec-N">`).
+This table is the authoritative depth-budget allocation every later phase reads back,
+and is the left-hand side of the Phase-5 drift-diff
+(`viewer/tools/depth-tier-coverage.py`, wired by R-COVER/R-RUBRIC): a delivered
+`Depth tier:` label that diverges from its approved row is a `TIER-DRIFT` finding.
+*Off (`DT-L2-OUTLINE` off):* tiers stay prose-only in the outline and no drift
+baseline exists — Layer 3′ still runs its category-safe checks but skips
+`TIER-DRIFT` / `MISSING-TIER`.
 *Audience-register interaction:* the resolved `audience` register
 (`config/audience-register.json`, set in Phase 1) sets the FUNDAMENTALS FLOOR — `learner`
 pins the fundamentals / prerequisite concepts at `headline` (full pedagogical depth);
@@ -43,7 +66,7 @@ equal-depth and decision-comparable, and true variants nest under their parent:
   9. Falsifiable prediction tag + epistemic-status tag (R-DEPTH).
  10. Equation-to-code / spec correspondence + traceability (R-DEPTH).
 
-A card element a `catalog-only` method omits must show `n/a (<reason>)`, not vanish.
+A card element a `catalog` method omits must show `n/a (<reason>)`, not vanish.
 Co-locate the full derivations with the card, or in a dedicated derivations appendix
 (split to its own file once > 100 KB), mirroring the dedicated-derivations-appendix
 precedent the repo's deepest surveys converged on.

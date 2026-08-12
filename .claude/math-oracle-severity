@@ -1,0 +1,8 @@
+# Phase-5 oracle-vs-survey gate severity: off | warn | error
+#
+# At error. Unlike the other new gates this one starts strict, because it can only
+# fire on a value that was DELIBERATELY given a val: id -- there is no backlog to
+# work through and no unreviewed survey to block. A drift here means a published
+# number no longer matches its own recomputation, which is never acceptable.
+# No survey is registered in check-math-oracles.py yet, so today it is a no-op.
+error

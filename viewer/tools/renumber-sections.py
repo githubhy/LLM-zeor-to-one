@@ -33,11 +33,20 @@ Usage:
 """
 import argparse
 import difflib
+import importlib.util
 import io
 import json
 import re
 import sys
 from pathlib import Path
+
+# mdctx — the shared "which bytes of this markdown may a tool rewrite?" map.
+# Loaded by path: this file's own name contains a hyphen, so the package-relative
+# import machinery is not available to its siblings either.
+_MDCTX_SPEC = importlib.util.spec_from_file_location(
+    "mdctx", Path(__file__).parent / "mdctx.py")
+mdctx = importlib.util.module_from_spec(_MDCTX_SPEC)
+_MDCTX_SPEC.loader.exec_module(mdctx)
 
 # Force UTF-8 on stdout/stderr so § and other non-ASCII characters survive
 # on Windows consoles that default to a narrow code page (GBK, CP1252, etc.).
@@ -48,37 +57,38 @@ if hasattr(sys.stderr, "reconfigure"):
 
 # -- Patterns ------------------------------------------------------------
 
-HEADING_RE = re.compile(
-    # Optional column-0 anchor (LEGACY pre-2026-05-25 form; migrated by
-    # `inject_heading_anchor()`).
-    r'^(?:<a\s+id="[^"]*"></a>)?'
-    r"(?P<hashes>#{2,6})\s+"
-    # Optional post-ATX-prefix anchor (NEW form, fixed 2026-05-25). Both
-    # may appear simultaneously on a half-migrated line; the legacy one
-    # is then stripped by `inject_heading_anchor()`.
-    r'(?:<a\s+id="[^"]*"></a>)?'
-    r"(?P<num>[A-Z]?\d+(?:\.\d+)+|[A-Z]\.\d+(?:\.\d+)*)"
-    r"\s+(?P<title>.*)$"
+# The section-number grammar lives in exactly one place. This module used to
+# carry SEVEN copies of it, all dotted-only, four of them dead code. The three
+# live ones (HEADING_RE, SECREF_INLINE_RE, SECXREF_INLINE_RE) each silently
+# skipped every FLAT section number, which is bugs/2026-07-09-16: 131 flat
+# `<!-- secxref:N -->` markers across 39 files were never parsed, resolved, or
+# orphan-reported, and `--check` exited 0 while 35 of them pointed at anchors
+# that do not exist. A green gate must mean "looked and found nothing".
+_HG_SPEC = importlib.util.spec_from_file_location(
+    "heading_grammar", Path(__file__).with_name("heading_grammar.py")
 )
-SEC_ANCHOR_RE = re.compile(
-    r'<a\s+id="sec-([A-Za-z]?\d+(?:\.\d+)+|[A-Z]\.\d+(?:\.\d+)*)(?:-[\w.\-]+)?"></a>'
-)
-SEC_MARKER_RE = re.compile(
-    r"<!--\s*sec:([A-Za-z]?\d+(?:\.\d+)+|[A-Z]\.\d+(?:\.\d+)*)(?:-[\w.\-]+)?\s*-->"
-)
-SECREF_MARKER_RE = re.compile(
-    r"<!--\s*secref:([A-Za-z]?\d+(?:\.\d+)+|[A-Z]\.\d+(?:\.\d+)*)(?:-[\w.\-]+)?\s*-->"
-)
-SECXREF_MARKER_RE = re.compile(
-    r"<!--\s*secxref:([A-Za-z]?\d+(?:\.\d+)+|[A-Z]\.\d+(?:\.\d+)*)(?:-[\w.\-]+)?\s*-->"
-)
+heading_grammar = importlib.util.module_from_spec(_HG_SPEC)
+_HG_SPEC.loader.exec_module(heading_grammar)
+
+match_heading = heading_grammar.match_heading
+HEADING_RE = heading_grammar.HEADING_RE
+SEC_ANCHOR_RE = heading_grammar.SEC_ANCHOR_RE
+ANY_SEC_ANCHOR_RE = heading_grammar.ANY_SEC_ANCHOR_RE
+ANY_SECXREF_RE = heading_grammar.ANY_SECXREF_RE
+
+# The marker id is PERMISSIVE, and the anchor index is the authority on what
+# resolves. Making the id pattern a section number was the original mistake: it
+# meant an id the pattern could not parse (`secxref:A`, `secxref:10`) was not
+# reported as broken, it was not seen at all. Now every marker is parsed, and an
+# id with no matching `sec-` anchor is reported as an orphan.
+_ID = r"[^\s>]+?"
 
 SECREF_INLINE_RE = re.compile(
-    r"(?P<marker><!--\s*secref:(?P<id>[A-Za-z]?\d+(?:\.\d+)+(?:-[\w.\-]+)?|[A-Z]\.\d+(?:\.\d+)*(?:-[\w.\-]+)?)\s*-->)"
+    rf"(?P<marker><!--\s*secref:(?P<id>{_ID})\s*-->)"
     r"\s*\[(?P<text>[^\]]*)\]\((?P<target>[^)]*)\)"
 )
 SECXREF_INLINE_RE = re.compile(
-    r"(?P<marker><!--\s*secxref:(?P<id>[A-Za-z]?\d+(?:\.\d+)+(?:-[\w.\-]+)?|[A-Z]\.\d+(?:\.\d+)*(?:-[\w.\-]+)?)\s*-->)"
+    rf"(?P<marker><!--\s*secxref:(?P<id>{_ID})\s*-->)"
     r"\s*\[(?P<text>[^\]]*)\]\((?P<target>[^)]*)\)"
 )
 
@@ -88,15 +98,31 @@ LANDMARK_KINDS = [
     "Corollary", "Definition", "Example", "Remark", "Algorithm", "Procedure",
     "Fact", "Claim", "Table", "Figure",
 ]
-INDEX_RE = r"(?:[A-Z]\.\d+(?:\.\d+)*-[A-Z0-9]+|\d+[a-z]?-[A-Z0-9]+|\d+[a-z]?|[A-Z])"
+# `\d+(?:\.\d+)+` MUST precede the bare `\d+[a-z]?` alternative: regex alternation
+# is first-match-wins, so the bare form would otherwise consume only the "4" of
+# "Figure 4.1" and "Figure 4.2" would slug to the SAME `-figure-4` anchor. A
+# duplicate id the moment a section carries two figures (bugs/2026-07-09-03,
+# "Additional hazard"); the corpus hid it because every affected section happened
+# to hold exactly one.
+INDEX_RE = (
+    r"(?:[A-Z]\.\d+(?:\.\d+)*-[A-Z0-9]+|\d+[a-z]?-[A-Z0-9]+"
+    r"|\d+(?:\.\d+)+[a-z]?|\d+[a-z]?|[A-Z])"
+)
+
+# A landmark line may be prefixed by a paragraph anchor that `renumber-paragraphs
+# --init` injected. Anchoring these patterns at `^\s*\*\*` made the sub-landmark
+# anchor silently un-injectable once that happened, so `§4.8 Step 2` had no target
+# to click (bugs/2026-07-09-03). The prefix is optional and non-capturing, so a
+# line that has never been through --init still matches exactly as before.
+PARA_PREFIX_RE = r"(?:<a\s+id=\"p-[^\"]*\"></a>\s*<!--\s*para:[^>]*-->\s*)?"
 
 # Sub-landmark patterns (used by Task 2.3; declared here for the module):
 LANDMARK_BOLD_RE = re.compile(
-    rf"^(?P<indent>\s*)\*\*(?P<kind>{'|'.join(LANDMARK_KINDS)})\s+"
+    rf"^(?P<indent>\s*){PARA_PREFIX_RE}\*\*(?P<kind>{'|'.join(LANDMARK_KINDS)})\s+"
     rf"(?P<idx>{INDEX_RE})(?P<sep>\b[\s.:—-])"
 )
 LANDMARK_ITALIC_RE = re.compile(
-    rf"^(?P<indent>\s*)\*(?P<kind>{'|'.join(LANDMARK_KINDS)})\s+"
+    rf"^(?P<indent>\s*){PARA_PREFIX_RE}\*(?P<kind>{'|'.join(LANDMARK_KINDS)})\s+"
     rf"(?P<idx>{INDEX_RE})(?P<sep>\s*[—:.])"
 )
 
@@ -105,6 +131,13 @@ LANDMARK_ITALIC_RE = re.compile(
 #   digit-first:  3.7.6, 4.4, 10.2.1   ([A-Z]?\d+(?:\.\d+)+)
 #   letter-dot:   D.7, D.7.5, A.8.3    ([A-Z]\.\d+(?:\.\d+)*)
 # Optional landmark suffix: ' Step 3', ' Part A', ' Lemma D.6-A', etc.
+#
+# DELIBERATE EXCEPTION, not drift: this stays DOTTED-ONLY even though the rest
+# of the module now uses heading_grammar's broader form. A bare `§4` in prose is
+# ambiguous with an external citation (`[TS 38.211 §4]`), and the corpus carries
+# 809 such flat mentions across 84 files. Widening this to SECTION_NUM would
+# auto-link all of them. validate-refs.py::BARE_SEC_RE is narrow for the same
+# reason. If you touch one, read heading_grammar.py's module docstring first.
 BARE_SEC_PROSE_RE = re.compile(
     r"(?<![\[\w/-])§"
     r"(?P<num>[A-Z]?\d+(?:\.\d+)+|[A-Z]\.\d+(?:\.\d+)*)"
@@ -120,10 +153,14 @@ BARE_SEC_PROSE_RE = re.compile(
 # -- Heading parsing -----------------------------------------------------
 
 def scan_headings(lines):
-    """Return list of (line_idx, sec_num, title)."""
+    """Return list of (line_idx, sec_num, title).
+
+    Uses `match_heading`, not the raw pattern: a flat number is only a section
+    when the line marks it as one, or `## 2020 in review` becomes section 2020.
+    """
     out = []
     for i, line in enumerate(lines):
-        m = HEADING_RE.match(line)
+        m = match_heading(line)
         if m:
             out.append((i, m.group("num"), m.group("title")))
     return out
@@ -247,6 +284,16 @@ def inject_sub_landmark_anchors(lines, headings):
     changed = False
     candidates = []  # reserved for future use
 
+    # Seed with every anchor id already present in the file. A landmark whose
+    # computed id collides with an existing anchor — its own duplicate (possibly
+    # embedded in a paragraph line the landmark regex does not match), or a
+    # mis-hosted trailing landmark that lands on the next section's number — is
+    # then skipped rather than given a second, colliding <a id>. This is what
+    # keeps the pass idempotent after reconcile_duplicate_anchors() has removed a
+    # duplicate: the surviving anchor seeds `used`, so the stripped landmark is
+    # left un-anchored, never re-duplicated (bugs 2026-07-10-06 / -10).
+    used = set(re.findall(r'<a id="([^"]+)"></a>', "\n".join(lines)))
+
     i = 0
     while i < len(lines):
         line = lines[i]
@@ -266,17 +313,88 @@ def inject_sub_landmark_anchors(lines, headings):
         expected_marker = f"<!-- sec:{sec_num}-{suffix} -->"
 
         if expected_anchor in line:
+            used.add(anchor_id)
             i += 1
             continue
 
-        # Insert anchor inline at column 0 of the landmark line
-        # and a sec-marker comment on the line above
+        if anchor_id in used:
+            # Collides with an anchor already placed elsewhere in the file;
+            # leave this landmark un-anchored to keep every id unique.
+            i += 1
+            continue
+
+        # Insert anchor inline at column 0 of the landmark line, and a sec-marker
+        # comment on the line above -- UNLESS that marker is already there. A
+        # hand-anchored landmark (the workaround used before this injection worked)
+        # leaves the marker line present but the inline anchor missing; inserting
+        # unconditionally would stack a second identical marker above it.
         lines[i] = expected_anchor + line
-        lines.insert(i, expected_marker)
+        if i == 0 or lines[i - 1].strip() != expected_marker:
+            lines.insert(i, expected_marker)
+        used.add(anchor_id)
         changed = True
         i += 2  # skip past inserted marker line and modified landmark line
 
     return changed, candidates
+
+
+# -- Duplicate-anchor reconciliation ------------------------------------
+
+def reconcile_duplicate_anchors(lines):
+    """Remove duplicate `<a id="X"></a>` occurrences within the file.
+
+    Keeps the canonical occurrence (an ATX-heading occurrence for a section
+    anchor, else the first) and strips the anchor tag from every other one; also
+    drops a landmark's now-orphaned `<!-- sec:ID -->` marker line sitting directly
+    above a removed anchor. Only anchor tags and their markers are removed — never
+    prose. Mutates `lines`; returns True if anything changed.
+
+    This is the retraction half of the fix the tool previously lacked ("adds what
+    is missing, never removes what no longer applies"): the legacy standalone
+    `<a id="sec-N">` line that migration duplicated, and the mis-hosted / repeated
+    landmark anchors, are both cleared here (bugs 2026-07-10-06 / -10).
+    """
+    anchor_re = re.compile(r'<a id="([^"]+)"></a>')
+    occ = {}
+    for i, line in enumerate(lines):
+        for m in anchor_re.finditer(line):
+            occ.setdefault(m.group(1), []).append(i)
+
+    to_delete = set()
+    changed = False
+    for aid, idxs in occ.items():
+        # Only section / landmark anchors are this tool's domain. A duplicate
+        # `p-` (paragraph) or `eq-` id is owned by renumber-paragraphs /
+        # renumber-equations, which RESEQUENCE it to a unique id rather than
+        # delete a needed anchor — do not strip those here.
+        if not aid.startswith("sec-"):
+            continue
+        if len(idxs) < 2:
+            continue
+        # Canonical: an ATX-heading occurrence (for a section anchor) else the
+        # first. Keep-first is deliberate: because the mis-hosting is produced by
+        # the same deterministic pass, every duplicate landmark line recomputes
+        # the SAME id, so the survivor seeds `used` and the stripped line is left
+        # un-anchored on re-run — the pass stays idempotent. (A landmark left
+        # cosmetically in a neighbouring section is harmless: 0 inbound links.)
+        canonical = next(
+            (i for i in idxs if _HEADING_ATX_RE.match(lines[i])), idxs[0]
+        )
+        marker = f"<!-- sec:{aid[4:]} -->" if aid.startswith("sec-") else None
+        for i in idxs:
+            if i == canonical:
+                continue
+            stripped = lines[i].replace(f'<a id="{aid}"></a>', "", 1)
+            if stripped != lines[i]:
+                lines[i] = stripped
+                changed = True
+            if marker and i - 1 >= 0 and lines[i - 1].strip() == marker:
+                to_delete.add(i - 1)
+
+    for i in sorted(to_delete, reverse=True):
+        del lines[i]
+        changed = True
+    return changed
 
 
 # -- Same-file secref rewriting -----------------------------------------
@@ -361,21 +479,33 @@ def build_survey_heading_index(survey_dir):
     Used by secxref resolution. Note that sec_num here is the SECTION number
     (e.g. "3.7.6", "D.7.5"), not a sub-anchor — sub-anchor refs (like
     "3.7.6-step-3") fall back to the parent section's owner file.
+
+    **A directory with no `order.json` is not a survey**, and this returns an
+    empty index for it. `secxref` means "resolve this section number against the
+    other files of *this survey*". Applied to `wikis/`, or to the flat
+    `surveys/` directory of single-file surveys, that question is meaningless:
+    the neighbours are unrelated documents that merely share a numbering scheme.
+
+    The old fallback globbed the directory anyway. On 2026-07-09 the flat-anchor
+    migration created `sec-5.4.1` inside an unrelated wiki and this function
+    then re-pointed three *survey-targeted* wiki secxrefs at it,
+    first-definition-wins — silently, with a rendering, resolving link
+    (`bugs/2026-07-09-08`). Orphaning a cross-corpus secxref is correct;
+    resolving it against a bag of unrelated files is strictly worse than
+    doing nothing.
     """
     survey_dir = Path(survey_dir)
     order_json = survey_dir / "order.json"
-    if order_json.exists():
-        try:
-            files = json.loads(order_json.read_text(encoding="utf-8"))
-            if not isinstance(files, list):
-                files = sorted(f.name for f in survey_dir.glob("*.md")
-                          if not f.name.endswith(".index.md"))
-        except (json.JSONDecodeError, OSError):
+    if not order_json.exists():
+        return {}
+    try:
+        files = json.loads(order_json.read_text(encoding="utf-8"))
+        if not isinstance(files, list):
             files = sorted(f.name for f in survey_dir.glob("*.md")
-                          if not f.name.endswith(".index.md"))
-    else:
+                      if not f.name.endswith(".index.md"))
+    except (json.JSONDecodeError, OSError):
         files = sorted(f.name for f in survey_dir.glob("*.md")
-                          if not f.name.endswith(".index.md"))
+                      if not f.name.endswith(".index.md"))
 
     index = {}
     for fname in files:
@@ -387,7 +517,17 @@ def build_survey_heading_index(survey_dir):
         except (OSError, UnicodeDecodeError):
             continue
         for line in text.split("\n"):
-            m = HEADING_RE.match(line)
+            # An `<a id="sec-...">` on a heading line IS a link target, whatever
+            # its id looks like. `## <a id="sec-A"></a>Appendix A — …` has no
+            # parsable section number, yet `secxref:A` legitimately points at it.
+            # Indexing the anchor (not just the parsed number) is what lets that
+            # resolve — and what turns a genuinely dead `secxref` into an orphan
+            # report instead of silence. See bugs/2026-07-09-16.
+            if line.lstrip().startswith("#"):
+                am = ANY_SEC_ANCHOR_RE.search(line)
+                if am and am.group("sec") not in index:
+                    index[am.group("sec")] = fname
+            m = match_heading(line)
             if m:
                 sec_num = m.group("num")
                 # First definition wins; duplicates handled separately
@@ -416,15 +556,25 @@ def _strip_sub_anchor_suffix(sec_id):
 def rewrite_cross_file_secxrefs(lines, this_file_name, survey_index):
     """Rewrite <!-- secxref:ID -->[...](...) to point at the owning file.
 
-    Returns (changed, orphans).
+    Returns (changed, orphans, malformed).
+
+    `malformed` holds secxref markers this function could not consume at all —
+    an id that is not a section number (`secxref:appendix-derivations`), or a
+    marker with no link after it. Before bugs/2026-07-09-16 these were skipped
+    in silence, which is how a marker pointing at a nonexistent anchor survived
+    in surveys/radar/04-detection-theory.md.
     """
     changed = False
     orphans = []
+    malformed = []
 
     for i, line in enumerate(lines):
-        def replace(m, _i=i):
+        consumed = []
+
+        def replace(m, _i=i, _consumed=consumed):
             nonlocal changed
             sec_id = m.group("id")
+            _consumed.append(sec_id)
             base = _strip_sub_anchor_suffix(sec_id)
             owner = survey_index.get(base)
             if owner is None:
@@ -444,7 +594,17 @@ def rewrite_cross_file_secxrefs(lines, this_file_name, survey_index):
         if new_line != line:
             lines[i] = new_line
 
-    return changed, orphans
+        # Anything the strict pattern did not consume is a marker we cannot
+        # validate. Report it rather than let it rot invisibly.
+        seen = list(consumed)
+        for am in ANY_SECXREF_RE.finditer(line):
+            aid = am.group("id")
+            if aid in seen:
+                seen.remove(aid)
+            else:
+                malformed.append((i, aid))
+
+    return changed, orphans, malformed
 
 
 # -- Bare-ref promotion (--init) ----------------------------------------
@@ -482,11 +642,28 @@ def promote_bare_section_refs(lines, this_file_name, survey_index, anchors):
     Also skips lines that are numbered reference-list entries (lines starting
     with [N] inside a ## References section).
 
+    Skips anything that is not PROSE, per mdctx: HTML comments, fenced code, inline
+    code, display math, inline math, link destinations, frontmatter.  Promoting a
+    bare ref outside prose does real damage and no gate catches it:
+
+      * inside an HTML comment, the injected `-->` closes the comment early and
+        spills its body into the rendered page          (bugs/2026-07-09-04)
+      * inside `$$...$$` or `$...$`, the injected `#` and `[]()` are a KaTeX parse
+        error                                           (channel-and-framework.md:685)
+
     Returns (changed, unresolved: list[(line_idx, full_id)]).
     """
     changed = False
     unresolved = []
     in_references = False
+
+    # One context map for the whole document; line i starts at line_start[i].
+    doc = "\n".join(lines)
+    prose = mdctx.writable_mask(doc)
+    line_start, _off = [], 0
+    for ln in lines:
+        line_start.append(_off)
+        _off += len(ln) + 1
 
     for i, line in enumerate(lines):
         # Track References section state
@@ -541,7 +718,14 @@ def promote_bare_section_refs(lines, this_file_name, survey_index, anchors):
             unresolved.append((_i, full_id))
             return m.group(0)  # leave bare
 
-        new_line = BARE_SEC_PROSE_RE.sub(replace, line)
+        # Only rewrite matches lying wholly in prose (mdctx). Apply right-to-left so
+        # each edit leaves the earlier offsets on this line valid.
+        base = line_start[i]
+        hits = [m for m in BARE_SEC_PROSE_RE.finditer(line)
+                if mdctx.is_writable(prose, base + m.start(), base + m.end())]
+        new_line = line
+        for m in reversed(hits):
+            new_line = new_line[:m.start()] + replace(m) + new_line[m.end():]
         if new_line != line:
             lines[i] = new_line
             changed = True
@@ -570,6 +754,10 @@ def process_file(path, args, survey_index):
     # Heading anchor injection (when running --init or no flag).
     # In --check mode, we don't mutate; we just compare what would change.
     if args.init or (not args.check and not args.dry_run_diff):
+        # Retract duplicate anchors first, so the injection passes below rebuild a
+        # unique, correctly-seeded set (bugs 2026-07-10-06 / -10).
+        if reconcile_duplicate_anchors(lines):
+            changed = True
         # Heading-anchor pass
         headings_rev = scan_headings(lines)
         for line_idx, sec_num, _ in reversed(headings_rev):
@@ -603,7 +791,7 @@ def process_file(path, args, survey_index):
             print(f"{path}:{line_idx+1}: orphaned secref:{sec_id} - "
                   f"no <a id='sec-{sec_id}'> in this file", file=sys.stderr)
         # Cross-file secxref rewriting
-        xref_changed, xref_orphans = rewrite_cross_file_secxrefs(
+        xref_changed, xref_orphans, xref_malformed = rewrite_cross_file_secxrefs(
             lines, path.name, survey_index
         )
         if xref_changed:
@@ -612,9 +800,15 @@ def process_file(path, args, survey_index):
             print(f"{path}:{line_idx+1}: orphaned secxref:{sec_id} - "
                   f"section not found in any file in this directory",
                   file=sys.stderr)
+        for line_idx, sec_id in xref_malformed:
+            print(f"{path}:{line_idx+1}: malformed secxref:{sec_id} - "
+                  f"not a section number, or no link follows the marker",
+                  file=sys.stderr)
 
     if args.check:
         check_lines = original.split("\n")
+        # Duplicate-anchor retraction (drift if it changes anything)
+        reconcile_duplicate_anchors(check_lines)
         # Heading-anchor pass — track which sections drifted for reporting
         drifted = []
         for line_idx, sec_num, _ in reversed(scan_headings(check_lines)):
@@ -628,7 +822,7 @@ def process_file(path, args, survey_index):
         # Same-file secref
         _, orphans = rewrite_same_file_secrefs(check_lines)
         # Cross-file secxref
-        _, xref_orphans = rewrite_cross_file_secxrefs(
+        _, xref_orphans, xref_malformed = rewrite_cross_file_secxrefs(
             check_lines, path.name, survey_index
         )
         if "\n".join(check_lines) != original:
@@ -650,10 +844,16 @@ def process_file(path, args, survey_index):
                 print(f"{path}:{line_idx+1}: orphaned secxref:{sec_id}",
                       file=sys.stderr)
             return 1
+        if xref_malformed:
+            for line_idx, sec_id in xref_malformed:
+                print(f"{path}:{line_idx+1}: malformed secxref:{sec_id}",
+                      file=sys.stderr)
+            return 1
         return 0
 
     if args.dry_run_diff:
         diff_lines = original.split("\n")
+        reconcile_duplicate_anchors(diff_lines)
         # Heading-anchor pass
         for line_idx, sec_num, _ in reversed(scan_headings(diff_lines)):
             inject_heading_anchor(diff_lines, line_idx, sec_num)

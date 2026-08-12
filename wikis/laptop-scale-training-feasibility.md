@@ -9,7 +9,8 @@
 - **For real GPT-2 (124M and up): load the pretrained weights, do not train them.** Interpretability and circuit verification need the weights, not the training run.
 - The compute-feasible size (~10M) is **~30–50× smaller** than the memory-feasible size (~several hundred M). That gap is the whole story.
 
-## 1. The two limits are not the same limit
+<!-- sec:1 -->
+## <a id="sec-1"></a>1. The two limits are not the same limit
 
 Training has two independent resource walls. On a laptop they sit at very different places, and confusing them is the usual mistake.
 
@@ -19,7 +20,8 @@ Training has two independent resource walls. On a laptop they sit at very differ
 
 For a laptop, compute is the binding wall, by roughly an order of magnitude. You can hold a far bigger model than you can afford to actually optimize.
 
-## 2. Memory accounting
+<!-- sec:2 -->
+## <a id="sec-2"></a>2. Memory accounting
 
 With AdamW in fp32, each parameter drags along four fp32 words of state:
 
@@ -40,7 +42,8 @@ That is **16 bytes/param** for the model + optimizer state, plus activations (wh
 
 So a 16 GB budget *holds* the training state of models up to roughly **several hundred M params** (mixed precision pushes this higher; activations and framework overhead pull it back). Memory would let you train GPT-2-large. The clock will not.
 
-## 3. Compute accounting — the wall that actually stops you
+<!-- sec:3 -->
+## <a id="sec-3"></a>3. Compute accounting — the wall that actually stops you
 
 A full training run costs, to a good approximation,
 
@@ -57,7 +60,8 @@ Worked examples at $D \approx 20N$ and 1 TFLOP/s effective:
 - **GPT-2 small (124M):** $6 \times 124\text{M} \times 2.5\text{B} \approx 1.9\text{e}18$ FLOPs → ~520 hours ≈ **3 weeks** (~4 days on a fast M-series GPU).
 - **Mini-GPT-2 (10M):** $6 \times 10\text{M} \times 200\text{M} \approx 1.2\text{e}16$ FLOPs → ~3 hours at the Chinchilla budget, and **minutes-to-tens-of-minutes** in practice because interpretability studies converge on a small or synthetic corpus long before $20N$ tokens.
 
-## 4. Feasibility by size
+<!-- sec:4 -->
+## <a id="sec-4"></a>4. Feasibility by size
 
 | Model | Params | Training state | From-scratch time on a 16 GB laptop | Verdict |
 |---|---|---|---|---|
@@ -69,7 +73,8 @@ Worked examples at $D \approx 20N$ and 1 TFLOP/s effective:
 
 The practical from-scratch ceiling is **~10M params (up to ~30M if patient)**. Above ~50M you are no longer training on a laptop; you are waiting on one.
 
-## 5. The gotcha at small scale: the embedding table dominates
+<!-- sec:5 -->
+## <a id="sec-5"></a>5. The gotcha at small scale: the embedding table dominates
 
 If you shrink the transformer but keep GPT-2's **50,257-token BPE vocabulary**, the token-embedding matrix (of shape vocabulary × width) swallows the parameter budget:
 
@@ -80,7 +85,8 @@ If you shrink the transformer but keep GPT-2's **50,257-token BPE vocabulary**, 
 
 The canonical laptop config is nanoGPT's character-level Shakespeare model (~6 layers, ~6 heads, width ~384, block ~256, vocabulary ~65 → ~10M params, trains in minutes on a GPU). Treat it as the reference point for "the biggest thing you can train from scratch and still iterate on."
 
-## 6. The consequence: a three-rung toy → real ladder
+<!-- sec:6 -->
+## <a id="sec-6"></a>6. The consequence: a three-rung toy → real ladder
 
 The feasibility math resolves the "should we train GPT-2?" question cleanly. You do not have to. A three-rung ladder gives you the from-scratch *emergence* story where training is cheap, and the real GPT-2 where training is not:
 
@@ -90,14 +96,16 @@ The feasibility math resolves the "should we train GPT-2?" question cleanly. You
 
 Training reproduction of the full 124M model (rented multi-GPU, hours, on the order of tens of dollars of compute) is explicitly *out of scope* — rungs 1–2 supply emergence-from-scratch and rung 3 supplies real GPT-2, all inside 16 GB.
 
-## 7. Assumptions and caveats
+<!-- sec:7 -->
+## <a id="sec-7"></a>7. Assumptions and caveats
 
 - The throughput figure (~1 TFLOP/s effective) is an order-of-magnitude planning estimate for a mid-range 16 GB Apple-Silicon laptop under MPS. A discrete NVIDIA laptop GPU or a high-end M-series does better; CPU-only does much worse. Re-run the $6ND$ arithmetic with your measured tokens/second before committing to a size.
 - $D \approx 20N$ is the compute-*optimal* budget for a natural-language LM. Interpretability studies on synthetic or tiny corpora converge with far fewer tokens, so the wall-clock estimates in §3–§4 are conservative upper bounds for that use case.
 - Mixed precision (bf16/fp16) roughly halves the memory state and raises throughput, but does not change the conclusion: 124M from scratch is still weeks on a laptop.
 - Memory estimates count model + optimizer state only. Activation memory depends on batch × sequence length and is controllable (small batch, gradient checkpointing), so it rarely becomes the binding constraint at these sizes.
 
-## 8. Sources and further reading
+<!-- sec:8 -->
+## <a id="sec-8"></a>8. Sources and further reading
 
 These are pointers for the reader to consult, not values verified from source in this note; the accounting in §2–§4 stands on first principles.
 

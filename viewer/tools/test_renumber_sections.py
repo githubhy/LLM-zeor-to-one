@@ -444,3 +444,174 @@ def test_init_on_parent_dir_uses_per_subdir_index(tmp_path):
     # Critically, neither subdir's ref should link to the OTHER subdir's file:
     assert "survey_b/doc.md" not in a_result
     assert "survey_a/doc.md" not in b_result
+
+
+# -- Context-awareness of --init's bare-ref promotion (bugs/2026-07-09-04) ----
+#
+# `--init` used to rewrite a bare `§X.Y` wherever it appeared. Inside an HTML comment
+# the injected `-->` closed the comment early and spilled its body into the rendered
+# page; inside `$$...$$` or `$...$` the injected `#` and `[]()` are a KaTeX parse error.
+# Every gate passed on the corrupted output. The promoter now consults mdctx and only
+# rewrites prose.
+
+_CTX_DOC = (
+    "# Doc\n\n"
+    "<!-- sec:3.2 -->\n"
+    '## <a id="sec-3.2"></a>3.2 A Section\n\n'
+    "Plain prose referring to §3.2 must be promoted.\n\n"
+    "<!--\n"
+    "  The blocks in §3.2 are UNTAGGED BY DESIGN; do not touch me.\n"
+    "-->\n\n"
+    '<a id="eq-1"></a><!-- eq:x -->\n'
+    "$$\n"
+    "\begin{aligned}\n"
+    "a &= b && (\text{, frame of §3.2}) \\\n"
+    "\end{aligned} \tag{1}\n"
+    "$$\n\n"
+    "Inline math $x_{§3.2}$ and code `§3.2` and a fence:\n\n"
+    "```\n§3.2\n```\n\n"
+    "Tail prose §3.2 again.\n"
+)
+
+
+def _init_ctx_doc(tmp_path):
+    f = tmp_path / "doc.md"
+    f.write_text(_CTX_DOC, encoding="utf-8")
+    rc, _, err = run([str(f), "--init"])
+    assert rc == 0, err
+    return f.read_text(encoding="utf-8")
+
+
+def test_init_promotes_only_prose_bare_refs(tmp_path):
+    out = _init_ctx_doc(tmp_path)
+    assert out.count("<!-- secref:3.2 -->") == 2, "exactly the two prose refs"
+
+
+def test_init_does_not_write_inside_an_html_comment(tmp_path):
+    """bugs/2026-07-09-04: the injected `-->` closed the comment and spilled its body."""
+    out = _init_ctx_doc(tmp_path)
+    assert "The blocks in §3.2 are UNTAGGED BY DESIGN; do not touch me." in out
+    body = out[out.index("<!--\n  The blocks"):out.index("do not touch me.")]
+    assert "secref" not in body
+
+
+def test_init_does_not_write_inside_display_math(tmp_path):
+    """channel-and-framework.md:685 -- a secref link inside \text{} in $$...$$."""
+    out = _init_ctx_doc(tmp_path)
+    assert "(\text{, frame of §3.2})" in out
+
+
+def test_init_does_not_write_inside_inline_math_code_or_fence(tmp_path):
+    out = _init_ctx_doc(tmp_path)
+    assert "$x_{§3.2}$" in out
+    assert "`§3.2`" in out
+    assert "```\n§3.2\n```" in out
+
+
+def test_init_is_idempotent_on_a_context_heavy_doc(tmp_path):
+    f = tmp_path / "doc.md"
+    f.write_text(_CTX_DOC, encoding="utf-8")
+    run([str(f), "--init"])
+    once = f.read_text(encoding="utf-8")
+    run([str(f), "--init"])
+    assert f.read_text(encoding="utf-8") == once
+
+
+# -- Duplicate-anchor reconciliation (bugs 2026-07-10-06 / -10) -----
+
+
+def test_reconcile_removes_standalone_orphan_sec_anchor(tmp_path):
+    """A legacy standalone <a id="sec-3.5"> (here prefixed onto a paragraph line)
+    is removed; the heading keeps its inline anchor. bugs 2026-07-10-10."""
+    f = tmp_path / "doc.md"
+    f.write_text(
+        '<!-- sec:3.5 -->\n'
+        '## <a id="sec-3.5"></a>3.5 Multi-Head Attention\n'
+        '\n'
+        '<a id="p-35-x-1"></a><!-- para:35-x-1 --> <a id="sec-3.5"></a>\n'
+        'Body.\n',
+        encoding="utf-8")
+    rc, out, err = run([str(f)])
+    assert rc == 0, f"{out}\n{err}"
+    result = f.read_text(encoding="utf-8")
+    assert result.count('<a id="sec-3.5"></a>') == 1
+    assert '## <a id="sec-3.5"></a>3.5' in result       # heading kept
+    assert '<a id="p-35-x-1"></a>' in result            # para anchor + text survive
+
+
+def test_reconcile_removes_duplicate_landmark_and_marker(tmp_path):
+    """Two same-section `**Step 1**` sequences collide on sec-8.1.1-step-1; the
+    second anchor and its orphaned marker are removed, both step texts survive."""
+    f = tmp_path / "doc.md"
+    f.write_text(
+        '<!-- sec:8.1.1 -->\n'
+        '#### <a id="sec-8.1.1"></a>8.1.1 RoPE\n'
+        '\n'
+        '<!-- sec:8.1.1-step-1 -->\n'
+        '<a id="sec-8.1.1-step-1"></a>**Step 1 - first.** text\n'
+        '\n'
+        '<!-- sec:8.1.1-step-1 -->\n'
+        '<a id="sec-8.1.1-step-1"></a>**Step 1 - second sequence.** text\n',
+        encoding="utf-8")
+    rc, out, err = run([str(f)])
+    assert rc == 0, f"{out}\n{err}"
+    result = f.read_text(encoding="utf-8")
+    assert result.count('<a id="sec-8.1.1-step-1"></a>') == 1
+    assert "first." in result and "second sequence." in result
+    assert result.count('<!-- sec:8.1.1-step-1 -->') == 1
+
+
+def test_reconcile_idempotent_and_check_green(tmp_path):
+    """After the sweep, a second run is a no-op and --check is green."""
+    f = tmp_path / "doc.md"
+    f.write_text(
+        '<!-- sec:8.1.1 -->\n'
+        '#### <a id="sec-8.1.1"></a>8.1.1 RoPE\n'
+        '\n'
+        '<!-- sec:8.1.1-step-1 -->\n'
+        '<a id="sec-8.1.1-step-1"></a>**Step 1 - a.** x\n'
+        '\n'
+        '<!-- sec:8.1.1-step-1 -->\n'
+        '<a id="sec-8.1.1-step-1"></a>**Step 1 - b.** y\n',
+        encoding="utf-8")
+    run([str(f)])
+    first = f.read_text(encoding="utf-8")
+    run([str(f)])
+    assert f.read_text(encoding="utf-8") == first, "second run must be a no-op"
+    rc, out, err = run(["--check", str(f)])
+    assert rc == 0, f"--check should be green after sweep: {out}\n{err}"
+
+
+def test_clean_unique_landmarks_check_green(tmp_path):
+    """A file with correctly-unique landmarks is unchanged (no churn, --check green)."""
+    f = tmp_path / "doc.md"
+    f.write_text(
+        '<!-- sec:8.1.1 -->\n'
+        '#### <a id="sec-8.1.1"></a>8.1.1 RoPE\n'
+        '\n'
+        '<!-- sec:8.1.1-step-1 -->\n'
+        '<a id="sec-8.1.1-step-1"></a>**Step 1 - a.** x\n'
+        '\n'
+        '<!-- sec:8.1.1-step-2 -->\n'
+        '<a id="sec-8.1.1-step-2"></a>**Step 2 - b.** y\n',
+        encoding="utf-8")
+    rc, out, err = run(["--check", str(f)])
+    assert rc == 0, f"clean file must pass --check: {out}\n{err}"
+
+
+def test_landmark_dedup_prevents_recreation_on_init(tmp_path):
+    """Two fresh same-section `Step 1` landmarks: --init anchors only the first."""
+    f = tmp_path / "doc.md"
+    f.write_text(
+        '# Top\n'
+        '\n'
+        '#### 8.1.1 RoPE\n'
+        '\n'
+        '**Step 1 - a.** first\n'
+        '\n'
+        '**Step 1 - b.** second\n',
+        encoding="utf-8")
+    rc, out, err = run(["--init", str(f)])
+    assert rc == 0, f"{out}\n{err}"
+    result = f.read_text(encoding="utf-8")
+    assert result.count('<a id="sec-8.1.1-step-1"></a>') == 1

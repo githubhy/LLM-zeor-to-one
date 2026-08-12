@@ -11,7 +11,7 @@ runs lost ~90% of clusters. The transcript-measured root cause was the per-agent
 **iteration/STEP cap** (~36-40 tool calls) — NOT context size (a dead agent used ~58K of a 200K
 window) and NOT model tier (Sonnet survivors produced gold output). Agents burned the step
 budget on research (incl. 18 wasted Glob calls + full-page WebFetch) and were cut off mid-loop
-(final message `stop_reason=tool_use`, empty text) before writing. Five rules (full text:
+(final message `stop_reason=tool_use`, empty text) before writing. Six rules (full text:
 `config/operational-scale.json` `evidence_agent_policy.rules`):
 
 1. **File-first deliverable** — the incrementally-written `survey/_scratch/<agent>.md` IS the
@@ -28,6 +28,12 @@ budget on research (incl. 18 wasted Glob calls + full-page WebFetch) and were cu
    the cap); `questions_per_agent` is the upper bound. Splitting the same total questions across
    more agents raises per-question depth + breadth — it does not narrow or shallow coverage
    (synthesis still sees every file; R-COVER gates completeness).
+6. **Persist what you cite** `[opt:EV-PERSIST · default ON · toggle .claude/skill-options.json]` — any source a ledger claim will CITE must be saved to `download/`
+   (source-fetch or a direct fetch), not merely WebFetched transiently; a source read live but not
+   saved is a citation-integrity gap found only at reference-compilation (2026-07-04 Qi PT-RS paper:
+   WebFetched with no `download/` path, discovered at the references stage and re-fetched). Record the
+   saved local path in the ledger entry. Full text: `config/operational-scale.json`
+   `evidence_agent_policy.rules.persist_cited_sources`.
 
 `agent_hardening: off` restores the legacy schema-first / 5-question / unrestricted-Glob-WebFetch
 path (the broken one; for A/B + backward-compat only). Refs: the evidence-agent-hardening bug +

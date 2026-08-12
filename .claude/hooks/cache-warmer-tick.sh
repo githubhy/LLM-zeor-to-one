@@ -32,7 +32,13 @@ GC_WINDOW=86400
 NOW=$(date +%s)
 for M in "$PROJ/.claude/"cache-warmer.*.active; do
   [ -f "$M" ] || continue
-  MT=$(stat -f %m "$M" 2>/dev/null || stat -c %Y "$M" 2>/dev/null) || continue
+  # GNU first, BSD second, each in its OWN substitution.  `$(A || B)` is wrong here:
+  # GNU `stat -f` means "filesystem status", so it dumps a block of filesystem info to
+  # stdout and *then* exits non-zero on the unknown %m format — the fallback's output
+  # is appended to that garbage and the later $((NOW - MT)) dies with a syntax error.
+  # Consequence: this GC never ran on Git Bash, and dead markers accumulated forever.
+  MT=$(stat -c %Y "$M" 2>/dev/null) || MT=$(stat -f %m "$M" 2>/dev/null) || continue
+  case "$MT" in ''|*[!0-9]*) continue ;; esac   # never feed non-numeric to $(( ))
   [ $((NOW - MT)) -gt "$GC_WINDOW" ] && rm -f "$M"
 done
 
@@ -50,9 +56,19 @@ command -v cygpath >/dev/null 2>&1 && HOOKS_DIR="$(cygpath -m "$HOOKS_DIR")"
 # py-launcher.sh selects a real Python >= 3.8 (skips the Windows Store python3
 # stub); fall back to bare python3 if a user-scope install didn't copy it.
 if [ -f "$HOOKS_DIR/py-launcher.sh" ]; then
-  bash "$HOOKS_DIR/py-launcher.sh" "$HOOKS_DIR/detect-ttl.py" \
-    --session-id "$SID" --project-dir "$PROJ" --transcript "$TRANSCRIPT"
+  TTL="$(bash "$HOOKS_DIR/py-launcher.sh" "$HOOKS_DIR/detect-ttl.py" \
+    --session-id "$SID" --project-dir "$PROJ" --transcript "$TRANSCRIPT")"
 else
-  python3 "$HOOKS_DIR/detect-ttl.py" \
-    --session-id "$SID" --project-dir "$PROJ" --transcript "$TRANSCRIPT"
+  TTL="$(python3 "$HOOKS_DIR/detect-ttl.py" \
+    --session-id "$SID" --project-dir "$PROJ" --transcript "$TRANSCRIPT")"
 fi
+
+# Publish the TTL and derived re-arm delay into the marker CONTENT (previously
+# unused) so the UserPromptSubmit extend hook can re-arm the wakeup on user
+# activity with the correct delay — the recovery path for bugs/2026-07-14-03.
+# delay = max(60, TTL-30), matching the skill's Step 2 arithmetic.
+case "$TTL" in ''|*[!0-9]*) TTL=300 ;; esac
+DELAY=$((TTL - 30)); [ "$DELAY" -lt 60 ] && DELAY=60
+printf 'ttl=%s delay=%s\n' "$TTL" "$DELAY" > "$MARKER"
+
+echo "$TTL"   # preserve the stdout contract: Step 1 reads this integer

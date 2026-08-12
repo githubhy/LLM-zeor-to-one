@@ -1,6 +1,6 @@
 // @ts-check
 // Regression: PLAIN_SPANNING_MATH on a paragraph dense with inline math +
-// HTML comment / markdown-link refs (e.g. surveys/5g-nr-ldpc/appendix-a.md
+// HTML comment / markdown-link refs (e.g. surveys/llms-for-coding/appendix-a.md
 // §A.8.3 WLOG-normalization paragraph). The pre-fix `resolveInlineMath`
 // fallback for the FIRST selected katex element used a position-ratio
 // heuristic that drifted because:
@@ -127,18 +127,17 @@ test('PLAIN_SPANNING_MATH on a 7-math-span paragraph with ref-links resolves to 
   }
 });
 
-// Regression for bugs/2026-06-19-01: a selection that STARTS INSIDE one inline
-// math span and ends in plain text after a SECOND span (e.g. the §A.11 lead-in
-// "$\delta_{jm}$ the Kronecker delta (1 when $j=m$, else 0)", or the §5
-// positivity bullet `$\lvert d_a\rvert \le f_a$, $\lvert D_k\rvert \le S_k$
-// term-by-term`). It was classified as the MIXED_MATH_TEXT multi-span case and
-// routed to the whole-block sidecar backend (bug 2026-06-02-04's workaround),
-// which highlighted the ENTIRE paragraph. But the multi-span PLAIN_SPANNING_MATH
-// handler (Step 5P) reconstructs across every spanned math AND collapses
-// `plainHead` to '' when the range starts inside the first katex, so routing
-// there yields a PRECISE inline highlight. This supersedes the sidecar fallback
-// for this case (the earlier fallback only avoided a "Could not locate" toast).
-test('multi-span selection starting inside an inline-math span resolves to a precise inline highlight (bug 2026-06-19-01)', async ({ page, request }) => {
+// Regression: a selection that STARTS INSIDE one inline math span and ends in
+// plain text after a SECOND span (e.g. `$\lvert d_a\rvert \le f_a$,
+// $\lvert D_k\rvert \le S_k$ term-by-term`) was classified as the
+// MIXED_MATH_TEXT multi-span case and routed to the whole-block sidecar backend
+// (the earlier multi-span workaround), which highlighted the ENTIRE paragraph.
+// But the multi-span PLAIN_SPANNING_MATH handler (Step 5P) reconstructs across
+// every spanned math AND collapses `plainHead` to '' when the range starts
+// inside the first katex, so routing there yields a PRECISE inline highlight.
+// This supersedes the sidecar fallback for this case (the earlier fallback only
+// avoided a "Could not locate" toast).
+test('multi-span selection starting inside an inline-math span resolves to a precise inline highlight', async ({ page, request }) => {
   const port = nextPort();
   const dir = createFixtureDir({
     'multimath.md': '# Multi\n\nEdge-wise $\\lvert d_a\\rvert \\le f_a$, $\\lvert D_k\\rvert \\le S_k$ term-by-term gives the bound.\n',
@@ -209,11 +208,13 @@ test('multi-span selection starting inside an inline-math span resolves to a pre
     expect(src).toMatch(/Edge-wise\s+==blue:/);                 // pre-text outside the wrap
     expect(src).toMatch(/term-by-term==\s+gives the bound\./);  // wrap closes before the trailing text
     // The whole-block sidecar fallback is no longer used for this case.
+    // Asserted unconditionally: GET /api/highlights/<file> 404s only when the
+    // MARKDOWN is missing, and multimath.md exists here, so a non-ok response
+    // is itself a failure — never a reason to skip the check.
     const annRes = await request.get(`http://localhost:${port}/api/highlights/multimath.md`);
-    if (annRes.ok()) {
-      const ann = await annRes.json();
-      expect((ann.highlights || []).filter(h => h.backend === 'sidecar')).toHaveLength(0);
-    }
+    expect(annRes.ok()).toBe(true);
+    const ann = await annRes.json();
+    expect((ann.highlights || []).filter(h => h.backend === 'sidecar')).toHaveLength(0);
   } finally {
     stopServer(server, dir);
   }

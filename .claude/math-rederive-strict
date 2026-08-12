@@ -1,0 +1,6 @@
+# Surveys held to [opt:MATH-REDERIVE] at ERROR severity.
+#
+# A survey earns a line here by having a committed review artifact under its
+# _scratch/, not by declaration.
+#
+# Empty: no survey carries a derivation-review artifact yet.

@@ -1,29 +1,69 @@
 #!/bin/bash
 # Pre-push hook: git-lfs object upload + full survey-wide validation gate.
-# Activated via: git config core.hooksPath .githooks
-# To bypass for an explicit reason, use `git push --no-verify`.
 #
-# This hook REPLACES the stock .git/hooks/pre-push (the git-lfs hook) once
-# core.hooksPath points here, so it must itself chain `git lfs pre-push` or LFS
-# pointers would be pushed without their blobs (bug 2026-07-02-03).
+# Wired via `git config core.hooksPath .githooks` -- git reads THIS tracked file
+# directly. Do NOT copy it into .git/hooks: a copy is a snapshot, and it drifts.
+# Upstream measured an installed copy that had gone stale and ran 5 of its 9
+# checks, silently skipping the crosslink, section-ownership and depth-tier gates,
+# so `--severity=error` enforced nothing. The pointer check below refuses to run
+# from anywhere but .githooks for exactly that reason.
+#
+# `core.hooksPath` alone is NOT the install: git SILENTLY skips a non-executable
+# hook (a `hint:` on stderr, then it pushes anyway). The tracked mode must stay
+# 100755 -- upstream shipped this file at 100644 for its entire history, so the
+# documented one-liner install yielded ZERO gates. Re-run
+# `bash scripts/install-git-hooks.sh` after any clone; it is idempotent and sets
+# both the pointer and the exec bit.
+#
+# Policy: a failing check is FIXED, not skipped. `git push --no-verify` is a
+# deliberate escape hatch and is the ONLY enforcement boundary here -- this repo
+# runs no server-side CI mirror of these checks, so a bypassed push is simply
+# unchecked. Fix the check, or flip its documented severity toggle under
+# .claude/ with a decisions/ record.
 set -uo pipefail
+
+# A gate that can silently be an old version of itself is not a gate.
+# Scope of this guard: it catches a STALE gate (core.hooksPath pointing elsewhere
+# while a copy of this file runs). It cannot catch an ABSENT one -- with
+# core.hooksPath unset git never invokes this file, so no line below executes.
+# That is the default state of a fresh clone: it needs no --no-verify and emits
+# no message. Run scripts/install-git-hooks.sh once per clone.
+HOOKS_PATH="$(git config --get core.hooksPath || echo '')"
+case "$HOOKS_PATH" in
+    *.githooks) : ;;
+    *)
+        echo "pre-push: core.hooksPath is '${HOOKS_PATH:-unset}', not .githooks." >&2
+        echo "  This hook may be a stale copy of .githooks/pre-push." >&2
+        echo "  Fix once, per clone:  git config core.hooksPath .githooks" >&2
+        exit 1
+        ;;
+esac
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
 # --- 1. Git LFS: upload objects for the refs being pushed (reads the ref list
-# from this hook's stdin, exactly as the stock git-lfs hook does). ---
+# from this hook's stdin, exactly as the stock git-lfs hook does). This hook
+# REPLACES .git/hooks/pre-push once core.hooksPath points here, so it must chain
+# git-lfs itself or LFS pointers would be pushed without their blobs
+# (bug 2026-07-02-03). ---
 if command -v git-lfs >/dev/null 2>&1; then
     git lfs pre-push "$@" || exit 1
 fi
 
-# --- 2. Pick a python that actually runs. git-bash on Windows aliases python3
-# and python to a non-functional Microsoft-Store stub (exit 49); the py launcher
-# resolves the real interpreter. On Linux/macOS python3 works and is chosen first. ---
+# --- 2. Pick a python that actually runs. Prefer the repo venv so the gate runs
+# with the pinned deps (markdown-it-py et al.) without the caller having to
+# activate it first. git-bash on Windows aliases python3/python to a
+# non-functional Microsoft-Store stub (exit 49); the py launcher resolves the
+# real interpreter. ---
 PY=""
-for c in python3 python "py -3"; do
-    if $c -c "import sys" >/dev/null 2>&1; then PY="$c"; break; fi
-done
+if [ -x "$REPO_ROOT/.venv/bin/python" ]; then
+    PY="$REPO_ROOT/.venv/bin/python"
+else
+    for c in python3 python "py -3"; do
+        if $c -c "import sys" >/dev/null 2>&1; then PY="$c"; break; fi
+    done
+fi
 if [ -z "$PY" ]; then
     echo "[pre-push] no working python found — LFS uploaded, skipping validators." >&2
     exit 0
@@ -31,33 +71,246 @@ fi
 
 echo "[pre-push] Running survey-wide validation (python: $PY)..."
 fail=0
-SURVEY_DIRS=$(find surveys -maxdepth 2 -name order.json -exec dirname {} \; | sort -u)
-if [ -z "$SURVEY_DIRS" ]; then
-    echo "[pre-push] No survey dirs (surveys/*/order.json) found — nothing to validate."
+
+# --- Core marker/anchor gates. `surveys/` is a CORPUS ROOT: the tools resolve it
+# through viewer/tools/_corpus.py into one unit per survey (each against its own
+# order.json), so a corpus root reaches into the subdirectories rather than
+# stopping at the flat files. viewer/tools/test_corpus_scope.py pins that. ---
+$PY viewer/tools/validate-refs.py surveys/ || fail=1
+$PY viewer/tools/renumber-equations.py --check surveys/ || fail=1
+$PY viewer/tools/renumber-paragraphs.py --check surveys/ || fail=1
+$PY viewer/tools/renumber-sections.py --check surveys/ wikis/ || fail=1
+
+# Bare-ref severity for the push gate: always error (the per-edit hook may be in
+# warn mode during migration, but push to remote is the strict gate).
+$PY viewer/tools/validate-refs.py --bare-refs-only --severity=error surveys/ || fail=1
+
+# Depth-tier vocabulary gate (R-GOV): every authored `Depth tier:` label must be
+# an allowed tier. Error severity — an invented or mistyped tier blocks the push.
+$PY viewer/tools/check-depth-tiers.py surveys/ || fail=1
+
+# Section ownership: no file may claim a section number whose N.x subsections live
+# in a different file of the same survey. A duplicate check cannot see this -- the
+# heading appears exactly once.
+$PY viewer/tools/check-section-ownership.py surveys/ || fail=1
+
+# [opt:MATH-BASIS] -- a quantity measurable on two bases must say which (a
+# scaling-law N that does not say whether embeddings are counted; a loss in bits
+# beside one in nats). Severity from .claude/math-basis-severity.
+# NOTE the `surveys/*/` glob rather than `surveys/`: this tool globs a directory
+# argument non-recursively, and surveys/ holds no flat .md here, so the corpus
+# root would resolve to nothing and the tool would refuse to report clean.
+$PY viewer/tools/check-basis-declarations.py surveys/*/ || fail=1
+
+# [opt:MATH-REDERIVE] -- a new or materially-changed numbered derivation needs
+# review evidence before it lands. The trigger is an added/modified \tag{} line in
+# the push range; a renumber pass that only rewrites the tag integer does not fire.
+# Severity from .claude/math-rederive-severity, per-survey error via
+# .claude/math-rederive-strict.
+if [ -n "${REDERIVE_RANGE:-}" ]; then
+  _rr="$REDERIVE_RANGE"
 else
-    for d in $SURVEY_DIRS; do
-        echo "[pre-push]   validating $d"
-        $PY viewer/tools/validate-refs.py "$d" || fail=1
-        $PY viewer/tools/renumber-equations.py --check "$d" || fail=1
-        $PY viewer/tools/renumber-paragraphs.py --check "$d" || fail=1
-        $PY viewer/tools/renumber-sections.py --check "$d" || fail=1
-        # Bare-ref severity for the push gate: always error (the per-edit hook may
-        # be in warn mode during migration, but push to remote is the strict gate).
-        $PY viewer/tools/validate-refs.py --bare-refs-only --severity=error "$d" || fail=1
-    done
+  _remote_head="$(git rev-parse --verify --quiet "@{upstream}" 2>/dev/null || true)"
+  if [ -n "$_remote_head" ]; then
+    _rr="${_remote_head}..HEAD"
+  else
+    _rr="HEAD~1..HEAD"
+  fi
+fi
+$PY viewer/tools/check-derivation-review.py --range "$_rr" || fail=1
+
+# Phase-5 oracle gate: a published number must still match its recomputation.
+# No-op until a survey registers an oracle package in check-math-oracles.py.
+$PY viewer/tools/check-math-oracles.py || fail=1
+
+# Phase-6 derivation DAG: no orphans, legal roots, no cycles, and the assumption
+# closure computes. Severity via .claude/derivation-dag-severity (warn — no
+# survey carries DAG annotations yet).
+for d in surveys/*/; do
+    [ -d "$d" ] || continue
+    $PY viewer/tools/check-derivation-dag.py --survey "$d" || fail=1
+done
+
+# T7 restatement drift: a value declared once and restated stale elsewhere.
+# Severity from .claude/value-ledger-severity; advisory survey mode is not run here.
+$PY viewer/tools/check-value-ledger.py surveys/ || fail=1
+
+# Citation source-tag integrity (citation-integrity rule): every references.md
+# entry carries a source tag, and every (local:)/(spec:) tag resolves to a real
+# source. --index resolves against git's INDEX rather than the working tree, which
+# is STRICTLY STRONGER: the invariant is a property of the REPOSITORY, not of one
+# clone's disk. An untracked local PDF passes an on-disk check while being missing
+# for everyone else; --index catches it.
+#
+# NOTE the basename filter. `git ls-files '*references.md'` matches ANY path ENDING
+# in that string, so a todos/ file named ...-uncited-references.md would be swept in
+# and its prose parsed as a bibliography, producing phantom "untagged entry" errors.
+REFS="$(git ls-files '*references.md' | grep -E '(^|/)references\.md$')"
+if [ -n "$REFS" ]; then
+    # shellcheck disable=SC2086  # intentional word-split: one arg per file
+    $PY viewer/tools/check-citation-sources.py --index $REFS || fail=1
+else
+    echo "[citation-sources] no references.md tracked -- nothing to check"
 fi
 
-# Cross-link gap check (corpus-level). Advisory at 'warn'; blocks only at 'error'.
+# Orphaned-citation gate (surveys/**). check-citation-sources.py above verifies each
+# reference ENTRY names an acquired source; this verifies the other direction --
+# that each in-text citation resolves to an entry that exists. A cite:N with no
+# bib:N renders as a normal link and goes nowhere. Uncited references stay a
+# warning: an entry deliberately listed but not cited inline is legitimate.
+for d in surveys/*/; do
+    [ -f "$d/references.md" ] || continue
+    $PY viewer/tools/link-references.py --check "$d" >/dev/null 2>&1 || {
+        echo "[link-references] FAIL: $d"
+        $PY viewer/tools/link-references.py --check "$d" 2>&1 | grep -E "orphan|need" || true
+        fail=1
+    }
+done
+
+# Cross-file equation-marker-kind gate (surveys/**). An equation reference into a
+# SIBLING file must use the `xref:` form; only that form is propagated when the
+# owning file renumbers. A cross-file reference marked `ref:` that already carries
+# a correct link sits in a blind spot -- not an orphan, so renumber-equations says
+# nothing, and not an xref, so it is never propagated. It goes stale silently at
+# the next renumber.
+$PY viewer/tools/check-crossfile-ref-markers.py surveys/ || fail=1
+
+# Dangling in-document link gate. validate-refs.py checks that a link's target FILE
+# exists and never inspects the `#fragment`, so [foo](bar.md#sec-9.9.9) passes as
+# long as bar.md does. That blind spot can hide a whole dead table of contents.
+$PY viewer/tools/check-link-fragments.py surveys/ wikis/ --severity=warn || fail=1
+
+# Unresolved section-placeholder gate (surveys/**). A draft authored before its
+# final section number is known uses "#### 15.X.1" / "<!-- sec:10.X.3 -->" / "§9.X";
+# the applier is supposed to resolve those when the draft lands. Nothing else
+# catches it when it does not: X is neither a digit nor a letter-dot token, so
+# validate-refs check #12 does not see "§10.X.3" as a section reference at all and
+# renumber-sections skips the heading rather than flagging it.
+SPSEV=$(cat .claude/section-placeholders-severity 2>/dev/null || echo warn)
+if [ "$SPSEV" != "off" ]; then
+    if [ "$SPSEV" = "error" ]; then
+        $PY viewer/tools/check-section-placeholders.py surveys/ || fail=1
+    else
+        $PY viewer/tools/check-section-placeholders.py surveys/ --severity=warn \
+            || echo "[pre-push] section-placeholders advisory (warn) — not blocking"
+    fi
+fi
+
+# Cross-link gap check. Advisory at 'warn' (lists gaps, never blocks); blocks only
+# at 'error' when a gap is at/above the block-score. Severity from
+# .claude/crosslink-severity, corpus from .claude/crosslink-scope.
+#
+# --scope-file parses the `[group]` headers; each group is an independent TF-IDF
+# corpus, so a candidate never spans two groups. No --min-score here:
+# crosslink.py's DEFAULT_MIN_SCORE is the single source of truth (this hook used
+# to hardcode a third value matching neither the code nor the README).
 XSEV=$(cat .claude/crosslink-severity 2>/dev/null || echo warn)
 if [ "$XSEV" != "off" ] && [ -f .claude/crosslink-scope ]; then
-    XSCOPE=$(grep -vE '^[[:space:]]*#|^[[:space:]]*$' .claude/crosslink-scope | tr '\n' ' ')
-    $PY viewer/tools/crosslink.py check $XSCOPE --severity="$XSEV" \
-        --min-score 0.18 || fail=1
+    $PY viewer/tools/crosslink.py check --scope-file .claude/crosslink-scope \
+        --severity="$XSEV" || fail=1
 fi
+
+# Cross-link COVERAGE. A detector that silently does not scan a survey reports
+# "no gaps" for a corpus it never looked at. This blocks a push that adds a
+# survey/wiki belonging to no group and no keep-out.
+CCOVSEV=$(cat .claude/crosslink-coverage-severity 2>/dev/null || echo warn)
+if [ "$CCOVSEV" != "off" ] && [ -f .claude/crosslink-scope ]; then
+    $PY viewer/tools/crosslink.py coverage --severity="$CCOVSEV" || fail=1
+fi
+
+# Wiki-reachability gate. `coverage` asks "is this doc SCANNED?"; this asks "can a
+# reader GET here?" -- a different question. A derivation wiki cites its survey;
+# nothing makes the survey cite the wiki, so the linkage is one-way BY
+# CONSTRUCTION and such a wiki is invisible to readers. `crosslink check` cannot
+# see this: it scores unlinked PAIRS with symmetric dedup, so a one-way-linked
+# pair is closed. Severity from .claude/reachability-severity.
+REACHSEV=$(cat .claude/reachability-severity 2>/dev/null || echo warn)
+if [ "$REACHSEV" != "off" ]; then
+    $PY viewer/tools/crosslink.py reach --severity="$REACHSEV" || fail=1
+fi
+
+# Record-ID collision gate (bugs/decisions/todos). Two sessions on two branches
+# both reach for `-01`; git merges them (filenames differ) and the id becomes
+# ambiguous. Severity from .claude/record-ids-severity (`warn` is only the
+# FALLBACK for a missing file); the file reads `error`, so this gate blocks.
+RIDSEV=$(cat .claude/record-ids-severity 2>/dev/null || echo warn)
+if [ "$RIDSEV" != "off" ]; then
+    if [ "$RIDSEV" = "error" ]; then
+        $PY viewer/tools/check-record-ids.py || fail=1
+    else
+        $PY viewer/tools/check-record-ids.py || echo "[pre-push] record-ids advisory (warn) — not blocking"
+    fi
+fi
+
+# Duplicate figure-label gate (surveys/**). Two authors independently reaching for
+# "the next free number" from an incomplete grep can both caption a figure
+# "**Figure 4.2**" -- nothing else catches it, since asset filenames differ and no
+# file is overwritten. Sibling of the record-ids gate for the figure-label
+# namespace. Severity from .claude/figure-labels-severity.
+FIGSEV=$(cat .claude/figure-labels-severity 2>/dev/null || echo warn)
+if [ "$FIGSEV" != "off" ]; then
+    if [ "$FIGSEV" = "error" ]; then
+        $PY viewer/tools/check-figure-labels.py surveys/ || fail=1
+    else
+        $PY viewer/tools/check-figure-labels.py surveys/ || echo "[pre-push] figure-labels advisory (warn) — not blocking"
+    fi
+fi
+
+# G0 derivation-soundness advisory scan (reference-implementation-study). Only
+# studies carrying a derivation_ledger are scanned; legacy studies without one are
+# skipped. Severity from .claude/ris-derivation-severity.
+if [ -f .claude/skills/reference-implementation-study/ci_advisory.py ]; then
+    $PY .claude/skills/reference-implementation-study/ci_advisory.py || fail=1
+fi
+
+# Plan-execution anti-drift gate. Checks only the program manifests registered in
+# .claude/program-manifests, each against its OWN scope: a campaign with no
+# registered manifest is untouched. No-op while the registry is empty.
+$PY viewer/tools/check-plan-progress.py --all || fail=1
+
+# Rollup-freshness gate. Catches what a signoff gate structurally CANNOT: signoff
+# proves value-vs-artifact, never artifact-vs-CURRENT-baseline, so a rollup can
+# cite a superseded artifact with perfect accuracy and stay green. Rollups are
+# listed in .claude/rollup-pages (one path per line, '#' comments).
+if [ -f .claude/rollup-pages ]; then
+    # git checks registries out CRLF on Windows; a trailing CR made every [ -f ]
+    # fail -> a BLOCKING false positive. Build the CR at RUNTIME (printf) rather
+    # than embedding a literal CR, which gets mangled by whatever writes this file.
+    CR=$(printf '\r')
+    while IFS= read -r page; do
+        page="${page%$CR}"
+        case "$page" in ''|\#*) continue ;; esac
+        [ -f "$page" ] || { echo "[pre-push] rollup-freshness: registered page missing: $page"; fail=1; continue; }
+        $PY viewer/tools/check-rollup-freshness.py "$page" || fail=1
+    done < .claude/rollup-pages
+fi
+
+# Reproduce-block executability. Every `python -m` command published in reports/
+# and docs/ must name flags its target module actually accepts. A reproduce block
+# is the one artifact a stranger is told to trust; an unexecutable one reads as
+# provenance and is not. STATIC by design -- it imports nothing, because importing
+# runs module-level code and reaching parse_args runs whatever main() does first.
+RBSEV=$(cat .claude/reproduce-block-severity 2>/dev/null || echo warn)
+if [ "$RBSEV" != "off" ]; then
+    $PY viewer/tools/check-reproduce-blocks.py --severity="$RBSEV" reports docs || fail=1
+fi
+
+# TDD-evidence registry: VALIDATION only (not --prove). --prove applies each
+# guard's break to real source and runs the guarding test, which is minutes of
+# test time and belongs in a deliberate run. Validation resolves every guard's
+# `find` string against the file it names, so a break that no longer applies fails
+# the push instead of rotting unnoticed. A registry nobody runs reports exactly
+# what a registry with no problems reports.
+for reg in tests/*/tdd-evidence.json; do
+    [ -f "$reg" ] || continue
+    $PY viewer/tools/check-tdd-evidence.py "$reg" || fail=1
+done
 
 if [ $fail -ne 0 ]; then
     echo "[pre-push] BLOCKED - fix the errors above before pushing." >&2
-    echo "[pre-push] To bypass for an explicit reason: git push --no-verify" >&2
+    echo "[pre-push] Repo policy is to FIX the check, or flip its severity toggle" >&2
+    echo "[pre-push] under .claude/ with a decisions/ record. There is no server-side" >&2
+    echo "[pre-push] mirror of these checks, so 'git push --no-verify' means UNCHECKED." >&2
     exit 1
 fi
 
