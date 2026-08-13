@@ -74,6 +74,18 @@ A **negative** result closes the topic just as well, and is written into the sam
 places: if the phase change does not appear at ~10M, Claim 2 gains a measured
 scale-boundary it does not currently have.
 
+**Claim 3 is in scope too** (added 2026-08-13 once the goal was stated as *understanding*
+rather than use). Claim 2 alone is a **correlation** — two curves turning on together.
+Claim 3 in the same section is the ablation that converts it into a mechanism: removing
+either the previous-token head or the induction head must collapse the ICL score, while
+removing an unrelated head must leave it intact. That is a prediction with a falsifier,
+and it is what distinguishes understanding a mechanism from describing a curve. It is
+also nearly free here — the heads are already identified by the Phase-4 circuit analysis,
+and the checkpoints the phase-change overlay needs are the same ones the ablation runs
+against. Scope Claim 3 at the final checkpoint at minimum; across the transition if the
+budget allows, since an ablation that only bites *after* the phase change is itself the
+stronger result.
+
 ## Refs
 
 - Plan §3 (rungs), §6 (stretch); decision `2026-07-02-05`.

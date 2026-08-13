@@ -10,6 +10,23 @@ run, **not** survey content. A survey's technical claims are governed by its own
 Settled 2026-08-13; the reasoning and the alternatives rejected are in
 `decisions/2026-08-13-01-learning-road.md`.
 
+## The goal
+
+**To understand these models, not to use them well.** Stated explicitly 2026-08-13.
+
+This is the premise the rest of this file rests on, and it is load-bearing rather than
+decorative. Depth-first queueing only survives the breadth argument under this goal: a
+*use* goal would want the practical stack — fine-tuning, RAG, agents, serving,
+quantization, evals — none of which the current topic queue contains, and would have made
+breadth-first correct instead. **If the goal ever changes, re-open the depth-first call
+before re-planning anything else** — it is the decision that inverts.
+
+The working standard for "understand", given a signal-processing background: **you
+understand a mechanism when you can predict what breaks it.** A curve you can describe is
+not yet a mechanism you understand; an ablation whose outcome you called in advance is.
+This is why a topic's scope reaches for the falsifiable claim in its section, not only
+the observable one.
+
 ## The road
 
 The repo pursues two goals at once, and they are **the same artifact seen twice**:
