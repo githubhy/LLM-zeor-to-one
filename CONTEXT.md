@@ -64,11 +64,26 @@ and a `docs/` report to the `sim-report-completeness` spine.
 **Rung** — a scale step within a study (toy → mini → pretrained). The rung ladder is how
 a topic stays inside the per-experiment budget while still reaching a real model.
 
-**Understood** — the exit condition for a topic. A topic is understood when **the survey
-section that raised the question cites your own measurements in place of the claim it
-originally cited**. The per-hypothesis PASS/FAIL verdict in the study report is
-necessary but not sufficient — it is produced automatically by the report spine and has
-never by itself been the thing that produced understanding.
+**Understood** — the exit condition for a topic, in two halves.
+
+*Corpus half*: **the survey section that raised the question cites your own measurements
+in place of the claim it originally cited**. The per-hypothesis PASS/FAIL verdict in the
+study report is necessary but not sufficient — it is produced automatically by the report
+spine and has never by itself been the thing that produced understanding.
+
+*Reader half*: **you wrote down what you expected before the run, and explained the
+residual afterwards.** Added 2026-08-13, because the corpus half alone has a hole: a
+survey edit is something a skill can also make, so a topic-month could close with the
+corpus advancing and the reader not. Documents are easy to
+outsource-without-understanding; a prediction made in advance is not. This is the same
+discipline as the ablation-with-a-called-outcome that defines understanding above, turned
+on the reader instead of the model.
+
+**Corpus status is not reader status.** The surveys were produced with the
+`deep-research-survey` skill, so a gate-green, fully-cited document is evidence about the
+corpus alone. The capability ladder in `docs/development-timeline.md` tracks the two in
+separate columns for this reason, and records the reader column as *unmeasured* rather
+than inferring it from the artifacts.
 
 ## How work is queued
 

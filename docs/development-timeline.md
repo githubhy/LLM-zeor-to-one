@@ -16,6 +16,8 @@ Vocabulary here — *topic*, *experiment*, *topic-month*, *understood* — is de
 | Status | `Active` |
 | Current topic | Topic 1 — does the induction phase change appear below 124M? |
 | Current step | Precondition (local, unpaid). **Not started.** |
+| Capability rung (corpus) | L5 — entering. L0–L4 done, L6 half, L7 not started (see ladder) |
+| Capability rung (reader) | **Unmeasured** above L0. The surveys are skill-produced, so corpus status is not reader status; instrument named in the ladder section |
 | Blocked on | Nothing external — the work is local bring-up |
 | Compute rented to date | **None.** All 11 studies ran on this laptop |
 | Budget shape | ~5 USD per experiment · ~10 per topic · ~50 USD per topic-month |
@@ -61,6 +63,118 @@ TOPIC 1 -- induction phase change below 124M -----------------------------
                instead of references [60] / [80]
 ```
 
+## Capability Ladder
+
+A different axis from the milestone table below: that tracks **what has shipped**, this
+tracks **what can be done**. For a corpus that already carries full first-principles
+derivations, a content curriculum ("learn attention, then transformers") is the wrong
+axis — the content is derived. What progresses is *depth of engagement with the same
+object*.
+
+**Two columns, and they are not the same number.** The surveys were produced with the
+`deep-research-survey` skill. A completed, gate-green, fully-cited survey is evidence
+about the **corpus**, not about the **reader** — a document can be correct and its owner
+still unable to re-derive it. Collapsing those two into one status is exactly the
+wrong-but-plausible inference the repo's own rules warn about, so they are tracked apart.
+The `you` column is **unmeasured**, not low: nothing here has measured it, and a guess
+would be worth less than the blank.
+
+```
+                                                     corpus       you
+
+L0  MATHEMATICAL SUBSTRATE                            Done         Done
+    linear algebra · probability · optimization · info theory
+    '- the signal-processing background predates the repo: the one
+       rung that is genuinely personal, not skill-produced
+
+L1  DERIVE THE MECHANISM FROM FIRST PRINCIPLES        Done         ?
+    attention as QKV · softmax · two-layer composition ·
+    backprop · Adam · the loss
+    '- appendix-a-qkv-first-principles · appendix-b-kernel-regression-family
+       appendix-c-toy-transformer
+
+L2  SCALE IT — HOW A REAL MODEL IS ACTUALLY BUILT     Done         ?
+    GPT-2 -> RMSNorm/RoPE/SwiGLU/GQA -> the 16N memory wall -> MoE
+    '- appendix-d-gpt2 · appendix-e-modern-dense · appendix-f-scaling
+       appendix-g-moe · appendix-h-synthesis
+
+L3  THE SYSTEM AROUND THE MODEL                       Done         ?
+    data · objectives & scaling · alignment · decoding & serving ·      (code-
+    retrieval · agents · evaluation · cost                              scoped)
+    '- the llms-for-coding body, 19 sections
+
+L4  OBSERVE MECHANISM IN A TRAINED MODEL              Done         ?
+    probing · activation patching · attribution · SAEs · steering ·
+    automated circuit discovery
+    '- the MI survey + all 11 studies
+
+------------------------------------------------------------------------
+L5  MEASURE MECHANISM ACROSS TRAINING            <-- CURRENT RUNG, both columns
+    trajectory not snapshot · when circuits form · phase changes ·
+    telling a real transition from a metric artifact
+    '- toy rung only (0.17M). Nothing at real scale.
+
+L6  PREDICT AND FALSIFY                               Half         Not started
+    call the ablation outcome in advance · theory as a predictor
+    of a curve, not a bound
+    '- the *technique* exists (h15, eap-ig do causal work); it has never
+       been used as a prediction.  <-- Topic 1 Claim 3
+
+L7  BUILD IT FROM SCRATCH AT SCALE                    Not started  Not started
+    own the whole loop: data -> tokenizer -> training -> checkpoints ->
+    analysis, on rented compute
+    '- 0.17M toy is the ceiling to date
+```
+
+### Measuring the `you` column
+
+The instrument already exists and was written by the corpus for exactly this:
+`surveys/mechanistic-interpretability/appendix-q-reader-questions.md` — nine questions of
+the form *"why is it built this way / what breaks otherwise / why not the obvious
+alternative"*. That is the same shape as the standard in [CONTEXT.md](../CONTEXT.md)
+(*understand = predict what breaks it*), so answering them cold, before reading the
+answers, is a real measurement rather than a feeling. The coding survey's appendix ladder
+A–I admits the same treatment.
+
+This is cheap, unscheduled, and does not consume topic budget. It is listed here so the
+blank in the `you` column has a way to be filled rather than standing as a permanent
+unknown.
+
+### Why the split strengthens the road rather than undermining it
+
+A skill can produce a survey. **A skill cannot run an experiment on your behalf in the
+way that matters** — you drive it, it breaks, you debug it, you decide what the residual
+means. Documents are far easier to outsource-without-understanding than experiments are,
+which is precisely why the road's centre of gravity is topic-months rather than more
+surveys. The correction invalidates the ladder's *measurement*; it confirms the road's
+*direction*.
+
+It does expose one hole in the topic exit condition, recorded against Topic 1: "the survey
+cites your own measurements" is an edit a skill could also make. The personal half is to
+write down, **before** the run, what you expect and why — then explain the residual
+yourself afterwards. Claim 3's discipline, turned on the reader instead of the model.
+
+**The asymmetry to be aware of.** Eleven studies, and not one model trained from scratch
+beyond a 0.17M toy — every study to date analyses a model someone else trained. The
+*corpus* is derivation-rich and build-poor, the reverse of the usual practitioner shape
+(L3 plus some L4, no L1 at all). Note this is a statement about the corpus; the `you`
+column's asymmetry is unmeasured until the instrument below is run.
+
+**Topic 1 is where L5 and L7 arrive together.** A trajectory cannot be watched without
+owning the training run that produces it. This is *why* the precondition turned out to be
+"Rung 2 has no code" rather than "change a config" — the topic is quietly two rungs, not
+one, and that is the reason its first weeks are engineering rather than science.
+
+**L6 is the cheapest item on the board.** The causal tooling already exists; what is
+missing is the discipline of writing the predicted outcome down *before* running the
+ablation. It costs a line in a plan, and it is the difference between describing a
+mechanism and understanding one — the standard set in [CONTEXT.md](../CONTEXT.md).
+
+**Deliberately absent.** Breadth — pretraining/scaling laws, alignment, RAG, agents,
+serving, evals, long-context, safety — is held at L3 and only through the code lens.
+Under the depth-first goal these are not gaps but inventory, pulled when a question needs
+them. Listed here so the absence stays a visible choice rather than an inherited one.
+
 ## Milestones
 
 | # | Milestone | Status | Notes |
@@ -92,6 +206,29 @@ re-triaged until their month comes.
 | GPT-2 124M from scratch | `todos/2026-07-01-gpt2-training-reproduction.md` — **held** behind Topic 1's result |
 
 ## Update Log
+
+**2026-08-13 — Capability ladder added; the goal stated as understanding.**
+The goal was made explicit — understand these models, not use them well — and recorded in
+`CONTEXT.md` as the premise depth-first queueing rests on. Topic 1's scope grew to include
+Claim 3 (the ablation), since Claim 2 alone is a correlation. A capability ladder (L0–L7)
+was folded into this document as the companion axis to the milestone table: milestones
+track what shipped, the ladder tracks what can be done. It makes one asymmetry explicit —
+the corpus is derivation-rich and build-poor — and explains why Topic 1's precondition was
+larger than expected: L5 and L7 arrive together, because a trajectory cannot be watched
+without owning the run that produces it.
+
+The ladder's first draft was **wrong** and was corrected the same day. It marked L1–L4
+"Done" from the existence of the survey artifacts — but those were produced with the
+`deep-research-survey` skill, so they are evidence about the *corpus*, not about the
+*reader*. The ladder now carries two columns, with the reader column recorded as
+**unmeasured** rather than guessed, and names an existing instrument for filling it
+(`appendix-q-reader-questions.md`, nine "why this way / what breaks otherwise" questions —
+the same shape as the CONTEXT.md standard). The correction invalidates the ladder's
+measurement and *confirms* the road's direction: a skill can write a survey, but it cannot
+run an experiment on your behalf in the way that matters, which is why the road's centre of
+gravity is topic-months rather than more surveys. It also exposed a hole in the topic exit
+condition — "the survey cites your own measurements" is an edit a skill could make too — so
+the personal half is to predict the result before the run and explain the residual after.
 
 **2026-08-13 — Topic 1 precondition audited; it is bigger than it looked.**
 Ran the resumability audit on `implementation/tiny_transformer/run_phase3.py`.
