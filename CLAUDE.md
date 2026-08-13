@@ -184,6 +184,7 @@ The `kernel-bringup` → `accelerator-cost-study` pair extends the study pipelin
 
 ### Commands
 
+- `/study [<topic|question>]` — Run a **study session**: open with a computed frontier menu (`viewer/tools/study-frontier.py`, ranked by fold density — least-interrogated first), the reader picks or substitutes, then read → ask → fold, escalating to an experiment / `/enrich` / a new survey when a question demands it. Closes with the pulse check (`--since`: **zero folds means the session did not happen**) and a log entry whose payload is the *questions asked*. Autonomous end-to-end mode is out of bounds inside a topic-month. Defined in `.claude/commands/study.md`; contract in `CONTEXT.md` + `decisions/2026-08-13-02`.
 - `/check-survey <survey-slug>` — Run full validation on the specified survey (the survey delivery / sign-off gate; read-only). Defined in `.claude/commands/check-survey.md`.
 - `/normalize-survey <survey-dir>` — The **write-mode twin** of `/check-survey`: applies the renumber/link tools in the one correct order (with the `references.md` paragraph-init exception and the `secref`/`secxref` promotion baked in), then runs the check suite. Use after authoring a multi-file survey or whenever `/check-survey` reports anchor/marker drift. Defined in `.claude/commands/normalize-survey.md`.
 - `/keep-cache-warm` — Keep the Anthropic prompt cache warm via self-paced `/loop` wake-ups. Defined in `.claude/commands/keep-cache-warm.md`.

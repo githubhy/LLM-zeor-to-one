@@ -96,6 +96,39 @@ not run this month produces plans that go stale before execution.
 consolidated index beside it; the one that existed went stale precisely because it
 duplicated `INDEX.md`.
 
+## How a study session runs
+
+Settled 2026-08-13 (`decisions/2026-08-13-02`), against the evidence in
+`docs/reader-frontier-2026-08-13.md`.
+
+**The shape.** The agent opens with a short menu of topics drawn from the *measured*
+frontier. The reader takes one, or overrides with whatever they actually want. Then:
+read, ask, the agent answers, the answer gets folded in — and if a question needs an
+experiment, run one. Authoring surveys is not required of the reader; **asking is the
+work.**
+
+**The pulse check — the only guardrail.** A study session that produces **zero folds did
+not happen.** Questions were the metric that tracked frontier movement, and
+`survey-explainer-fold` already records them, so the check costs nothing and leaves future
+sessions the same measurement for free. It is a pulse, not a quota: one real question
+folded in beats five manufactured ones.
+
+**How the menu is drawn.** From the gaps the frontier analysis found, in order —
+appendices D–I (zero folds ever recorded), then L2, then L4 (very thin despite eleven
+studies). Never from what is easy to explain.
+
+**What this replaced.** An earlier proposal made the reader the *author* and the agent a
+reviewer. It was wrong, and the reader's own record refuted it: the single most productive
+learning session on file (2026-06-29, 28 subject-matter questions, three times any other)
+was pure read-ask-fold with the agent doing the writing. Authoring is a **proxy** for
+engagement; the real variable is **who holds the thread**, and in this model the reader
+holds it by choosing and asking. Autonomous end-to-end mode remains correct for harness
+work and is **out of bounds inside a topic-month** — that mode is what removed the question
+surface in the first place.
+
+Creating a new survey mid-session is allowed when a question demands one; that is what
+*pulled on demand* already means and is not a conflict with depth-first.
+
 ## Compute posture
 
 A rented host is a **compute worker**, never a repo clone. Inputs ship in, checkpoints
