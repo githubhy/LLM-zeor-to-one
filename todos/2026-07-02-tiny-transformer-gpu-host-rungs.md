@@ -20,7 +20,16 @@ cheapest scale that can answer it. A negative result is itself the finding.
 
 ## What is left
 
-- **PRECONDITION — resumability audit, before any compute is rented.**
+- **PRECONDITION — ✅ AUDIT RAN 2026-08-13; the fix work it found is NOT done.**
+  Result: single-writer-per-checkpoint **passes** (per-seed artifact files, no shared
+  state), but three gaps block renting — a config-blind resume key that silently reuses
+  reduced-config seeds (`bugs/2026-08-13-01`, high), **no intra-run checkpointing** (a
+  kill mid-seed loses the whole seed), and **no Rung-2 implementation at all**
+  (`build_toy` is the only model factory; `data.py` is synthetic-only, no text corpus
+  loader). Rung 2 is therefore *bring-up work*, not "the same code at a bigger config" —
+  and that work is local and unpaid. Tracked in
+  `todos/2026-08-13-phase3-resumability-hardening.md`; it gates all spend.
+- **(original precondition text, for the record) — resumability audit before renting.**
   `implementation/tiny_transformer/run_phase3.py` must checkpoint densely enough that a
   killed billing slice resumes at **zero recompute**, with **exactly one writer per
   checkpoint file** (`.claude/rules/workflow.md`; `.claude/rules/reset-durability.md`).
