@@ -17,7 +17,7 @@ Vocabulary here — *topic*, *experiment*, *topic-month*, *understood* — is de
 | Current topic | Topic 1 — does the induction phase change appear below 124M? |
 | Current step | Precondition (local, unpaid). **Not started.** |
 | Capability rung (corpus) | L5 — entering. L0–L4 done, L6 half, L7 not started (see ladder) |
-| Capability rung (reader) | **Unmeasured** above L0. The surveys are skill-produced, so corpus status is not reader status; instrument named in the ladder section |
+| Capability rung (reader) | **L1 engaged-but-unfinished**; L2 thin, L4 very thin, L5/L7 not started. Measured 2026-08-13 from the question record — see [reader-frontier-2026-08-13.md](reader-frontier-2026-08-13.md) |
 | Blocked on | Nothing external — the work is local bring-up |
 | Compute rented to date | **None.** All 11 studies ran on this laptop |
 | Budget shape | ~5 USD per experiment · ~10 per topic · ~50 USD per topic-month |
@@ -126,19 +126,33 @@ L7  BUILD IT FROM SCRATCH AT SCALE                    Not started  Not started
     '- 0.17M toy is the ceiling to date
 ```
 
-### Measuring the `you` column
+### Measuring the `you` column — done 2026-08-13
 
-The instrument already exists and was written by the corpus for exactly this:
-`surveys/mechanistic-interpretability/appendix-q-reader-questions.md` — nine questions of
-the form *"why is it built this way / what breaks otherwise / why not the obvious
-alternative"*. That is the same shape as the standard in [CONTEXT.md](../CONTEXT.md)
-(*understand = predict what breaks it*), so answering them cold, before reading the
-answers, is a real measurement rather than a feeling. The coding survey's appendix ladder
-A–I admits the same treatment.
+Measured from the **question record**, not a quiz: a question locates you, an answer only
+bounds you, and a quiz would have had the same agent administering and grading it. Full
+method and data in [reader-frontier-2026-08-13.md](reader-frontier-2026-08-13.md);
+221 logged requests plus the 23 survey folds, classified by rung and by kind.
 
-This is cheap, unscheduled, and does not consume topic budget. It is listed here so the
-blank in the `you` column has a way to be filled rather than standing as a permanent
-unknown.
+Headline results:
+
+- **76% of subject-matter questions and 87% of folds sit at L1** — two independently
+  derived measures agreeing that the engaged frontier is first-principles attention.
+  Appendices D–I produced almost nothing.
+- **22% of questions are K4** (*what breaks it / is this real*), several catching real
+  defects. Where the questions went, they went deep.
+- **Zero subject-matter questions across the last three sessions** (2026-07-02 to
+  2026-08-13, 21 conversations) — the exact window in which eleven studies were executed.
+
+The last point is the one that matters, and its cause is not disinterest: those sessions
+ran under an explicit *"go ahead end-to-end automatically"* mandate, which structurally
+removes the turn boundary and with it the question surface. **The execution mode is a
+learning variable, not just a speed knob** — correct for harness work, wrong for a
+topic-month.
+
+`appendix-q-reader-questions.md` was considered as an instrument and **excluded**: its own
+header says it answers the questions *the main text raises*, so it is skill-synthesised and
+would have measured the corpus a second time. It remains useful as a *targeted probe* of
+appendices D–I, the region the question record shows was never interrogated.
 
 ### Why the split strengthens the road rather than undermining it
 
