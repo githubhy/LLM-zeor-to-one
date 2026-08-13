@@ -1,10 +1,26 @@
 ---
 slug: blocked-backlog-consolidated
 date_filed: 2026-07-03
-status: open
+status: closed
 ---
 
 # Blocked backlog — items correctly tracked-but-blocked (umbrella)
+
+**Resolution.** Closed 2026-08-13, not rewritten — none of the three blockers below
+still holds, and **group 2 below is factually wrong; read it as history, not status.**
+
+- **Group 3** cleared 2026-07-05 (Windows → Mac host move); already marked ✅ in place.
+- **Group 2's premise died on 2026-07-02**, when PR #2 merged. The five RIS studies are
+  not "another session's, not ours to modify" — `implementation/` on `main` carries all
+  eight study packages. The blocker outlived its truth by six weeks because nothing
+  re-reads an umbrella when the world changes underneath it.
+- **Group 1 is no longer a blocker but the next piece of work**: per
+  `decisions/2026-08-13-01`, `tiny-transformer-gpu-host-rungs` Rung 2 is the first
+  topic, and `gpt2-training-reproduction` is shrunk and held behind it.
+
+Not rewritten as a live index because that is what made it stale: a second consolidated
+index beside `todos/INDEX.md` drifts from it. `INDEX.md` is the index. Each item below
+keeps its own todo, which is where status actually lives.
 
 ## Context
 
