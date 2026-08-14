@@ -1,0 +1,13 @@
+{
+  "_comment": "Reader-prose content roots served by the local markdown viewer. `node viewer/serve.js` with no args discovers this file by walking up from cwd and serves every root namespaced (surveys/..., docs/..., ...). Records-style directories (prompts/ todos/ decisions/ bugs/) are intentionally excluded as non-reader content — they are an audit trail read through git and their INDEX.md files, not through the viewer. implementation/ is code, not prose. download/ temp/ node_modules/ and viewer/ are already excluded by serve.js's built-in defaults. Pass an explicit dir or --root to override; the public Cloudflare deploy is configured separately and stays surveys-only.",
+  "ignoreFile": ".viewerignore",
+  "roots": [
+    { "id": "surveys", "path": "surveys", "label": "Surveys" },
+    { "id": "wikis", "path": "wikis", "label": "Wikis" },
+    { "id": "docs", "path": "docs", "label": "Documentation" },
+    { "id": "reports", "path": "reports", "label": "Reports" },
+    { "id": "plans", "path": "plans", "label": "Plans" },
+    { "id": "field-notes", "path": "field-notes", "label": "Field Notes" },
+    { "id": "bench", "path": "bench", "label": "Benchmarks" }
+  ]
+}
