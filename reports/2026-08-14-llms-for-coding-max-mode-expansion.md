@@ -306,3 +306,86 @@ Post-fix state: **20 numbered equations, sequential**; survey re-normalized; all
 in J.1 and J.3 and would have confirmed them forever. Findings 1 and 2 are both cases where the
 arithmetic was right and the *sentence built on it* was wrong. Oracles test values; re-derivation
 tests reasoning.
+
+---
+
+## 11. Follow-up closure — all six tracked items
+
+Filed at §7 above and closed the same day. Two orchestrated workflows: a citation audit (26
+agents) and an evidence extraction over newly acquired sources (14 agents).
+
+### 11.1 The citation audit (item 1)
+
+16 Sonnet verifiers, one per source-grouped packet, each reading the cited locus in the source
+PDF; then an Opus pass that attempted to **refute** every alleged error.
+
+| | |
+|---|---|
+| Claims checked | **196** |
+| Fully supported | 186 |
+| Alleged errors | 10 |
+| **Upheld after adversarial refutation** | **7** |
+| **Refuted (false alarms)** | **3** |
+
+The 30% false-alarm rate is the result that justifies the design. The three refutations were:
+a data-mixture ratio that is verbatim in its source; a claim the accuser had scoped to the
+wrong *section* of a survey; and a sentence carrying **two** citations where the accuser
+audited only one. Applying them unchecked would have introduced errors into correct prose. An
+audit without an adversarial stage damages prose at a material rate.
+
+One upheld finding is `high` (`bugs/2026-08-14-03`): §4 attributed a 96.3rd-percentile
+Codeforces result to a pure-RL recipe, when that figure belongs to a model trained with two
+SFT stages and a model-based preference reward. **It is the second wrong-axis table read found
+in this survey**, after `bugs/2026-08-14-01` — same class, both invisible to a substring check.
+Two instances is a pattern, and it is recorded as such in the field notes.
+
+### 11.2 Sections rebuilt (item 2), and what the critics changed
+
+Seven extraction clusters, each followed by an Opus completeness critic. **Six of seven critics
+returned `sufficient: false`** — not because the evidence was thin, but because the extraction's
+*tone* outran it. The critics' corrections are what the sections were written from:
+
+- **§7.5 (new)** — the critic recovered that the headline "+8.2% NL reasoning from code data" is
+  a **pre-cooldown** comparison at **470M only**, and computed from the paper's own Table 2 that
+  the post-cooldown comparison is **+1.5%**, with world knowledge going to the *text-only* arm.
+  It also caught that a companion paper's headline "logic" gain is measured on a **22-question**
+  benchmark — a one-question difference. Section written as a deflation of the folklore.
+- **§11** — the survey's "no head-to-head exists" claim is superseded, but the critic demoted it
+  from "controlled comparison" to "single self-reported comparison with a disclosed-handicapped
+  control", and identified that every winning agent arm runs a stronger backbone, so mechanism
+  and model are confounded.
+- **§14** — the critic rejected "cost is decoupled from accuracy" as contradicted by the same
+  source (positive correlation on 6 of 9 benchmarks) and supplied the narrower true claim: price
+  is a poor predictor *at the top*. Section now carries derived per-task costs, including
+  identical accuracy at **6.9× cost**.
+- **§16** — the critic found the extraction's most load-bearing number wrong (a 2021 security
+  baseline) and, more importantly, that **the channel the section is about is unmeasured**: the
+  literature covers tool descriptions and returns, not repository content.
+- **§12.7** — the critic computed Fisher exact tests from the papers' own integer counts, which
+  **invert the conclusion**: two of three flagship multi-agent effects do not clear significance.
+
+### 11.3 What the leaderboard question actually needed (item 3)
+
+Recorded in §3 above as blocked on JavaScript-rendered tables and a spent search budget. That
+was wrong: the SWE-bench team publishes every submission's `results.json`. 134 submissions, each
+with its resolved-instance list, giving a 4.4% → 79.2% progression on a fixed denominator and
+two near-controlled pairs. **The blocker was a habit, not a constraint** — the same applies to
+item 4, answered via the arXiv API after two agents had died searching for it.
+
+### 11.4 Verification of this pass's own numbers
+
+Every row of the §15 tables was re-derived from the saved primary data (21/21 verified; the one
+apparent mismatch was the checker's ambiguous date lookup, not the table). Every Fisher exact
+test and Wilson interval quoted in §12.7 was recomputed independently before being written. Two
+audit findings were spot-checked against their PDFs before their corrections were applied.
+
+### 11.5 Final state
+
+references **130** entries, 0 errors index-mode (117 strong-`local:`) · `download/` 210 PDFs ·
+lint-math 0 · validate-refs 0/0 · 576 fragment links 0 dangling · depth-tiers 19 labels 0
+violations · tier drift-diff 0 TIER-DRIFT · crosslink no gaps · record-ids consistent.
+
+Records: `bugs/2026-08-14-03` (high, fixed), `bugs/2026-08-14-04` (med, fixed),
+`field-notes/2026-08-14-citation-audit-and-followups.md`,
+`todos/2026-08-14-llms-for-coding-followups.md` (**closed**),
+`todos/2026-08-14-survey-residual-gaps.md` (open — bounded lookups only).

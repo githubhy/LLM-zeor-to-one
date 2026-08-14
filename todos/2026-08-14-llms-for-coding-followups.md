@@ -1,8 +1,40 @@
 ---
 slug: llms-for-coding-followups
 date_filed: 2026-08-14
-status: in-progress
+status: closed
 ---
+
+**Resolution.** All six items closed 2026-08-14, in the same session that filed them.
+
+1. **Citation audit — DONE.** 196 claims checked against source PDFs across §§1–11/14–18 by
+   16 source-grouped verifiers, then every alleged error adversarially tested. 186 correct,
+   10 alleged, **7 upheld / 3 refuted**. Fixed: `bugs/2026-08-14-03` (high — the DeepSeek-R1
+   pure-RL attribution, a second wrong-axis table read) and `bugs/2026-08-14-04` (six med/low).
+   The 30% false-alarm rate is why the refute stage existed; acting on those three would have
+   damaged correct prose.
+2. **Unexpanded sections — DONE.** §11 retrieval (602 → ~1,900 words), §14 cost, §15 SOTA,
+   §16 safety all rewritten from the collected evidence plus 19 newly acquired sources. The
+   `_scratch/max-c*.md` ledgers are now consumed rather than orphaned.
+3. **2026 SOTA table — DONE, and better than planned.** Rather than a leaderboard screenshot,
+   §15 is built from the SWE-bench team's own per-submission `results.json` files: 134
+   submissions, a 4.4% → 79.2% progression on a fixed 500-instance denominator, and two
+   near-controlled pairs. The blocker recorded here ("needs a headless browser") was wrong —
+   the primary source publishes structured data.
+4. **Code→reasoning transfer — DONE, and it is measured.** New §7.5 written as a deflation:
+   exactly one controlled ablation exists, its headline +8.2% is a pre-cooldown comparison at
+   470M only, and the paper's own post-cooldown table shows +1.5% with world knowledge going
+   to the *text-only* arm.
+5. **Source acquisition — DONE.** 19 sources acquired and identity-verified; references
+   97 → 130 entries, 0 errors index-mode, 97 → 117 strong-`local:`.
+6. **Multi-agent replication gap — DONE, and sharpened.** §12.7 now reports the significance
+   tests the papers omit, computed from their own integer counts: two of three flagship
+   effects do not clear p<0.05 (p=0.17, p=0.44), the surviving one is budget-confounded, and
+   one control's cost columns are byte-identical to the baseline's self-disclosure, proving it
+   was never re-measured. Consolidated into a new §18.6 replication register alongside four
+   other claims in the same position.
+
+**Follow-on filed:** `todos/2026-08-14-survey-residual-gaps.md`.
+
 
 # Follow-ups from the max-mode expansion of `surveys/llms-for-coding`
 
