@@ -1,7 +1,9 @@
 <!-- sec:E -->
 ## <a id="sec-E"></a>E Steering and editing mathematics
 
-<a id="p-e-steering-and-editing-mathematics-1"></a><!-- para:e-steering-and-editing-mathematics-1 --> Derivations for § <!-- secxref:7 -->[§7](method-inventory-steering-editing.md#sec-7): why difference-in-means is the natural steering direction, and the closed-form ROME/MEMIT updates.
+<a id="p-e-steering-and-editing-mathematics-1"></a><!-- para:e-steering-and-editing-mathematics-1 --> **Depth tier:** load-bearing
+
+<a id="p-e-steering-and-editing-mathematics-2"></a><!-- para:e-steering-and-editing-mathematics-2 --> Derivations for § <!-- secxref:7 -->[§7](method-inventory-steering-editing.md#sec-7): why difference-in-means is the natural steering direction, and the closed-form ROME/MEMIT updates.
 
 <!-- sec:E.1 -->
 ### <a id="sec-E.1"></a>E.1 Difference-in-means as a discriminant

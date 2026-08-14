@@ -1,7 +1,9 @@
 <!-- sec:A -->
 ## <a id="sec-A"></a>A Transformer-circuits mathematics
 
-<a id="p-a-transformer-circuits-mathematics-1"></a><!-- para:a-transformer-circuits-mathematics-1 --> This appendix derives, from first principles, the residual-stream decomposition, the QK/OV factoring, virtual weights, and the composition types stated in § <!-- secxref:2 -->[§2](fundamentals.md#sec-2).
+<a id="p-a-transformer-circuits-mathematics-1"></a><!-- para:a-transformer-circuits-mathematics-1 --> **Depth tier:** headline
+
+<a id="p-a-transformer-circuits-mathematics-2"></a><!-- para:a-transformer-circuits-mathematics-2 --> This appendix derives, from first principles, the residual-stream decomposition, the QK/OV factoring, virtual weights, and the composition types stated in § <!-- secxref:2 -->[§2](fundamentals.md#sec-2).
 
 <!-- sec:A.1 -->
 ### <a id="sec-A.1"></a>A.1 The residual stream as a sum over paths

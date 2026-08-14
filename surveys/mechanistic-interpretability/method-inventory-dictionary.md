@@ -1,7 +1,9 @@
 <!-- sec:6 -->
 ## <a id="sec-6"></a>6 Method inventory III — dictionary learning (sparse autoencoders)
 
-<a id="p-6-method-inventory-iii-dictionary-learning-sparse-autoencoders-1"></a><!-- para:6-method-inventory-iii-dictionary-learning-sparse-autoencoders-1 --> If superposition (§ <!-- secxref:2.4 -->[§2.4](fundamentals.md#sec-2.4)) is why features hide, dictionary learning is how they are pulled back out. This family dominated 2023–2024 MI and is also the subject of the field's sharpest current debate (§ <!-- secxref:12.2 -->[§12.2](state-of-the-art-and-practice.md#sec-12.2)). Full objective and Pareto-frontier derivations: Appendix <!-- secxref:D -->[§D](appendix-d-sae-derivations.md#sec-D).
+<a id="p-6-method-inventory-iii-dictionary-learning-sparse-autoencoders-1"></a><!-- para:6-method-inventory-iii-dictionary-learning-sparse-autoencoders-1 --> **Depth tier:** headline
+
+<a id="p-6-method-inventory-iii-dictionary-learning-sparse-autoencoders-2"></a><!-- para:6-method-inventory-iii-dictionary-learning-sparse-autoencoders-2 --> If superposition (§ <!-- secxref:2.4 -->[§2.4](fundamentals.md#sec-2.4)) is why features hide, dictionary learning is how they are pulled back out. This family dominated 2023–2024 MI and is also the subject of the field's sharpest current debate (§ <!-- secxref:12.2 -->[§12.2](state-of-the-art-and-practice.md#sec-12.2)). Full objective and Pareto-frontier derivations: Appendix <!-- secxref:D -->[§D](appendix-d-sae-derivations.md#sec-D).
 
 <!-- sec:6.1 -->
 ### <a id="sec-6.1"></a>6.1 Sparse autoencoders (SAEs) [headline]

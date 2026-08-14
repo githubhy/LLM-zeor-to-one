@@ -1,7 +1,9 @@
 <!-- sec:C -->
 ## <a id="sec-C"></a>C Causal interventions
 
-<a id="p-c-causal-interventions-1"></a><!-- para:c-causal-interventions-1 --> Formalism for § <!-- secxref:5 -->[§5](method-inventory-causal.md#sec-5): mediation, the attribution-patching error term, and the attribution-graph replacement model.
+<a id="p-c-causal-interventions-1"></a><!-- para:c-causal-interventions-1 --> **Depth tier:** headline
+
+<a id="p-c-causal-interventions-2"></a><!-- para:c-causal-interventions-2 --> Formalism for § <!-- secxref:5 -->[§5](method-inventory-causal.md#sec-5): mediation, the attribution-patching error term, and the attribution-graph replacement model.
 
 <!-- sec:C.1 -->
 ### <a id="sec-C.1"></a>C.1 Activation patching as causal mediation

@@ -1,6 +1,8 @@
 <!-- sec:1 -->
 ## <a id="sec-1"></a>1 Introduction & scope
 
+<a id="p-1-introduction-scope-1"></a><!-- para:1-introduction-scope-1 --> **Depth tier:** supporting
+
 <!-- sec:1.1 -->
 ### <a id="sec-1.1"></a>1.1 What "mechanistic" means
 

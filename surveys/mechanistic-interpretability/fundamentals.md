@@ -1,7 +1,9 @@
 <!-- sec:2 -->
 ## <a id="sec-2"></a>2 Fundamentals
 
-<a id="p-2-fundamentals-1"></a><!-- para:2-fundamentals-1 --> Mechanistic interpretability is not a bag of tricks bolted onto transformers; it rests on a small set
+<a id="p-2-fundamentals-1"></a><!-- para:2-fundamentals-1 --> **Depth tier:** headline
+
+<a id="p-2-fundamentals-2"></a><!-- para:2-fundamentals-2 --> Mechanistic interpretability is not a bag of tricks bolted onto transformers; it rests on a small set
 of structural facts about how a transformer computes. This section states those facts and the
 intuition behind them; the full linear algebra — virtual weights, the three composition types, the
 privileged-basis argument — is derived from first principles in

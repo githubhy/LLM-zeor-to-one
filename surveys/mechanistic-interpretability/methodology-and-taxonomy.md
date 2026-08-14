@@ -1,6 +1,8 @@
 <!-- sec:3 -->
 ## <a id="sec-3"></a>3 Methodology & taxonomy
 
+<a id="p-3-methodology-taxonomy-1"></a><!-- para:3-methodology-taxonomy-1 --> **Depth tier:** supporting
+
 <!-- sec:3.1 -->
 ### <a id="sec-3.1"></a>3.1 The canonical loop, and why intervention is load-bearing
 

@@ -1,7 +1,9 @@
 <!-- sec:10 -->
 ## <a id="sec-10"></a>10 Evaluation & metrics
 
-<a id="p-10-evaluation-metrics-1"></a><!-- para:10-evaluation-metrics-1 --> An interpretability result is a *claim*, and this section is how the field checks it. Two themes recur: the headline numbers are less robust than they look, and the network fights back (self-repair). Getting evaluation right is not bookkeeping — it is what separates a mechanism from a plausible story.
+<a id="p-10-evaluation-metrics-1"></a><!-- para:10-evaluation-metrics-1 --> **Depth tier:** headline
+
+<a id="p-10-evaluation-metrics-2"></a><!-- para:10-evaluation-metrics-2 --> An interpretability result is a *claim*, and this section is how the field checks it. Two themes recur: the headline numbers are less robust than they look, and the network fights back (self-repair). Getting evaluation right is not bookkeeping — it is what separates a mechanism from a plausible story.
 
 <!-- sec:10.1 -->
 ### <a id="sec-10.1"></a>10.1 Faithfulness, completeness, minimality [headline]

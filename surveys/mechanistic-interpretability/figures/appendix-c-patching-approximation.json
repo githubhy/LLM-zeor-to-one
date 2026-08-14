@@ -1,0 +1,79 @@
+{
+ "constants": {
+  "z0": -0.4,
+  "g": 1.1,
+  "gA": 1.1,
+  "gB": 0.9,
+  "deterministic": true,
+  "rng_used": false
+ },
+ "closed_forms": {
+  "exact": "Delta_m = sigma(z0 + g*delta) - sigma(z0)",
+  "first_order": "Delta_m ~= sigma'(z0) * g * delta,  sigma'(z0)=sigma(z0)(1-sigma(z0))",
+  "interaction": "Delta_m(A,B) - Delta_m(A) - Delta_m(B)",
+  "sign_change_note": "signed first-order error changes sign near the sigmoid inflection (delta ~ 0.36 at z0=-0.4); the plotted relative error is |.| and is therefore non-monotone"
+ },
+ "panel_a_first_order_error": [
+  {
+   "delta": 0.1,
+   "exact": 0.026692,
+   "first_order": 0.026429,
+   "rel_error": 0.0098
+  },
+  {
+   "delta": 0.5,
+   "exact": 0.136118,
+   "first_order": 0.132143,
+   "rel_error": 0.0292
+  },
+  {
+   "delta": 1.0,
+   "exact": 0.266875,
+   "first_order": 0.264287,
+   "rel_error": 0.0097
+  },
+  {
+   "delta": 2.0,
+   "exact": 0.456837,
+   "first_order": 0.528574,
+   "rel_error": 0.157
+  },
+  {
+   "delta": 4.0,
+   "exact": 0.580701,
+   "first_order": 1.057147,
+   "rel_error": 0.8205
+  }
+ ],
+ "panel_b_interaction": [
+  {
+   "d": 0.5,
+   "joint": 0.244344,
+   "sum_of_singles": 0.247303,
+   "interaction": -0.002959,
+   "interaction_frac_of_joint": -0.0121
+  },
+  {
+   "d": 1.0,
+   "joint": 0.430706,
+   "sum_of_singles": 0.488022,
+   "interaction": -0.057316,
+   "interaction_frac_of_joint": -0.1331
+  },
+  {
+   "d": 2.0,
+   "joint": 0.572091,
+   "sum_of_singles": 0.857708,
+   "interaction": -0.285617,
+   "interaction_frac_of_joint": -0.4993
+  },
+  {
+   "d": 3.0,
+   "joint": 0.595003,
+   "sum_of_singles": 1.054099,
+   "interaction": -0.459095,
+   "interaction_frac_of_joint": -0.7716
+  }
+ ],
+ "reading": "interaction is negative throughout: summing singleton ablation effects OVERSTATES the joint effect, and the bias grows with effect size"
+}

@@ -1,7 +1,9 @@
 <!-- sec:8 -->
 ## <a id="sec-8"></a>8 Method inventory V — automation and the current frontier
 
-<a id="p-8-method-inventory-v-automation-and-the-current-frontier-1"></a><!-- para:8-method-inventory-v-automation-and-the-current-frontier-1 --> Circuit analysis by hand does not scale; this family automates the labeling of features and the construction of circuits, culminating in attribution graphs — the current frontier artifact.
+<a id="p-8-method-inventory-v-automation-and-the-current-frontier-1"></a><!-- para:8-method-inventory-v-automation-and-the-current-frontier-1 --> **Depth tier:** load-bearing
+
+<a id="p-8-method-inventory-v-automation-and-the-current-frontier-2"></a><!-- para:8-method-inventory-v-automation-and-the-current-frontier-2 --> Circuit analysis by hand does not scale; this family automates the labeling of features and the construction of circuits, culminating in attribution graphs — the current frontier artifact.
 
 <!-- sec:8.1 -->
 ### <a id="sec-8.1"></a>8.1 Automated interpretability (auto-interp) [load-bearing]

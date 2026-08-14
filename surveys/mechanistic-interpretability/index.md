@@ -1,6 +1,6 @@
 # Mechanistic Interpretability: A First-Principles Survey
 
-_A deep-research survey of the program that reverse-engineers the internal computations of neural
+<a id="p-mechanistic-interpretability-a-first-principles-survey-1"></a><!-- para:mechanistic-interpretability-a-first-principles-survey-1 --> _A deep-research survey of the program that reverse-engineers the internal computations of neural
 networks — chiefly transformer language models — into human-understandable **features** and
 **circuits**: the mathematical fundamentals (residual-stream framework, the linear representation
 hypothesis, superposition), the full method inventory (probing and lenses, causal patching,
@@ -9,13 +9,13 @@ circuit tracing), worked circuit case studies across models (toy → GPT-2 → P
 Claude 3, with the field's vision-model roots), evaluation, current frontier practice, and open
 problems._
 
-**Status:** under construction. Mode: `proposed` · scale: `wide` · audience: `practitioner`.
+<a id="p-mechanistic-interpretability-a-first-principles-survey-2"></a><!-- para:mechanistic-interpretability-a-first-principles-survey-2 --> **Status:** under construction. Mode: `proposed` · scale: `wide` · audience: `practitioner`.
 The confirmed research brief and section plan live in `_scratch/brief.md` and `_scratch/outline.md`;
 the section-level evidence ledgers in `_scratch/ev-*.md`.
 
 ## Reading guide
 
-This survey is written for a reader with strong mathematical maturity and working deep-learning
+<a id="p-reading-guide-1"></a><!-- para:reading-guide-1 --> This survey is written for a reader with strong mathematical maturity and working deep-learning
 background (the **practitioner** register): standard ML/DL prerequisites are assumed or
 forward-referenced, each load-bearing result carries one intuition box, and worked numerical
 examples follow a derivation as a self-checking oracle. Where a signal-processing analogy sharpens
@@ -23,17 +23,17 @@ a result — the matched filter behind an induction head's readout, basis pursui
 dictionaries behind sparse autoencoders, the discrete Fourier transform behind the grokking
 circuit — it is stated as a tight one-liner, not as the primary scaffolding.
 
-Read the **fundamentals** (residual stream, QK/OV circuits, linear representations, superposition)
+<a id="p-reading-guide-2"></a><!-- para:reading-guide-2 --> Read the **fundamentals** (residual stream, QK/OV circuits, linear representations, superposition)
 first: every later method is an operation on that substrate. Readers already fluent in the
 transformer-circuits framework can skim it and start at the **methodology & taxonomy**, then the
 **method inventory**.
 
 ## Depth-tier legend (R-GOV)
 
-Every method and load-bearing result carries one of three depth tiers. Survey quality is measured
+<a id="p-depth-tier-legend-r-gov-1"></a><!-- para:depth-tier-legend-r-gov-1 --> Every method and load-bearing result carries one of three depth tiers. Survey quality is measured
 as coverage over the headline and load-bearing items, **not** by prose volume.
 
-- **Headline** — full first-principles derivation + worked numerical example + a conceptual figure.
+- <a id="p-depth-tier-legend-r-gov-2"></a><!-- para:depth-tier-legend-r-gov-2 --> **Headline** — full first-principles derivation + worked numerical example + a conceptual figure.
   (residual-stream/QK-OV framework; superposition/toy models; activation patching; sparse
   autoencoders; induction-head & IOI circuits.)
 - **Load-bearing** — derivation + intuition + complexity, without a full worked example.
@@ -45,7 +45,7 @@ as coverage over the headline and load-bearing items, **not** by prose volume.
 
 ## Notation contract
 
-One symbol, one meaning, fixed convention — reused in every section. Throughout, **bold lowercase**
+<a id="p-notation-contract-1"></a><!-- para:notation-contract-1 --> One symbol, one meaning, fixed convention — reused in every section. Throughout, **bold lowercase**
 is a column vector, **non-bold capital** a matrix, **non-bold lowercase** a scalar (with the usual
 count carve-outs: layer count $L$, head count $H$, dimensions $d$, sparsity $k$, sample size $n$).
 Logits are pre-softmax; losses are per-token averages in nats unless a result states otherwise.
@@ -79,6 +79,6 @@ Logits are pre-softmax; losses are per-token averages in nats unless a result st
 
 ## Contents
 
-The ordered section manifest is `order.json`. Fundamentals and the five-file method inventory carry
+<a id="p-contents-1"></a><!-- para:contents-1 --> The ordered section manifest is `order.json`. Fundamentals and the five-file method inventory carry
 the main exposition; heavy derivations live in Appendices A–E; a reader's-questions Q&A is Appendix
 Q; every external citation resolves in `references.md` under the source-tag invariant.

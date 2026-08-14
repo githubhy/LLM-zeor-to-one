@@ -1,7 +1,9 @@
 <!-- sec:Q -->
 ## <a id="sec-Q"></a>Q Reader's questions
 
-<a id="p-q-readers-questions-1"></a><!-- para:q-readers-questions-1 --> Short, self-contained answers to the "why is it built this way / what breaks otherwise / why not the obvious alternative" questions the main text raises. Each is anchored for citation and folding.
+<a id="p-q-readers-questions-1"></a><!-- para:q-readers-questions-1 --> **Depth tier:** supporting
+
+<a id="p-q-readers-questions-2"></a><!-- para:q-readers-questions-2 --> Short, self-contained answers to the "why is it built this way / what breaks otherwise / why not the obvious alternative" questions the main text raises. Each is anchored for citation and folding.
 
 <!-- sec:Q.1 -->
 ### <a id="sec-Q.1"></a>Q.1 Why decompose activations into feature *directions* instead of just reading neurons?

@@ -1,6 +1,8 @@
 <!-- sec:14 -->
 ## <a id="sec-14"></a>14 Design guidance
 
+<a id="p-14-design-guidance-1"></a><!-- para:14-design-guidance-1 --> **Depth tier:** supporting
+
 <!-- sec:14.1 -->
 ### <a id="sec-14.1"></a>14.1 A decision workflow
 

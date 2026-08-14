@@ -1,0 +1,46 @@
+{
+ "constants": {
+  "d_model": 768,
+  "s_typical_squared_magnitude": 1.0,
+  "tau_required_snr": 10.0,
+  "rng_seed": 0,
+  "mc_trials": 4000
+ },
+ "closed_forms": {
+  "interference": "E[(fhat_i - f_i)^2] = (m-1) * p * s / d",
+  "capacity": "m_max = 1 + d / (p * tau)",
+  "note": "s cancels in the capacity form: tolerable feature count is independent of activation magnitude"
+ },
+ "monte_carlo_validation": [
+  {
+   "d": 64,
+   "m": 200,
+   "p": 0.05,
+   "empirical": 0.154153,
+   "predicted": 0.155469,
+   "ratio": 0.9915
+  },
+  {
+   "d": 128,
+   "m": 500,
+   "p": 0.02,
+   "empirical": 0.078551,
+   "predicted": 0.077969,
+   "ratio": 1.0075
+  },
+  {
+   "d": 256,
+   "m": 2000,
+   "p": 0.01,
+   "empirical": 0.079393,
+   "predicted": 0.078086,
+   "ratio": 1.0167
+  }
+ ],
+ "capacity_points": {
+  "p=0.5": 154.6,
+  "p=0.1": 769.0,
+  "p=0.01": 7681.0,
+  "p=0.001": 76801.0
+ }
+}

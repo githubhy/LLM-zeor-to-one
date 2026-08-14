@@ -1,7 +1,9 @@
 <!-- sec:13 -->
 ## <a id="sec-13"></a>13 Applications
 
-<a id="p-13-applications-1"></a><!-- para:13-applications-1 --> MI is judged, ultimately, by what it lets us *do*. The applications split into monitoring, editing/removal, and control — with a consistent pattern: real wins in non-adversarial settings, real limits under pressure.
+<a id="p-13-applications-1"></a><!-- para:13-applications-1 --> **Depth tier:** supporting
+
+<a id="p-13-applications-2"></a><!-- para:13-applications-2 --> MI is judged, ultimately, by what it lets us *do*. The applications split into monitoring, editing/removal, and control — with a consistent pattern: real wins in non-adversarial settings, real limits under pressure.
 
 <!-- sec:13.1 -->
 ### <a id="sec-13.1"></a>13.1 Safety monitoring — probing for deception and sandbagging

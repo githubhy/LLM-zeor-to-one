@@ -249,3 +249,60 @@ reconciled against these sources in the citation-audit pass.
 
 <a id="ref-81"></a><!-- bib:81 -->
 [81] S. Marks, C. Rager, E. J. Michaud, Y. Belinkov, D. Bau, A. Mueller, "Sparse Feature Circuits: Discovering and Editing Interpretable Causal Graphs in Language Models," ICLR 2025. arXiv:2403.19647. (local: download/marks-sparse-feature-circuits-2024.pdf)
+
+<a id="ref-82"></a><!-- bib:82 -->
+[82] F. Z. Wu, F. Tonin, V. Cevher (EPFL LIONS), "Demystifying Variance in Circuit Discovery of LLMs." 2026. arXiv:2606.16920. (local: download/mi26-circuit-discovery-variance.pdf)
+
+<a id="ref-83"></a><!-- bib:83 -->
+[83] S. Vaidyanathan (UMass Amherst), "The Curse of Multiple Mediators: Hidden Interaction Effects in Activation Patching." 2026. arXiv:2606.27510. (local: download/mi26-multiple-mediators-patching.pdf)
+
+<a id="ref-84"></a><!-- bib:84 -->
+[84] Z. Gong, Z. Zeng, C. Yuen, W. Y. B. Lim (NTU Singapore), "Conditional Co-Ablation: Recovering Self-Repair Backups in Transformer Circuits." 2026. arXiv:2607.01940. (local: download/mi26-conditional-co-ablation-self-repair.pdf)
+
+<a id="ref-85"></a><!-- bib:85 -->
+[85] A. Asiaee (Vanderbilt UMC), "Certified Interventional Fidelity: Anytime-Valid, Adaptive Evaluation of Causal Claims in Mechanistic Interpretability." 2026. arXiv:2607.08349. (local: download/mi26-certified-interventional-fidelity.pdf)
+
+<a id="ref-86"></a><!-- bib:86 -->
+[86] N. Bolik, L. Stöpler, A. Andrzejak (Heidelberg), "Beyond a Bag of Features: Set-Level Instability in Sparse Autoencoders." 2026. arXiv:2608.11197. (local: download/mi26-sae-set-level-instability.pdf)
+
+<a id="ref-87"></a><!-- bib:87 -->
+[87] M. A. Bal, "From Geometric Recovery to Causal Validation: A Reproducible Audit of Sparse Autoencoder Features, from Superposition Geometry to Causal Inertness." 2026. arXiv:2607.12166. (local: download/mi26-sae-geometric-to-causal-audit.pdf)
+
+<a id="ref-88"></a><!-- bib:88 -->
+[88] S. Cho, Z. Wu, K. Da Costa, R. Kalra, I. Wicaksono, A. Koshiyama, "Are Single-Token Sparse Autoencoder Features Causally Necessary? Layer-Depth and SAE-Family Effects." 2026. arXiv:2607.20596. (local: download/mi26-sae-single-token-causal-necessity.pdf)
+
+<a id="ref-89"></a><!-- bib:89 -->
+[89] D. Luo, C. Liang, J. Xuan (UTS), "When Are Sparse Feature Interventions Actually Localized? Matched Evaluation for SAE-Based Safety Control." 2026. arXiv:2607.10226. (local: download/mi26-sae-intervention-localization.pdf)
+
+<a id="ref-90"></a><!-- bib:90 -->
+[90] V. Noël (Devoteam), "Where You Measure Decides What You Measure: Position Selection in Ablation-Based SAE Evaluation." 2026. arXiv:2608.13337. (local: download/mi26-sae-position-selection-eval.pdf)
+
+<a id="ref-91"></a><!-- bib:91 -->
+[91] A. Marin-Llobet, S. Heimersheim, "Individual Parameters in Weight-Sparse Transformers Appear Interpretable." 2026. arXiv:2607.02964. (local: download/mi26-weight-sparse-parameters-interpretable.pdf)
+
+<a id="ref-92"></a><!-- bib:92 -->
+[92] A. Manvi, S. Tajreen (Aquin Labs), "Finding Usable Weight Mechanisms with Tiled SVD." 2026. arXiv:2608.06969. (local: download/mi26-tiled-svd-weight-mechanisms.pdf)
+
+<a id="ref-93"></a><!-- bib:93 -->
+[93] C. Yan, X. Huang, Y. Duan, Z. Yin, H. Zhao, B. Dai, J. Fu, "Sparse Weight Decomposition for Efficient Circuit Extraction." 2026. arXiv:2608.03913. (local: download/mi26-sparse-weight-decomposition.pdf)
+
+<a id="ref-94"></a><!-- bib:94 -->
+[94] A. Dhor, P.-Y. Chen (IISER Bhopal / IBM Research), "Intrinsic Structure: Spectral Identifiability for Mechanistic Interpretability." 2026. arXiv:2608.10172. (local: download/mi26-spectral-identifiability.pdf)
+
+<a id="ref-95"></a><!-- bib:95 -->
+[95] F. D'Angelo, O. K. Yüksel, S. S. Narashiman, N. Flammarion (EPFL), "Induction Heads Interpolate N-Grams." 2026. arXiv:2607.02800. (local: download/mi26-induction-heads-interpolate-ngrams.pdf)
+
+<a id="ref-96"></a><!-- bib:96 -->
+[96] M. Basu Roy Chowdhury, E. M. Weiner (UC Berkeley), "Effects of Sparsity and Superposition on Loss in Simple Autoencoders." 2026. arXiv:2606.18538. (local: download/mi26-sparsity-superposition-loss.pdf)
+
+<a id="ref-97"></a><!-- bib:97 -->
+[97] C. Galeone, A. Ettorre, M. Park, "Perfect Detection, Failed Control: The Geometry of Knowing vs. Steering in Language Models." 2026. arXiv:2606.24952. (local: download/mi26-perfect-detection-failed-control.pdf)
+
+<a id="ref-98"></a><!-- bib:98 -->
+[98] B. Cheng, et al. (Jilin University), "Thinking vs. NoThinking: Towards Interpreting Reasoning Mechanisms of Large Language Models via Sparse Autoencoders." 2026. arXiv:2608.08168. (local: download/mi26-thinking-vs-nothinking.pdf)
+
+<a id="ref-99"></a><!-- bib:99 -->
+[99] P. M. Sawant (UT Dallas), "Mechanistic Interpretability for Neural Networks: Circuits, Sparse Features and Symbolic Reasoning." 2026. arXiv:2607.07316. (local: download/mi26-survey-circuits-sparse-symbolic.pdf)
+
+<a id="ref-100"></a><!-- bib:100 -->
+[100] H. Batra, L. Naghashyar, A. Khakzar, C. Schroeder de Witt, P. Torr (Oxford), "Multimodal Model Diffing for Feature Discovery and Control." 2026. arXiv:2608.09928. (local: download/mi26-multimodal-model-diffing.pdf)

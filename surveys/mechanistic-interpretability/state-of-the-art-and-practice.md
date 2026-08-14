@@ -1,6 +1,8 @@
 <!-- sec:12 -->
 ## <a id="sec-12"></a>12 State of the art & practice
 
+<a id="p-12-state-of-the-art-practice-1"></a><!-- para:12-state-of-the-art-practice-1 --> **Depth tier:** load-bearing
+
 <!-- sec:12.1 -->
 ### <a id="sec-12.1"></a>12.1 What frontier labs actually do
 

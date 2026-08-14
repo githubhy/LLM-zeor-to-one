@@ -1,7 +1,9 @@
 <!-- sec:7 -->
 ## <a id="sec-7"></a>7 Method inventory IV — steering and model editing
 
-<a id="p-7-method-inventory-iv-steering-and-model-editing-1"></a><!-- para:7-method-inventory-iv-steering-and-model-editing-1 --> These methods do not just *read* a mechanism; they *use* it to control the model — at inference (steering) or in the weights (editing). They are the most application-facing corner of MI and the clearest evidence that the linear-representation hypothesis has causal teeth. Full steering-vector and ROME/MEMIT derivations: Appendix <!-- secxref:E -->[§E](appendix-e-steering-and-editing-math.md#sec-E).
+<a id="p-7-method-inventory-iv-steering-and-model-editing-1"></a><!-- para:7-method-inventory-iv-steering-and-model-editing-1 --> **Depth tier:** load-bearing
+
+<a id="p-7-method-inventory-iv-steering-and-model-editing-2"></a><!-- para:7-method-inventory-iv-steering-and-model-editing-2 --> These methods do not just *read* a mechanism; they *use* it to control the model — at inference (steering) or in the weights (editing). They are the most application-facing corner of MI and the clearest evidence that the linear-representation hypothesis has causal teeth. Full steering-vector and ROME/MEMIT derivations: Appendix <!-- secxref:E -->[§E](appendix-e-steering-and-editing-math.md#sec-E).
 
 <!-- sec:7.1 -->
 ### <a id="sec-7.1"></a>7.1 Activation steering / steering vectors [load-bearing]

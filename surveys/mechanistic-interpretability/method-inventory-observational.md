@@ -1,7 +1,9 @@
 <!-- sec:4 -->
 ## <a id="sec-4"></a>4 Method inventory I — observational methods
 
-<a id="p-4-method-inventory-i-observational-methods-1"></a><!-- para:4-method-inventory-i-observational-methods-1 --> Observational methods read a model's state or weights and produce *correlational* evidence. Per § <!-- secxref:3.1 -->[§3.1](methodology-and-taxonomy.md#sec-3.1), their outputs are hypotheses to be causally confirmed, not conclusions. Each card follows the uniform template (idea → placement/lineage → mechanism → limits → complexity → epistemic tag); depth follows the `index.md` tier in brackets.
+<a id="p-4-method-inventory-i-observational-methods-1"></a><!-- para:4-method-inventory-i-observational-methods-1 --> **Depth tier:** load-bearing
+
+<a id="p-4-method-inventory-i-observational-methods-2"></a><!-- para:4-method-inventory-i-observational-methods-2 --> Observational methods read a model's state or weights and produce *correlational* evidence. Per § <!-- secxref:3.1 -->[§3.1](methodology-and-taxonomy.md#sec-3.1), their outputs are hypotheses to be causally confirmed, not conclusions. Each card follows the uniform template (idea → placement/lineage → mechanism → limits → complexity → epistemic tag); depth follows the `index.md` tier in brackets.
 
 <!-- sec:4.1 -->
 ### <a id="sec-4.1"></a>4.1 Linear probing [load-bearing]

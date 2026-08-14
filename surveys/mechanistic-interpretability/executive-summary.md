@@ -1,7 +1,9 @@
 <!-- sec:0 -->
 ## <a id="sec-0"></a>0 Executive summary
 
-<a id="p-0-executive-summary-1"></a><!-- para:0-executive-summary-1 --> **The 60-second verdict.** Mechanistic interpretability (MI) is the program of reverse-engineering a
+<a id="p-0-executive-summary-1"></a><!-- para:0-executive-summary-1 --> **Depth tier:** supporting
+
+<a id="p-0-executive-summary-2"></a><!-- para:0-executive-summary-2 --> **The 60-second verdict.** Mechanistic interpretability (MI) is the program of reverse-engineering a
 trained network's internal computation into human-understandable **features** (directions in
 activation space that stand for concepts) and **circuits** (subgraphs of components that compose
 those features into an algorithm). It rests on three empirical pillars established on transformers:
@@ -16,9 +18,9 @@ via sparse autoencoders (SAEs), scaled to a production model with millions of fe
 most recently, **attribution graphs / circuit tracing**, which replace MLPs with cross-layer
 transcoders to draw an end-to-end causal graph of a single forward pass in a frontier model <!-- cite:20 --> [[20]](references.md#ref-20), <!-- cite:21 --> [[21]](references.md#ref-21).
 
-<a id="p-0-executive-summary-2"></a><!-- para:0-executive-summary-2 --> The single most consequential development of 2024–2025 is a **reckoning for SAEs**: on downstream tasks (steering, probing) SAE features do **not** beat simple baselines — prompting and difference-in-means directions win — leading a major lab to publicly *deprioritise* SAE research <!-- cite:66 --> [[66]](references.md#ref-66), <!-- cite:67 --> [[67]](references.md#ref-67), while the frontier pivots to transcoders and attribution graphs <!-- cite:18 --> [[18]](references.md#ref-18), <!-- cite:20 --> [[20]](references.md#ref-20). The honest state of the field is therefore two-sided: MI produces genuine, sometimes product-shippable wins (Golden-Gate-Claude feature steering <!-- cite:75 --> [[75]](references.md#ref-75); a linear probe catches "sleeper-agent" defection at over 99% AUROC <!-- cite:71 --> [[71]](references.md#ref-71)), yet it is **not yet** a reliable safety tool and its own leaders estimate a true diagnostic capability is 5–10 years away <!-- cite:76 --> [[76]](references.md#ref-76). And a foundational caution runs through everything: a circuit's headline "faithfulness" number is **not robust** — swapping node- for edge-ablation moves it by more than 50 points on the *same* circuit <!-- cite:62 --> [[62]](references.md#ref-62), and the network's own **self-repair** makes any single-ablation importance estimate a lower bound <!-- cite:59 --> [[59]](references.md#ref-59), <!-- cite:60 --> [[60]](references.md#ref-60).
+<a id="p-0-executive-summary-3"></a><!-- para:0-executive-summary-3 --> The single most consequential development of 2024–2025 is a **reckoning for SAEs**: on downstream tasks (steering, probing) SAE features do **not** beat simple baselines — prompting and difference-in-means directions win — leading a major lab to publicly *deprioritise* SAE research <!-- cite:66 --> [[66]](references.md#ref-66), <!-- cite:67 --> [[67]](references.md#ref-67), while the frontier pivots to transcoders and attribution graphs <!-- cite:18 --> [[18]](references.md#ref-18), <!-- cite:20 --> [[20]](references.md#ref-20). The honest state of the field is therefore two-sided: MI produces genuine, sometimes product-shippable wins (Golden-Gate-Claude feature steering <!-- cite:75 --> [[75]](references.md#ref-75); a linear probe catches "sleeper-agent" defection at over 99% AUROC <!-- cite:71 --> [[71]](references.md#ref-71)), yet it is **not yet** a reliable safety tool and its own leaders estimate a true diagnostic capability is 5–10 years away <!-- cite:76 --> [[76]](references.md#ref-76). And a foundational caution runs through everything: a circuit's headline "faithfulness" number is **not robust** — swapping node- for edge-ablation moves it by more than 50 points on the *same* circuit <!-- cite:62 --> [[62]](references.md#ref-62), and the network's own **self-repair** makes any single-ablation importance estimate a lower bound <!-- cite:59 --> [[59]](references.md#ref-59), <!-- cite:60 --> [[60]](references.md#ref-60).
 
-<a id="p-0-executive-summary-3"></a><!-- para:0-executive-summary-3 --> **Who should read what.** A reader fluent in the transformer-circuits framework can skim the
+<a id="p-0-executive-summary-4"></a><!-- para:0-executive-summary-4 --> **Who should read what.** A reader fluent in the transformer-circuits framework can skim the
 fundamentals (§ <!-- secxref:2 -->[§2](fundamentals.md#sec-2)) and start at the taxonomy
 (§ <!-- secxref:3 -->[§3](methodology-and-taxonomy.md#sec-3)); a reader wanting the landscape should
 read the five-part method inventory (§§ <!-- secxref:4 -->[§4](method-inventory-observational.md#sec-4)–<!-- secxref:8 -->[§8](method-inventory-automation.md#sec-8))
@@ -28,7 +30,7 @@ practitioner with a question in hand should go straight to the decision framewor
 **practitioner** register: standard deep-learning prerequisites are assumed, each load-bearing result
 carries one intuition box, and worked numerical examples follow as self-checks.
 
-<a id="p-0-executive-summary-4"></a><!-- para:0-executive-summary-4 --> **Claims → evidence spine.** Each load-bearing claim, and where it is established:
+<a id="p-0-executive-summary-5"></a><!-- para:0-executive-summary-5 --> **Claims → evidence spine.** Each load-bearing claim, and where it is established:
 
 | Claim | Where |
 |---|---|
@@ -47,7 +49,7 @@ carries one intuition box, and worked numerical examples follow as self-checks.
 | SAEs lose to simple baselines on downstream tasks; the field is pivoting to transcoders + attribution graphs | § <!-- secxref:12.2 -->[§12.2](state-of-the-art-and-practice.md#sec-12.2) |
 | MI has product-level steering/monitoring wins but is not yet a robust, adversarially-safe safety tool | § <!-- secxref:13.1 -->[§13.1](applications.md#sec-13.1) |
 
-<a id="p-0-executive-summary-5"></a><!-- para:0-executive-summary-5 --> Every external citation traces to a source acquired in `download/` (or a web-native publication,
+<a id="p-0-executive-summary-6"></a><!-- para:0-executive-summary-6 --> Every external citation traces to a source acquired in `download/` (or a web-native publication,
 tagged as such) and read; every load-bearing numeric value is reproduced from the primary that
 reports it, and search-derived numbers awaiting primary confirmation are flagged at point of use. The
 full method inventory, first-principles derivations (Appendices A–E), and reference list follow.

@@ -1,7 +1,9 @@
 <!-- sec:B -->
 ## <a id="sec-B"></a>B Superposition and the grokking circuit
 
-<a id="p-b-superposition-and-the-grokking-circuit-1"></a><!-- para:b-superposition-and-the-grokking-circuit-1 --> Derivations for § <!-- secxref:2.4 -->[§2.4](fundamentals.md#sec-2.4) (superposition) and § <!-- secxref:9.3 -->[§9.3](circuits-across-models.md#sec-9.3) (the reverse-engineered modular-addition algorithm).
+<a id="p-b-superposition-and-the-grokking-circuit-1"></a><!-- para:b-superposition-and-the-grokking-circuit-1 --> **Depth tier:** headline
+
+<a id="p-b-superposition-and-the-grokking-circuit-2"></a><!-- para:b-superposition-and-the-grokking-circuit-2 --> Derivations for § <!-- secxref:2.4 -->[§2.4](fundamentals.md#sec-2.4) (superposition) and § <!-- secxref:9.3 -->[§9.3](circuits-across-models.md#sec-9.3) (the reverse-engineered modular-addition algorithm).
 
 <!-- sec:B.1 -->
 ### <a id="sec-B.1"></a>B.1 The ReLU-output toy model

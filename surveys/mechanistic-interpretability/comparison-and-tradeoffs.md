@@ -1,6 +1,8 @@
 <!-- sec:11 -->
 ## <a id="sec-11"></a>11 Comparison & tradeoffs
 
+<a id="p-11-comparison-tradeoffs-1"></a><!-- para:11-comparison-tradeoffs-1 --> **Depth tier:** load-bearing
+
 <!-- sec:11.1 -->
 ### <a id="sec-11.1"></a>11.1 Master comparison matrix
 

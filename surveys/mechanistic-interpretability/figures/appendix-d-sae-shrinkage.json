@@ -1,0 +1,34 @@
+{
+ "constants": {
+  "lambda_panel_a": 0.6,
+  "theta": 0.5,
+  "lambdas_panel_b": [
+   0.2,
+   0.6,
+   1.2
+  ],
+  "deterministic": true,
+  "rng_used": false
+ },
+ "closed_forms": {
+  "soft_threshold_solution": "f* = a - lambda/2 for a > lambda/2, else 0",
+  "shrinkage_bias": "lambda/2, independent of the true magnitude a",
+  "shrinkage_only_error": "E_shrink = n_active * (lambda/2)^2"
+ },
+ "bias_at_lambda": {
+  "lambda=0.2": 0.1,
+  "lambda=0.6": 0.3,
+  "lambda=1.2": 0.6
+ },
+ "shrinkage_error_at_n_active_32": {
+  "lambda=0.2": 0.32,
+  "lambda=0.6": 2.88,
+  "lambda=1.2": 11.52
+ },
+ "variant_behaviour_above_threshold": {
+  "ReLU+L1": "biased low by lambda/2 at every magnitude",
+  "JumpReLU": "unbiased; threshold is non-differentiable, trained with a straight-through estimator",
+  "TopK": "unbiased; no penalty term, sparsity imposed by selection",
+  "Gated": "unbiased; L1 applies to the detection path only"
+ }
+}

@@ -1,7 +1,9 @@
 <!-- sec:D -->
 ## <a id="sec-D"></a>D Sparse-autoencoder derivations
 
-<a id="p-d-sparse-autoencoder-derivations-1"></a><!-- para:d-sparse-autoencoder-derivations-1 --> Derivations for § <!-- secxref:6 -->[§6](method-inventory-dictionary.md#sec-6): the objective, the shrinkage bias, and the variant activations and their gradients.
+<a id="p-d-sparse-autoencoder-derivations-1"></a><!-- para:d-sparse-autoencoder-derivations-1 --> **Depth tier:** headline
+
+<a id="p-d-sparse-autoencoder-derivations-2"></a><!-- para:d-sparse-autoencoder-derivations-2 --> Derivations for § <!-- secxref:6 -->[§6](method-inventory-dictionary.md#sec-6): the objective, the shrinkage bias, and the variant activations and their gradients.
 
 <!-- sec:D.1 -->
 ### <a id="sec-D.1"></a>D.1 The objective and the L1 shrinkage bias

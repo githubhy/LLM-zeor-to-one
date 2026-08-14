@@ -1,7 +1,9 @@
 <!-- sec:5 -->
 ## <a id="sec-5"></a>5 Method inventory II — causal / interventional methods
 
-<a id="p-5-method-inventory-ii-causal-interventional-methods-1"></a><!-- para:5-method-inventory-ii-causal-interventional-methods-1 --> This is the mechanistic core: methods that *change* internal state and measure the behavioral consequence, yielding causal rather than correlational evidence. The full mediation formalism and the attribution-patching error term are derived in Appendix <!-- secxref:C -->[§C](appendix-c-causal-interventions.md#sec-C).
+<a id="p-5-method-inventory-ii-causal-interventional-methods-1"></a><!-- para:5-method-inventory-ii-causal-interventional-methods-1 --> **Depth tier:** headline
+
+<a id="p-5-method-inventory-ii-causal-interventional-methods-2"></a><!-- para:5-method-inventory-ii-causal-interventional-methods-2 --> This is the mechanistic core: methods that *change* internal state and measure the behavioral consequence, yielding causal rather than correlational evidence. The full mediation formalism and the attribution-patching error term are derived in Appendix <!-- secxref:C -->[§C](appendix-c-causal-interventions.md#sec-C).
 
 <!-- sec:5.1 -->
 ### <a id="sec-5.1"></a>5.1 Activation patching / causal tracing [headline]

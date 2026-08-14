@@ -1,7 +1,9 @@
 <!-- sec:9 -->
 ## <a id="sec-9"></a>9 Circuits across models
 
-<a id="p-9-circuits-across-models-1"></a><!-- para:9-circuits-across-models-1 --> This section is the survey's "various models" spine: worked circuit case studies, each tagged with the *model it was found on* and whether it *transports* across scale and family — from toy/algorithmic transformers, through GPT-2 (small/XL) and the Pythia suite, to Gemma 2 and Claude 3, with the field's InceptionV1/CLIP vision roots as origin context (§ <!-- secxref:1.3 -->[§1.3](introduction-and-scope.md#sec-1.3)).
+<a id="p-9-circuits-across-models-1"></a><!-- para:9-circuits-across-models-1 --> **Depth tier:** load-bearing
+
+<a id="p-9-circuits-across-models-2"></a><!-- para:9-circuits-across-models-2 --> This section is the survey's "various models" spine: worked circuit case studies, each tagged with the *model it was found on* and whether it *transports* across scale and family — from toy/algorithmic transformers, through GPT-2 (small/XL) and the Pythia suite, to Gemma 2 and Claude 3, with the field's InceptionV1/CLIP vision roots as origin context (§ <!-- secxref:1.3 -->[§1.3](introduction-and-scope.md#sec-1.3)).
 
 <!-- sec:9.1 -->
 ### <a id="sec-9.1"></a>9.1 Induction heads (toy → GPT-2 → large) [headline]
