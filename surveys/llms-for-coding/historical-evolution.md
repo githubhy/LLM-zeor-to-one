@@ -1,6 +1,9 @@
-## 4 Historical Evolution
+<!-- sec:4 -->
+## <a id="sec-4"></a>4 Historical Evolution
 
-<a id="p-4-historical-evolution-1"></a><!-- para:4-historical-evolution-1 --> The story of LLMs for code is a five-year arc from "can a model autocomplete a line?" to "can an agent resolve a real GitHub issue end to end?" Reading it in order is the fastest way to understand *why* the field looks the way it does: each milestone removed a specific limitation of the previous one. This section is that chronology; later sections dissect the methods each milestone introduced.
+<a id="p-4-historical-evolution-1"></a><!-- para:4-historical-evolution-1 --> **Depth tier:** supporting
+
+<a id="p-4-historical-evolution-2"></a><!-- para:4-historical-evolution-2 --> The story of LLMs for code is a five-year arc from "can a model autocomplete a line?" to "can an agent resolve a real GitHub issue end to end?" Reading it in order is the fastest way to understand *why* the field looks the way it does: each milestone removed a specific limitation of the previous one. This section is that chronology; later sections dissect the methods each milestone introduced.
 
 <!-- sec:4.1 -->
 ### <a id="sec-4.1"></a>4.1 The Pre-Generative Era: Code Representation Models

@@ -290,3 +290,42 @@
 
 <a id="ref-97"></a><!-- bib:97 -->
 [97] D. Dai, Y. Sun, L. Dong, Y. Hao, S. Ma, Z. Sui, F. Wei, "Why Can GPT Learn In-Context? Language Models Implicitly Perform Gradient Descent as Meta-Optimizers." *Findings of ACL 2023.* arXiv:2212.10559. (local: download/dai-gpt-icl-meta-optimizers-2022.pdf)
+
+<a id="ref-98"></a><!-- bib:98 -->
+[98] Anthropic, "Raising the bar on SWE-bench Verified" (agent scaffold design for Claude 3.5 Sonnet). 2025. [link](https://www.anthropic.com/engineering/swe-bench-sonnet) (web)
+
+<a id="ref-99"></a><!-- bib:99 -->
+[99] Model Context Protocol, "Specification (version 2025-06-18)." 2025. [link](https://modelcontextprotocol.io/specification/2025-06-18) (web)
+
+<a id="ref-100"></a><!-- bib:100 -->
+[100] Anthropic, "Effective context engineering for AI agents." 2025. [link](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) (web)
+
+<a id="ref-101"></a><!-- bib:101 -->
+[101] J. Becker, N. Rush, B. Barnes, D. Rein (METR), "Measuring the Impact of Early-2025 AI on Experienced Open-Source Developer Productivity." 2025. arXiv:2507.09089. (local: download/metr-rct-developer-productivity-2025.pdf)
+
+<a id="ref-102"></a><!-- bib:102 -->
+[102] S. Kapoor, B. Stroebl, P. Kirgis, N. Nadgir, et al., "Holistic Agent Leaderboard: The Missing Infrastructure for AI Agent Evaluation." 2025. arXiv:2510.11977. (local: download/hal-holistic-agent-leaderboard-2025.pdf)
+
+<a id="ref-103"></a><!-- bib:103 -->
+[103] T. Kwa, B. West, J. Becker, A. Deng, et al. (METR), "Measuring AI Ability to Complete Long Software Tasks." 2025. arXiv:2503.14499. (local: download/metr-task-time-horizons-2025.pdf)
+
+<a id="ref-104"></a><!-- bib:104 -->
+[104] H. Wang, J. Gong, H. Zhang, J. Xu, Z. Wang, "AI Agentic Programming: A Survey of Techniques, Challenges, and Opportunities." 2025. arXiv:2508.11126. (local: download/ai-agentic-programming-survey-2025.pdf)
+
+<a id="ref-105"></a><!-- bib:105 -->
+[105] R. Aleithan, H. Xue, M. M. Mohajer, E. Nnorom, G. Uddin, S. Wang, "SWE-Bench+: Enhanced Coding Benchmark for LLMs." 2024. arXiv:2410.06992. (local: download/swe-bench-plus-2024.pdf)
+
+<a id="ref-106"></a><!-- bib:106 -->
+[106] M. Riddell, A. Ni, A. Cohan, "Quantifying Contamination in Evaluating Code Generation Capabilities of Language Models." *ACL 2024.* arXiv:2403.04811. (local: download/yale-quantifying-contamination-code-2024.pdf)
+
+<a id="ref-107"></a><!-- bib:107 -->
+[107] B. Brown, J. Juravsky, R. Ehrlich, R. Clark, Q. V. Le, C. Ré, A. Mirhoseini, "Large Language Monkeys: Scaling Inference Compute with Repeated Sampling." 2024. arXiv:2407.21787. (local: download/large-language-monkeys-2024.pdf)
+
+<a id="ref-108"></a><!-- bib:108 -->
+[108] X. Deng, J. Da, E. Pan, Y. Y. He, et al. (Scale AI), "SWE-Bench Pro: Can AI Agents Solve Long-Horizon Software Engineering Tasks?" 2025. arXiv:2509.16941. (local: download/swe-bench-pro-2025.pdf)
+
+<a id="ref-109"></a><!-- bib:109 -->
+[109] S. Miserendino, M. Wang, T. Patwardhan, J. Heidecke (OpenAI), "SWE-Lancer: Can Frontier LLMs Earn \$1 Million from Real-World Freelance Software Engineering?" 2025. arXiv:2502.12115. (local: download/swe-lancer-2025.pdf)
+
+<a id="ref-110"></a><!-- bib:110 -->
+[110] M. Naser Moghadasi, F. Ghaderi, et al., "What Twelve LLM Agent Benchmark Papers Disclose About Themselves: A Pilot Audit and an Open Scoring Schema." 2026. arXiv:2605.21404. (local: download/agent-benchmark-disclosure-audit-2026.pdf)

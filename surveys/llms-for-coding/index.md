@@ -30,4 +30,6 @@
 24. [Appendix F — Scaling the Dense Block: 33B–70B](appendix-f-scaling.md)
 25. [Appendix G — Frontier Mixture-of-Experts: DeepSeek-V3](appendix-g-moe.md)
 26. [Appendix H — Synthesis: One Architecture, Nine Orders of Magnitude](appendix-h-synthesis.md)
-27. [References](references.md)
+27. [Appendix I — Mechanistic Interpretability: Reading the Trained Model](appendix-i-mechanistic-interpretability.md)
+28. [Appendix J — Code-Specific Derivations](appendix-j-code-derivations.md)
+29. [References](references.md)

@@ -1,6 +1,9 @@
-## 14 Compute, Cost, and Latency Tradeoffs
+<!-- sec:14 -->
+## <a id="sec-14"></a>14 Compute, Cost, and Latency Tradeoffs
 
-<a id="p-14-compute-cost-and-latency-tradeoffs-1"></a><!-- para:14-compute-cost-and-latency-tradeoffs-1 --> Three distinct resources govern a code model's economics: the training compute spent once, the inference cost paid per use, and the latency a user experiences. Which one binds depends entirely on the deployment target (Section 5). This section makes the tradeoffs concrete and explains why the "best" code model is an ill-posed notion without naming the axis.
+<a id="p-14-compute-cost-and-latency-tradeoffs-1"></a><!-- para:14-compute-cost-and-latency-tradeoffs-1 --> **Depth tier:** load-bearing
+
+<a id="p-14-compute-cost-and-latency-tradeoffs-2"></a><!-- para:14-compute-cost-and-latency-tradeoffs-2 --> Three distinct resources govern a code model's economics: the training compute spent once, the inference cost paid per use, and the latency a user experiences. Which one binds depends entirely on the deployment target (Section 5). This section makes the tradeoffs concrete and explains why the "best" code model is an ill-posed notion without naming the axis.
 
 <!-- sec:14.1 -->
 ### <a id="sec-14.1"></a>14.1 Model Size versus Capability

@@ -1,6 +1,9 @@
-## 10 Inference, Decoding, and Serving
+<!-- sec:10 -->
+## <a id="sec-10"></a>10 Inference, Decoding, and Serving
 
-<a id="p-10-inference-decoding-and-serving-1"></a><!-- para:10-inference-decoding-and-serving-1 --> A trained model is not yet a product. Serving it for code adds constraints general chat does not: completions must be syntactically valid, they must arrive within a latency budget that autocomplete makes brutal, and the surrounding repository context can be enormous. This section covers the three levers — constrained decoding, latency engineering, and the serving-shape choice — that turn a checkpoint into an assistant.
+<a id="p-10-inference-decoding-and-serving-1"></a><!-- para:10-inference-decoding-and-serving-1 --> **Depth tier:** load-bearing
+
+<a id="p-10-inference-decoding-and-serving-2"></a><!-- para:10-inference-decoding-and-serving-2 --> A trained model is not yet a product. Serving it for code adds constraints general chat does not: completions must be syntactically valid, they must arrive within a latency budget that autocomplete makes brutal, and the surrounding repository context can be enormous. This section covers the three levers — constrained decoding, latency engineering, and the serving-shape choice — that turn a checkpoint into an assistant.
 
 <!-- sec:10.1 -->
 ### <a id="sec-10.1"></a>10.1 FIM Inference and Constrained Decoding

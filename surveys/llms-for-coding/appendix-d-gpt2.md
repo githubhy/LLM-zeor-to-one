@@ -1,4 +1,4 @@
-## GPT-2 Scale: the Toy, Grown Up
+## <a id="sec-D"></a>GPT-2 Scale: the Toy, Grown Up
 
 <a id="p-gpt-2-scale-the-toy-grown-up-1"></a><!-- para:gpt-2-scale-the-toy-grown-up-1 --> The toy of Appendix C is, structurally, a small GPT-2. This chapter is the first rung up the size ladder: it takes that exact anatomy — embedding, a pre-norm decoder block with a self-attention sublayer and a feed-forward sublayer, a final norm, an unembedding — and instantiates it at the four real sizes of GPT-2, the model that established the decoder-only LLM as a general-purpose engine. Almost nothing about the math changes: the forward pass, the complete backward pass, and the Adam step of Appendix C carry over verbatim. Only two ingredients differ from the toy — a smoother nonlinearity (GELU rather than ReLU) and a *tied* unembedding — and a third quantity becomes worth deriving once the model is large: where the parameters and the compute actually go. We take those in turn, citing GPT-2's own report for every dimension <!-- cite:61 --> [[61]](references.md#ref-61).
 

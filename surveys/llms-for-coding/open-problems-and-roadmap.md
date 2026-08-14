@@ -1,6 +1,9 @@
-## 18 Open Problems and Roadmap
+<!-- sec:18 -->
+## <a id="sec-18"></a>18 Open Problems and Roadmap
 
-<a id="p-18-open-problems-and-roadmap-1"></a><!-- para:18-open-problems-and-roadmap-1 --> The field has gone from autocompleting a line to resolving a real issue in five years, but the frontier is defined by what remains hard. The challenges below are drawn from the recent surveys' explicit future-directions analyses <!-- cite:44 --> [[44]](references.md#ref-44), <!-- cite:45 --> [[45]](references.md#ref-45) and from the gaps surfaced throughout this document.
+<a id="p-18-open-problems-and-roadmap-1"></a><!-- para:18-open-problems-and-roadmap-1 --> **Depth tier:** supporting
+
+<a id="p-18-open-problems-and-roadmap-2"></a><!-- para:18-open-problems-and-roadmap-2 --> The field has gone from autocompleting a line to resolving a real issue in five years, but the frontier is defined by what remains hard. The challenges below are drawn from the recent surveys' explicit future-directions analyses <!-- cite:44 --> [[44]](references.md#ref-44), <!-- cite:45 --> [[45]](references.md#ref-45) and from the gaps surfaced throughout this document.
 
 <!-- sec:18.1 -->
 ### <a id="sec-18.1"></a>18.1 Repository- and Software-Scale Reliability

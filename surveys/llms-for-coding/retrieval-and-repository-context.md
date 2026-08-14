@@ -1,6 +1,9 @@
-## 11 Retrieval and Repository Context
+<!-- sec:11 -->
+## <a id="sec-11"></a>11 Retrieval and Repository Context
 
-<a id="p-11-retrieval-and-repository-context-1"></a><!-- para:11-retrieval-and-repository-context-1 --> Real software lives in repositories, not single files: the symbol you need is defined three directories away, the API you must call is documented in a sibling module. A model with even a large context window cannot hold an entire codebase, so the central problem of practical code assistance is *context construction* — selecting the parts of a repository that matter for the edit at hand. This section covers retrieval, the long-context alternative, and the tradeoff between them.
+<a id="p-11-retrieval-and-repository-context-1"></a><!-- para:11-retrieval-and-repository-context-1 --> **Depth tier:** load-bearing
+
+<a id="p-11-retrieval-and-repository-context-2"></a><!-- para:11-retrieval-and-repository-context-2 --> Real software lives in repositories, not single files: the symbol you need is defined three directories away, the API you must call is documented in a sibling module. A model with even a large context window cannot hold an entire codebase, so the central problem of practical code assistance is *context construction* — selecting the parts of a repository that matter for the edit at hand. This section covers retrieval, the long-context alternative, and the tradeoff between them.
 
 <!-- sec:11.1 -->
 ### <a id="sec-11.1"></a>11.1 Repository-Level Completion by Retrieval

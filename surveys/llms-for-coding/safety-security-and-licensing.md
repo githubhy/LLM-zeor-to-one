@@ -1,6 +1,9 @@
-## 16 Safety, Security, Licensing, and Risk
+<!-- sec:16 -->
+## <a id="sec-16"></a>16 Safety, Security, Licensing, and Risk
 
-<a id="p-16-safety-security-licensing-and-risk-1"></a><!-- para:16-safety-security-licensing-and-risk-1 --> Code models inherit the general risks of LLMs and add several that are specific to the modality: they can write insecure code that compiles and runs, they expand the attack surface when wired into autonomous agents, and they raise unresolved questions about the licensing of the code they were trained on. This section treats each in turn, grounded where possible in primary measurement.
+<a id="p-16-safety-security-licensing-and-risk-1"></a><!-- para:16-safety-security-licensing-and-risk-1 --> **Depth tier:** load-bearing
+
+<a id="p-16-safety-security-licensing-and-risk-2"></a><!-- para:16-safety-security-licensing-and-risk-2 --> Code models inherit the general risks of LLMs and add several that are specific to the modality: they can write insecure code that compiles and runs, they expand the attack surface when wired into autonomous agents, and they raise unresolved questions about the licensing of the code they were trained on. This section treats each in turn, grounded where possible in primary measurement.
 
 <!-- sec:16.1 -->
 ### <a id="sec-16.1"></a>16.1 Insecure Code Generation

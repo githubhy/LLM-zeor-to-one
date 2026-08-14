@@ -1,4 +1,4 @@
-## Mechanistic Interpretability: Reading the Trained Model
+## <a id="sec-I"></a>Mechanistic Interpretability: Reading the Trained Model
 
 <a id="p-mechanistic-interpretability-reading-the-trained-model-1"></a><!-- para:mechanistic-interpretability-reading-the-trained-model-1 --> The anatomy appendices built the machine from first principles — the attention circuits of Appendix A, the fully worked toy of Appendix C, the scale ladder of Appendices D–H. This appendix turns the same rigor the other way: given a *trained* model, how do we read what it computes? Mechanistic interpretability (MI) is the reverse-engineering discipline, and its results are the empirical counterpart to the derivations elsewhere in this series — the hand-built induction head of <!-- secxref:A.9 -->[§A.9](appendix-a-qkv-first-principles.md#sec-A.9) and the solved grokking circuit of <!-- secxref:C.8 -->[§C.8](appendix-c-toy-transformer.md#sec-C.8) are MI in miniature.
 

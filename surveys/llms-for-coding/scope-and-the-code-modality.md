@@ -1,6 +1,9 @@
-## 2 Scope and the Code Modality
+<!-- sec:2 -->
+## <a id="sec-2"></a>2 Scope and the Code Modality
 
-<a id="p-2-scope-and-the-code-modality-1"></a><!-- para:2-scope-and-the-code-modality-1 --> Source code is, at the level of bytes, just another sequence of text — and the dominant code models are ordinary autoregressive Transformers trained with the same next-token objective used for natural language. So why does "LLMs for code" warrant a survey distinct from LLMs in general? Because code differs from prose in four ways that reshape every stage of the pipeline, from data curation to evaluation. This section makes that argument precise and fixes the vocabulary used throughout the survey.
+<a id="p-2-scope-and-the-code-modality-1"></a><!-- para:2-scope-and-the-code-modality-1 --> **Depth tier:** headline
+
+<a id="p-2-scope-and-the-code-modality-2"></a><!-- para:2-scope-and-the-code-modality-2 --> Source code is, at the level of bytes, just another sequence of text — and the dominant code models are ordinary autoregressive Transformers trained with the same next-token objective used for natural language. So why does "LLMs for code" warrant a survey distinct from LLMs in general? Because code differs from prose in four ways that reshape every stage of the pipeline, from data curation to evaluation. This section makes that argument precise and fixes the vocabulary used throughout the survey.
 
 <!-- sec:2.1 -->
 ### <a id="sec-2.1"></a>2.1 What Makes Code a Distinct Modality

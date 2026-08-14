@@ -1,6 +1,9 @@
-## 17 Design Guidance
+<!-- sec:17 -->
+## <a id="sec-17"></a>17 Design Guidance
 
-<a id="p-17-design-guidance-1"></a><!-- para:17-design-guidance-1 --> This section converts the survey into decisions. It is deliberately prescriptive: given a goal, what does the evidence recommend? The recommendations follow from earlier sections and are cross-referenced to them rather than re-argued.
+<a id="p-17-design-guidance-1"></a><!-- para:17-design-guidance-1 --> **Depth tier:** supporting
+
+<a id="p-17-design-guidance-2"></a><!-- para:17-design-guidance-2 --> This section converts the survey into decisions. It is deliberately prescriptive: given a goal, what does the evidence recommend? The recommendations follow from earlier sections and are cross-referenced to them rather than re-argued.
 
 <!-- sec:17.1 -->
 ### <a id="sec-17.1"></a>17.1 Choose the Deployment Mode First

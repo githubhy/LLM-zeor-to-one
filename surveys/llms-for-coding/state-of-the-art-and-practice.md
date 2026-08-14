@@ -1,6 +1,9 @@
-## 15 State of the Art and Practice
+<!-- sec:15 -->
+## <a id="sec-15"></a>15 State of the Art and Practice
 
-<a id="p-15-state-of-the-art-and-practice-1"></a><!-- para:15-state-of-the-art-and-practice-1 --> This section is a dated snapshot, and it is written with deliberate caution. Code-model leaderboards move in weeks, and as of this writing some public 2026 leaderboards list model identities and scores that cannot be verified against primary system documentation. The discipline here, following the citation-integrity rule this survey is built on, is to state the *progression* from primary sources and to present frontier figures only as explicitly dated, caveated estimates — never as load-bearing facts.
+<a id="p-15-state-of-the-art-and-practice-1"></a><!-- para:15-state-of-the-art-and-practice-1 --> **Depth tier:** load-bearing
+
+<a id="p-15-state-of-the-art-and-practice-2"></a><!-- para:15-state-of-the-art-and-practice-2 --> This section is a dated snapshot, and it is written with deliberate caution. Code-model leaderboards move in weeks, and as of this writing some public 2026 leaderboards list model identities and scores that cannot be verified against primary system documentation. The discipline here, following the citation-integrity rule this survey is built on, is to state the *progression* from primary sources and to present frontier figures only as explicitly dated, caveated estimates — never as load-bearing facts.
 
 <!-- sec:15.1 -->
 ### <a id="sec-15.1"></a>15.1 The Progression Curve

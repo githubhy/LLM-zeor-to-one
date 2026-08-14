@@ -1,4 +1,4 @@
-## Scaling the Dense Block: 33B–70B
+## <a id="sec-F"></a>Scaling the Dense Block: 33B–70B
 
 <a id="p-scaling-the-dense-block-33b70b-1"></a><!-- para:scaling-the-dense-block-33b70b-1 --> The modern block of Appendix E does not change again on the way to 70B — and that is the chapter. Scaling a dense model from 7B to 70B alters only three numbers, the width $d$, the head count $H$, and the depth $L$; every module, every equation, every gradient derived in Appendices C–E is reused byte-for-byte. What *does* appear at this scale is not new mathematics but a new constraint: the model's state no longer fits on a single device, and the arithmetic of *why* — derived directly from the Adam optimizer of <!-- secxref:C.4 -->[§C.4](appendix-c-toy-transformer.md#sec-C.4) — is the substance here. This 33B–70B band is also the dense sweet spot for code: Code Llama ships at 34B and 70B <!-- cite:6 --> [[6]](references.md#ref-6) and DeepSeek-Coder tops out at 33B <!-- cite:10 --> [[10]](references.md#ref-10).
 

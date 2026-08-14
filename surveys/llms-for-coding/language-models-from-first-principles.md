@@ -1,6 +1,9 @@
-## 3 Language Models from First Principles
+<!-- sec:3 -->
+## <a id="sec-3"></a>3 Language Models from First Principles
 
-<a id="p-3-language-models-from-first-principles-1"></a><!-- para:3-language-models-from-first-principles-1 --> The rest of this survey assumes a working picture of what a large language model *is* and how it is built. This section supplies that picture from first principles, for a reader comfortable with mathematics (linear algebra, probability, optimization, signals) but new to deep learning. The strategy throughout is to anchor each new object to something a signal-processing reader already owns — an autoregressive model, a correlation, a matched filter, a Fourier basis — and only then add the deep-learning specifics. The section builds from the language-modeling objective up through the Transformer and scaling laws, and closes with the code-specific machinery (tokenization, fill-in-the-middle, and the pass@k metric) the later sections rely on.
+<a id="p-3-language-models-from-first-principles-1"></a><!-- para:3-language-models-from-first-principles-1 --> **Depth tier:** headline
+
+<a id="p-3-language-models-from-first-principles-2"></a><!-- para:3-language-models-from-first-principles-2 --> The rest of this survey assumes a working picture of what a large language model *is* and how it is built. This section supplies that picture from first principles, for a reader comfortable with mathematics (linear algebra, probability, optimization, signals) but new to deep learning. The strategy throughout is to anchor each new object to something a signal-processing reader already owns — an autoregressive model, a correlation, a matched filter, a Fourier basis — and only then add the deep-learning specifics. The section builds from the language-modeling objective up through the Transformer and scaling laws, and closes with the code-specific machinery (tokenization, fill-in-the-middle, and the pass@k metric) the later sections rely on.
 
 <!-- sec:3.1 -->
 ### <a id="sec-3.1"></a>3.1 A Language Model Is an Autoregressive Predictor

@@ -1,4 +1,4 @@
-## Synthesis: One Architecture, Nine Orders of Magnitude
+## <a id="sec-H"></a>Synthesis: One Architecture, Nine Orders of Magnitude
 
 <a id="p-synthesis-one-architecture-nine-orders-of-magnitude-1"></a><!-- para:synthesis-one-architecture-nine-orders-of-magnitude-1 --> Appendices C through G walked the LLM ladder from a $203$-parameter toy to a $671$B-parameter frontier model. This closing chapter draws the rungs together: a single master table of every dimension across the five models, the accretion of design choices that separates them, and the scaling account — where the parameters, the compute, and the memory actually go. The through-line is the one worth keeping: across nine orders of magnitude in size, the core computation never changed. Every model is the toy of <!-- secxref:C.1 -->[§C.1](appendix-c-toy-transformer.md#sec-C.1), widened and deepened, refined on exactly five axes.
 

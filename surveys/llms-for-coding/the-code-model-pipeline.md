@@ -1,6 +1,9 @@
-## 5 The Code Model Pipeline
+<!-- sec:5 -->
+## <a id="sec-5"></a>5 The Code Model Pipeline
 
-<a id="p-5-the-code-model-pipeline-1"></a><!-- para:5-the-code-model-pipeline-1 --> A modern code assistant is the output of a pipeline with well-separated stages. Naming them once, here, gives a map for the rest of the survey: each subsequent section zooms into one stage. The pipeline is data → tokenization → pretraining → (optional) mid-training → alignment → serving, and the *deployment target* — inline autocomplete, chat, or autonomous agent — determines which stages are emphasized.
+<a id="p-5-the-code-model-pipeline-1"></a><!-- para:5-the-code-model-pipeline-1 --> **Depth tier:** supporting
+
+<a id="p-5-the-code-model-pipeline-2"></a><!-- para:5-the-code-model-pipeline-2 --> A modern code assistant is the output of a pipeline with well-separated stages. Naming them once, here, gives a map for the rest of the survey: each subsequent section zooms into one stage. The pipeline is data → tokenization → pretraining → (optional) mid-training → alignment → serving, and the *deployment target* — inline autocomplete, chat, or autonomous agent — determines which stages are emphasized.
 
 <!-- sec:5.1 -->
 ### <a id="sec-5.1"></a>5.1 The Stages
