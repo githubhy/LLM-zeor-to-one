@@ -1,0 +1,68 @@
+# Study prerequisite map — the zone-of-proximal-development gate for `/study`.
+#
+# Format:  <prereq-rung> <glob>      first match wins; blank lines and `#` ignored.
+#
+# The number is the rung a reader must ALREADY HOLD for the document to pay off —
+# NOT the document's own rung on the capability ladder. The two differ, and
+# conflating them is why the first version of `study-frontier.py` had no gate at
+# all. The ladder (docs/development-timeline.md) tracks DEPTH OF ENGAGEMENT with
+# the same object; L3 ("the system around the model") is not harder than L2, it is
+# a different axis. What a menu must not do is offer a document standing two rungs
+# of prerequisite above the reader — mechanistic interpretability at scale to
+# someone whose attention derivation is still open.
+#
+# The gate shows a document when  prereq <= reader_rung + 1  (`.claude/study-reader-rung`).
+# The "+ 1" IS the zone of proximal development: at your rung, or one above it,
+# never two. An UNMAPPED document is never hidden — absence of data is not
+# evidence of depth. Held-back documents are always reported as a count, never
+# silently dropped (explicit n/a beats silent absence).
+#
+# Rung meanings are the ladder's: L0 math substrate · L1 derive the mechanism ·
+# L2 how a real model is built · L3 the system around the model · L4 observe
+# mechanism in a trained model · L5 measure across training · L6 predict and
+# falsify · L7 build at scale.
+
+# --- prereq 0: needs only the mathematical substrate ------------------------
+0  surveys/llms-for-coding/language-models-from-first-principles.md
+0  surveys/llms-for-coding/appendix-a-qkv-first-principles.md
+0  surveys/*/index.md
+0  surveys/*/executive-summary.md
+0  surveys/*/introduction-and-scope.md
+0  surveys/llms-for-coding/scope-and-the-code-modality.md
+0  surveys/llms-for-coding/historical-evolution.md
+
+# --- prereq 1: needs the mechanism derived (attention, softmax, backprop) ----
+1  surveys/llms-for-coding/appendix-b-kernel-regression-family.md
+1  surveys/llms-for-coding/appendix-c-toy-transformer.md
+1  surveys/llms-for-coding/appendix-d-gpt2.md
+1  surveys/llms-for-coding/appendix-e-modern-dense.md
+1  surveys/llms-for-coding/appendix-f-scaling.md
+1  surveys/mechanistic-interpretability/appendix-a-transformer-circuits-math.md
+1  surveys/multimodal-llms/appendix-a-vit-and-encoders.md
+1  surveys/multimodal-llms/appendix-b-contrastive-infonce.md
+1  surveys/multimodal-llms/fundamentals.md
+1  surveys/mechanistic-interpretability/fundamentals.md
+
+# --- prereq 2: needs the real-model stack (GPT-2 -> modern dense) ------------
+2  surveys/llms-for-coding/appendix-g-moe.md
+2  surveys/llms-for-coding/appendix-h-synthesis.md
+2  surveys/mechanistic-interpretability/appendix-b-superposition.md
+2  surveys/mechanistic-interpretability/appendix-c-causal-interventions.md
+2  wikis/laptop-scale-training-feasibility.md
+
+# --- prereq 3: needs the surrounding system (serving, data, evaluation) -----
+3  surveys/mechanistic-interpretability/appendix-d-sae-derivations.md
+3  surveys/mechanistic-interpretability/appendix-e-steering-and-editing-math.md
+3  surveys/llms-for-coding/appendix-i-mechanistic-interpretability.md
+
+# --- prereq 4: needs observational MI machinery in hand ---------------------
+4  wikis/mechanistic-interpretability-coverage-gaps.md
+4  docs/*-study.md
+
+# --- catch-alls: MUST stay last -- first match wins, so a directory-wide rule
+#     placed above a specific one silently swallows it. That is not theoretical:
+#     appendix-i (MI at scale, the document this gate exists to hold back) leaked
+#     through at L2 on the first run because `llms-for-coding/*.md` sat above it.
+2  surveys/multimodal-llms/*.md
+2  surveys/llms-for-coding/*.md
+3  surveys/mechanistic-interpretability/*.md

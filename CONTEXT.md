@@ -101,11 +101,18 @@ duplicated `INDEX.md`.
 Settled 2026-08-13 (`decisions/2026-08-13-02`), against the evidence in
 `docs/reader-frontier-2026-08-13.md`.
 
-**The shape.** The agent opens with a short menu of topics drawn from the *measured*
-frontier. The reader takes one, or overrides with whatever they actually want. Then:
-read, ask, the agent answers, the answer gets folded in — and if a question needs an
-experiment, run one. Authoring surveys is not required of the reader; **asking is the
-work.**
+**The shape.** The session opens with **one old fold, re-answered from memory** — then a
+short menu of topics drawn from the *measured* frontier. The reader takes one, or
+overrides with whatever they actually want. Then: read, ask, the agent answers, the answer
+gets folded in — and if a question needs an experiment, run one. Authoring surveys is not
+required of the reader; **asking is the work.**
+
+**Why it opens with recall** (added 2026-08-14, `decisions/2026-08-14-01`). *Fluency* —
+following an answer with the corpus open — is not *storage strength*, and it produces a
+convincing sense of mastery on its own. The whole reason the reader column of the ladder
+had to be measured separately is that nothing in the session distinguished the two. One
+fold recalled cold, oldest-first, is the cheapest instrument that does; a blank is a
+better menu item than anything the ranking will produce.
 
 **The pulse check — the only guardrail.** A study session that produces **zero folds did
 not happen.** Questions were the metric that tracked frontier movement, and
@@ -115,7 +122,10 @@ folded in beats five manufactured ones.
 
 **How the menu is drawn.** From the gaps the frontier analysis found, in order —
 appendices D–I (zero folds ever recorded), then L2, then L4 (very thin despite eleven
-studies). Never from what is easy to explain.
+studies). Never from what is easy to explain. It is also **gated to one rung above the
+reader**: `.claude/study-prereqs` records what each document presumes, so the menu cannot
+offer mechanistic interpretability at scale to someone whose attention derivation is still
+open. Held-back documents are always reported, never silently dropped.
 
 **What this replaced.** An earlier proposal made the reader the *author* and the agent a
 reviewer. It was wrong, and the reader's own record refuted it: the single most productive

@@ -19,7 +19,25 @@ thread by choosing and asking — not by operating the keyboard.
 - **Do not batch answers.** One question, one answer, one fold. The turn boundary is the mechanism being protected.
 - **Answer at the asked depth, then stop.** Volunteering the next three things pre-empts the next question, which is the artifact this session exists to produce.
 
-## 1. Open with a COMPUTED menu
+## 1. Open with RETRIEVAL PRACTICE
+
+```bash
+python viewer/tools/study-frontier.py --recall 1
+```
+
+Put the question to the reader and **wait for their answer before opening the file**.
+This costs two minutes and is the only part of the session that measures *storage*
+strength rather than *fluency* — answering with the corpus open feels like mastery and
+is not the same thing (`decisions/2026-08-14-01`). The queue is oldest-first, so spacing
+is automatic.
+
+Then grade it honestly and briefly: what came back, what did not. **A blank is
+information, not a failure** — a fold the reader cannot reconstruct is a better menu
+item than anything the density ranking will produce, and it may be taken as the
+session's topic on the spot. Do not turn this into a quiz round: one fold, one answer,
+move on.
+
+## 2. Then a COMPUTED menu
 
 ```bash
 python viewer/tools/study-frontier.py --top 8
@@ -30,6 +48,14 @@ The tool ranks by *interrogation density* — folds per section, least-read firs
 one). **Never pick the menu by feel**; that drifts toward whatever is easy to explain,
 which is exactly what `decisions/2026-08-13-02` forbids.
 
+The menu is gated to the **zone of proximal development**: `.claude/study-prereqs` holds
+the rung each document presumes, and anything more than one rung above
+`.claude/study-reader-rung` is held back and reported as a count. So the `pre` column is
+already accounted for — do not re-apply it by eye, and do not reach into the held-back
+list without saying why. **Keep the reader rung current**: when the ladder in
+`docs/development-timeline.md` moves, that one-word file moves with it, or the menu
+silently narrows to a rung the reader has left.
+
 Then add **one** judgment overlay the tool cannot compute, and say you are adding it:
 *criticality to the current topic*. A document that is a prerequisite for the active
 topic-month (see `docs/development-timeline.md`) is worth surfacing even at a lower rank —
@@ -38,7 +64,7 @@ e.g. `appendix-d-gpt2.md` while Topic 1's Rung 2 is being built.
 Present at most 4 options, one line of *why this one* each, and mark the recommendation.
 Then stop and wait. The reader may substitute anything.
 
-## 2. The loop
+## 3. The loop
 
 Repeat until the reader stops:
 
@@ -56,7 +82,11 @@ signal-processing unifications the reader generated unprompted — matched filte
 filter, log-likelihood ratio, whitening. When an answer has a clean SP reading, lead with
 it.
 
-## 3. Close
+**When an answer does not land, `/wait-what` is the escape hatch** — a re-pitch in
+Simplified Technical English using `CONTEXT.md`'s vocabulary, not a longer answer. Offer
+it once if an explanation visibly misses; do not re-explain unprompted.
+
+## 4. Close
 
 ```bash
 python viewer/tools/study-frontier.py --since <session-start-ref>
