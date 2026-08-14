@@ -329,3 +329,63 @@
 
 <a id="ref-110"></a><!-- bib:110 -->
 [110] M. Naser Moghadasi, F. Ghaderi, et al., "What Twelve LLM Agent Benchmark Papers Disclose About Themselves: A Pilot Audit and an Open Scoring Schema." 2026. arXiv:2605.21404. (local: download/agent-benchmark-disclosure-audit-2026.pdf)
+
+<a id="ref-111"></a><!-- bib:111 -->
+[111] S. Ouyang, W. Yu, K. Ma, Z. Xiao, Z. Zhang, M. Jia, J. Han, H. Zhang, D. Yu, "RepoGraph: Enhancing AI Software Engineering with Repository-level Code Graph." *ICLR 2025.* arXiv:2410.14684. (local: download/repograph-2024.pdf)
+
+<a id="ref-112"></a><!-- bib:112 -->
+[112] Z. Chen, X. Tang, G. Deng, F. Wu, J. Wu, Z. Jiang, V. Prasanna, A. Cohan, X. Wang, "LocAgent: Graph-Guided LLM Agents for Code Localization." 2025. arXiv:2503.09089. (local: download/locagent-2025.pdf)
+
+<a id="ref-113"></a><!-- bib:113 -->
+[113] E. Bogomolov, A. Eliseeva, T. Galimzyanov, E. Glukhov, et al. (JetBrains Research / TU Delft), "Long Code Arena: a Set of Benchmarks for Long-Context Code Models." 2024. arXiv:2406.11612. (local: download/long-code-arena-2024.pdf)
+
+<a id="ref-114"></a><!-- bib:114 -->
+[114] X. Li, K. Dong, Y. Q. Lee, W. Xia, H. Zhang, X. Dai, Y. Wang, R. Tang (Huawei Noah's Ark Lab), "CoIR: A Comprehensive Benchmark for Code Information Retrieval Models." *ACL 2025.* arXiv:2407.02883. (local: download/coir-code-retrieval-2024.pdf)
+
+<a id="ref-115"></a><!-- bib:115 -->
+[115] Y. Tao, Y. Li, Y. Qin, Y. Liu, "Retrieval-Augmented Code Generation: A Survey with Focus on Repository-Level Approaches." 2025. arXiv:2510.04905. (local: download/rag-code-generation-survey-2025.pdf)
+
+<a id="ref-116"></a><!-- bib:116 -->
+[116] Z. Yu, W. Gu, Y. Wang, X. Jiang, Z. Zeng, J. Wang, W. Ye, S. Zhang, "Reasoning Through Execution: Unifying Process and Outcome Rewards for Code Generation." *ICML 2025.* arXiv:2412.15118. (local: download/orps-reasoning-through-execution-2024.pdf)
+
+<a id="ref-117"></a><!-- bib:117 -->
+[117] N. Dai, Z. Wu, R. Zheng, Z. Wei, W. Shi, X. Jin, G. Liu, C. Dun, L. Huang, L. Yan, "Process Supervision-Guided Policy Optimization for Code Generation." 2024. arXiv:2410.17621. (local: download/psgpo-process-supervision-code-2024.pdf)
+
+<a id="ref-118"></a><!-- bib:118 -->
+[118] C. Denison, M. MacDiarmid, F. Barez, D. Duvenaud, S. Kravec, S. Marks, N. Schiefer, et al. (Anthropic), "Sycophancy to Subterfuge: Investigating Reward Tampering in Language Models." 2024. arXiv:2406.10162. (local: download/sycophancy-to-subterfuge-2024.pdf)
+
+<a id="ref-119"></a><!-- bib:119 -->
+[119] D. Chen, S. Lin, M. Zeng, D. Zan, J.-G. Wang, A. Cheshkov, et al., "CodeR: Issue Resolving with Multi-Agent and Task Graphs." 2024. arXiv:2406.01304. (local: download/coder-multi-agent-2024.pdf)
+
+<a id="ref-120"></a><!-- bib:120 -->
+[120] D. Huang, Q. Bu, J. M. Zhang, Y. Qing, et al., "AgentCoder: Multi-Agent Code Generation with Effective Testing and Self-optimisation." 2023. arXiv:2312.13010. (local: download/agentcoder-2023.pdf)
+
+<a id="ref-121"></a><!-- bib:121 -->
+[121] H. Li, Y. Shi, S. Lin, et al., "SWE-Debate: Competitive Multi-Agent Debate for Software Issue Resolution." 2025. arXiv:2507.23348. (local: download/swe-debate-2025.pdf)
+
+<a id="ref-122"></a><!-- bib:122 -->
+[122] V. Aryabumi, Y. Su, R. Ma, A. Morisot, I. Zhang, A. Locatelli, M. Fadaee, A. Üstün, S. Hooker (Cohere For AI), "To Code, or Not To Code? Exploring Impact of Code in Pre-training." 2024. arXiv:2408.10914. (local: download/to-code-or-not-to-code-2024.pdf)
+
+<a id="ref-123"></a><!-- bib:123 -->
+[123] Y. Ma, et al., "At Which Training Stage Does Code Data Help LLMs Reasoning?" *ICLR 2024.* arXiv:2309.16298. (local: download/code-data-training-stage-reasoning-2023.pdf)
+
+<a id="ref-124"></a><!-- bib:124 -->
+[124] X. Zhang, Z. Z. Chen, X. Ye, X. Yang, L. Chen, W. Y. Wang, L. R. Petzold, "Unveiling the Impact of Coding Data Instruction Fine-Tuning on Large Language Models Reasoning." 2024. arXiv:2405.20535. (local: download/coding-data-ift-reasoning-2024.pdf)
+
+<a id="ref-125"></a><!-- bib:125 -->
+[125] Y. Xie, Z. Liu, M. Luo, Z. Zhang, K. Zhang, S. Wang, D. She, "QueryIPI: Query-agnostic Indirect Prompt Injection on Coding Agents." 2025. arXiv:2510.23675. (local: download/queryipi-coding-agents-2025.pdf)
+
+<a id="ref-126"></a><!-- bib:126 -->
+[126] Y. Xie, M. Luo, Z. Liu, Z. Zhang, et al., "Red-Teaming Coding Agents from a Tool-Invocation Perspective: An Empirical Security Assessment." 2025. arXiv:2509.05755. (local: download/red-teaming-coding-agents-tools-2025.pdf)
+
+<a id="ref-127"></a><!-- bib:127 -->
+[127] D. Schmotz, S. Abdelnabi, M. Andriushchenko (ELLIS Institute Tübingen / MPI-IS), "Agent Skills Enable a New Class of Realistic and Trivially Simple Prompt Injections." 2025. arXiv:2510.26328. (local: download/agent-skills-prompt-injection-2025.pdf)
+
+<a id="ref-128"></a><!-- bib:128 -->
+[128] V. Majdinasab, M. J. Bishop, S. Rasheed, A. Moradidakhel, A. Tahir, F. Khomh, "Assessing the Security of GitHub Copilot's Generated Code — A Targeted Replication Study." 2023. arXiv:2311.11177. (local: download/copilot-security-replication-2023.pdf)
+
+<a id="ref-129"></a><!-- bib:129 -->
+[129] Z. Mousavi, C. Islam, M. A. Babar, K. Moore, "Understanding the Impact of AI Code Assistants on Security API Usage: An Empirical Study." 2026. arXiv:2607.11348. (local: download/ai-assistants-security-api-usage-2026.pdf)
+
+<a id="ref-130"></a><!-- bib:130 -->
+[130] SWE-bench team, "SWE-bench experiments — official evaluation submissions" (per-submission `results.json` under `evaluation/verified/`; the authoritative record behind the public leaderboard). [link](https://github.com/SWE-bench/experiments) (web)

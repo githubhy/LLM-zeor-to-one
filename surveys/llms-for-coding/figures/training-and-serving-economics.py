@@ -13,14 +13,14 @@ show the pattern is general across open code LLMs (Qwen2.5-Coder 5.5T, StarCoder
 RL/preference alignment, is the honest gap: it is smaller still and rarely
 reported in tokens at all (DeepSeek-Coder has no RL stage; Qwen2.5-Coder's DPO
 data size is not reported). CodeRL's executable-reward RL, for instance, runs
-over ~1e4 APPS problems — a count of problems, not a token budget.
+over ~5e3 APPS train-split problems — a count of problems, not a token budget.
 
 All token values are STATED in the cited papers (no FLOP figure is invented):
   DeepSeek-Coder [10]  pretraining 2T tokens (abstract); SFT 2B tokens (sec 3.7).
   Qwen2.5-Coder [11]   5.5T pretraining tokens (Table 1 "# Trained Tokens").
   StarCoder2    [9]    3.3-4.3T tokens (abstract).
   Code Llama    [6]    ~5B instruction-tuning tokens (sec 2.6).
-  CodeRL        [19]   APPS = 10,000 problems (sec 4.2) for the RL stage.
+  CodeRL        [19]   APPS train split = 5,000 problems (sec 4.2: 10,000 total, 50-50 train/test) for the RL stage.
 
 (right, ANALYTICAL) Serving cost vs generation length T, counted in transformer
 "block-passes" (one token passed once through the stack). Generating T tokens
@@ -78,7 +78,7 @@ data = {
         "Qwen2.5-Coder_pretraining": QWEN_PRETRAIN,
         "StarCoder2_pretraining_range": [SC2_PRETRAIN_LO, SC2_PRETRAIN_HI],
         "CodeLlama_SFT": CL_SFT,
-        "alignment_note": "CodeRL RL over 10000 APPS problems (problems, not tokens); DeepSeek-Coder has no RL stage; Qwen DPO data not reported",
+        "alignment_note": "CodeRL RL over 5000 APPS train-split problems (problems, not tokens); DeepSeek-Coder has no RL stage; Qwen DPO data not reported",
     },
     "panel_b_blockpasses": {
         "T_mark": T_mark, "uncached_total": unc_mark, "cached_total": cac_mark,
@@ -122,7 +122,7 @@ ax1.text(0.04, np.sqrt(DSC_PRETRAIN * DSC_SFT), r"$\mathbf{1000\times}$",
 ax1.annotate("", xy=(2, 6e8), xytext=(2, 3e9),
              arrowprops=dict(arrowstyle="-|>", color=ALIGN_C, lw=1.4, ls="--"))
 ax1.text(2, 5e8,
-         "RL / preference: smaller still,\nrarely reported in tokens\n(CodeRL RL $\\approx 10^4$ problems [19])",
+         "RL / preference: smaller still,\nrarely reported in tokens\n(CodeRL RL $5{,}000$ problems [19])",
          ha="center", va="top", fontsize=6.9, color=ALIGN_C)
 
 ax1.set_xticks([0, 1, 2])

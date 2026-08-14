@@ -1,7 +1,7 @@
 ---
 slug: llms-for-coding-followups
 date_filed: 2026-08-14
-status: open
+status: in-progress
 ---
 
 # Follow-ups from the max-mode expansion of `surveys/llms-for-coding`
