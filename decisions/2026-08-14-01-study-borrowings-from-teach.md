@@ -89,6 +89,32 @@ it.
 - **Forecloses** nothing; `--all` and `--reader-rung` bypass the gate for any session that
   wants the full list.
 
+## Addendum — two further borrowings, same day
+
+A full three-way comparison of `/teach`, `/wait-what` and `/study` was run after this
+decision landed, to answer "is there more worth taking?". The answer was mostly no — the
+rejections above hold — but the comparison exposed two holes that `teach` states as
+principles and `/study` did not implement. Both are one clause; both are in
+`.claude/commands/study.md`. Recorded here rather than as a second decision because they
+are the same call, made the same day, on the same source.
+
+- **Prediction before the run.** `teach`: the feedback loop should be as tight as possible.
+  `/study`'s experiment escalation said *run it or file a todo* — no prediction step. An
+  experiment without a prior prediction collects data; against one it tests understanding.
+  This is not a general improvement, it is **the missing instrument for L6** (*predict and
+  falsify*), the rung `docs/development-timeline.md` records as not started in **either**
+  column, and whose named risk for Topic 1 is precisely that it could be run without ever
+  making a call in advance.
+- **One primary source per fold.** `teach`: every lesson recommends the single
+  highest-trust source to go read. Folds cite (`citation-integrity.md` guarantees the
+  citations are real) but never *curate* — the reader is left with an answer and no next
+  step outside it. One chosen source, not the survey's citation list.
+
+**Also corrected:** interleaving was listed above as "not taken". It is already satisfied
+by construction — `--recall` serves the globally oldest fold, which is almost never from
+the document the menu then serves, so every session mixes a different-but-related topic
+into practice. No work needed.
+
 ## Refs
 
 - `viewer/tools/study-frontier.py`, `viewer/tools/test_study_frontier.py` (14 tests).
