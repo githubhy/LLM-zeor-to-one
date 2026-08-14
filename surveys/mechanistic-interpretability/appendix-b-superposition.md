@@ -49,3 +49,18 @@ $$
 $$
 
 <a id="p-b3-the-grokking-modular-addition-algorithm-3"></a><!-- para:b3-the-grokking-modular-addition-algorithm-3 --> which is a **matched filter**: it is maximized by constructive interference across the frequencies exactly when $c \equiv a+b\ (\mathrm{mod}\ p)$, and near-uniformly small otherwise. The **progress measures** that expose the gradual formation of this circuit under a flat test-loss curve are the *restricted loss* (keep only key frequencies) and *excluded loss* (ablate key frequencies); tracking them reveals the memorization → circuit-formation → cleanup phases <!-- cite:55 --> [[55]](references.md#ref-55). This is the field's cleanest existence proof that gradient descent finds a crisp, human-legible algorithm — and it is entirely a statement in the frequency domain.
+
+<!-- sec:B.4 -->
+### <a id="sec-B.4"></a>B.4 Figure — the capacity argument, plotted
+
+<a id="p-b4-figure-the-capacity-argument-plotted-1"></a><!-- para:b4-figure-the-capacity-argument-plotted-1 --> ![Superposition interference and capacity](figures/appendix-b-superposition-capacity.svg)
+
+<a id="p-b4-figure-the-capacity-argument-plotted-2"></a><!-- para:b4-figure-the-capacity-argument-plotted-2 --> **F-B1 · Interference is linear in feature count and sparsity; capacity is inversely proportional to sparsity.**
+
+<a id="p-b4-figure-the-capacity-argument-plotted-3"></a><!-- para:b4-figure-the-capacity-argument-plotted-3 --> **1 · Purpose and operating conditions.** Both panels are **closed forms**, not measurements: no model was trained or run. Parameters: residual width $d = 768$ (GPT-2-small's, used only to keep the numbers recognizable); typical squared magnitude of an active feature $s = 1$; required signal-to-interference ratio $\tau = 10$ in panel (b); sparsities $p \in \{0.5, 0.1, 0.01, 0.001\}$. The Monte-Carlo markers in (a) use `numpy.random.default_rng(0)`, 4,000 trials per point, at $(d,m,p) \in \{(64,200,0.05), (128,500,0.02), (256,2000,0.01)\}$.
+
+<a id="p-b4-figure-the-capacity-argument-plotted-4"></a><!-- para:b4-figure-the-capacity-argument-plotted-4 --> **2 · What it shows.** (a) The mean-square interference from reading one feature off a superposed stream, against the closed form $(m-1)ps/d$; markers are the seeded simulation. (b) The number of features tolerable at a given signal-to-interference ratio, $m_{\max} = 1 + d/(p\tau)$.
+
+<a id="p-b4-figure-the-capacity-argument-plotted-5"></a><!-- para:b4-figure-the-capacity-argument-plotted-5 --> **3 · How to read it.** The interference curve crosses the signal level at the point where a probe recovers noise rather than a feature — that crossing, not any capacity bound, is what limits superposition. In (b), note that $s$ cancels: **tolerable feature count does not depend on how large activations are**, only on how often they fire.
+
+<a id="p-b4-figure-the-capacity-argument-plotted-6"></a><!-- para:b4-figure-the-capacity-argument-plotted-6 --> **4 · Caveats.** The closed form assumes *random* directions; a trained model's directions are not random, and organized geometry can do better. Empirical ratios of simulation to closed form are 0.992, 1.007, 1.017 — agreement is the claim, the third digit is not. Generator and persisted data: `figures/appendix-b-superposition-capacity.py` / `.json`.

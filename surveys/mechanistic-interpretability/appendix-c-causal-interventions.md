@@ -47,3 +47,18 @@ $$
 $$
 
 <a id="p-c3-cross-layer-transcoders-and-the-local-replacement-model-2"></a><!-- para:c3-cross-layer-transcoders-and-the-local-replacement-model-2 --> with attention patterns **frozen** at their real input-computed values. On this input the replacement reproduces the model's output exactly (the error nodes absorb the residual), and — crucially — the computation is now *linear* in the active features. The **attribution graph** is then the linear (Jacobian) map from each active feature/error/token to each downstream feature and to the logits, chained by the chain rule and pruned by influence. The two honest approximations are visible in the object itself: attention is frozen (not explained), and the error nodes are an explicit "unexplained residual" term — which is why the method is *faithful for this input* rather than a global circuit <!-- cite:20 --> [[20]](references.md#ref-20), <!-- cite:21 --> [[21]](references.md#ref-21).
+
+<!-- sec:C.4 -->
+### <a id="sec-C.4"></a>C.4 Figure — the two approximations patching relies on
+
+<a id="p-c4-figure-the-two-approximations-patching-relies-on-1"></a><!-- para:c4-figure-the-two-approximations-patching-relies-on-1 --> ![Patching approximation error and sub-additivity](figures/appendix-c-patching-approximation.svg)
+
+<a id="p-c4-figure-the-two-approximations-patching-relies-on-2"></a><!-- para:c4-figure-the-two-approximations-patching-relies-on-2 --> **F-C1 · Attribution patching is a near-operating-point instrument, and component effects do not add.**
+
+<a id="p-c4-figure-the-two-approximations-patching-relies-on-3"></a><!-- para:c4-figure-the-two-approximations-patching-relies-on-3 --> **1 · Purpose and operating conditions.** **Closed forms**, no model run. The metric is modelled as a saturating readout $m = \sigma(z_0 + g\delta)$, which is what a logit difference through a softmax is. Parameters: clean operating point $z_0 = -0.4$; single-component sensitivity $g = 1.1$; two-component sensitivities $g_A = 1.1$, $g_B = 0.9$. Fully deterministic — no random number generator is used.
+
+<a id="p-c4-figure-the-two-approximations-patching-relies-on-4"></a><!-- para:c4-figure-the-two-approximations-patching-relies-on-4 --> **2 · What it shows.** (a) Exact patching against its first-order (attribution) approximation, with relative error on the right axis: 1.0% at $\delta = 0.1$, 15.7% at $\delta = 2$, **82% at $\delta = 4$**. (b) The joint effect of patching two components against the sum of their singleton effects; the shaded gap is the interaction.
+
+<a id="p-c4-figure-the-two-approximations-patching-relies-on-5"></a><!-- para:c4-figure-the-two-approximations-patching-relies-on-5 --> **3 · How to read it.** The interaction in (b) is **negative throughout** — components are sub-additive — so summing singleton ablation effects *overstates* what a pair does together: $-1.2\%$ of the joint effect at small displacement, $-13.3\%$ at moderate, $-77.2\%$ at large. Any greedy search that scores components singly and sums inherits that bias, and it grows precisely where the components matter most.
+
+<a id="p-c4-figure-the-two-approximations-patching-relies-on-6"></a><!-- para:c4-figure-the-two-approximations-patching-relies-on-6 --> **4 · Caveats.** The relative error in (a) is **not monotone**: $\sigma$ is convex below its inflection and concave above, so the signed error changes sign near $\delta \approx 0.36$ at this $z_0$. What is monotone is the failure once the readout saturates. Crucially, this sub-additivity requires **no interaction in the network's computation** — it is a property of the nonlinear metric alone, which is exactly the distinction a circuit claim must make. Generator and persisted data: `figures/appendix-c-patching-approximation.py` / `.json`.

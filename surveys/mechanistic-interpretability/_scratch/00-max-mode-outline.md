@@ -60,7 +60,7 @@ Two holes, both specific.
 1. **The frontier is missing a year.** Citation years run 2004–2025 with **zero 2026
    entries**. An arXiv sweep for this brief returned 60 mechanistic-interpretability and 50
    sparse-autoencoder papers from 2026 alone. Three themes are structurally absent from the
-   survey: **weight-space / parameter interpretability** as a distinct axis; a
+   survey: **weight-space / parameter interpretability**, which §4.4 catalogs but does not derive; a
    **circuit-discovery methodology-critique** cluster (variance, mediator interaction,
    self-repair, certified fidelity); and the **continuation of the SAE re-evaluation** past
    the 2025 papers the survey already cites.
@@ -120,7 +120,7 @@ local files rather than spending the shared search pool. 19 sources acquired
 |---|---|---|
 | E1 Circuit-discovery methodology critique | 5, C, 10 | The strongest 2026 thread: the field auditing its own core method. Variance, mediator interaction, self-repair backups, certified fidelity. |
 | E2 SAE re-evaluation, 2026 | 6, D, 10 | Continues the 2025 debate the survey already carries (AxBench, SAEBench, sparse probing) into its next year. |
-| E3 Weight-space interpretability | 4, 8, A, 15 | A **new axis** the survey does not have: interpretability read off parameters rather than activations. |
+| E3 Weight-space interpretability | 4.4, 8, 15 | **CORRECTED after the Phase-3 critique.** This brief originally called it "a new axis the survey does not have". That was wrong: `method-inventory-observational.md` **§4.4 already covers direct weight/SVD analysis**, tagged `[catalog-only]`. The 2026 work is an **upgrade to that entry** — promoting the direct-weight half out of catalog-only on quantitative backing — plus one genuinely new placement (per-weight auto-interp belongs in §8, whose novelty is a unit swap inside an existing pipeline). Recorded rather than silently fixed, because the error was a negative asserted without checking the file that would have refuted it. |
 | E4 Theory and foundations | 2, A, B | Spectral identifiability, induction heads as n-gram interpolation, sparsity/superposition loss — direct appendix inputs. |
 | E5 Steering, control, and reasoning models | 7, E, 13 | The knowing-vs-steering gap, and interpretability of reasoning-mode models. |
 | E6 Frontier framing and model diffing | 8, 12, 15 | A 2026 survey anchor plus model-diffing as a method family. |
