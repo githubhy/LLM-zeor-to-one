@@ -256,27 +256,53 @@ verify fan-out unused; file-split 200 KB) · audience `learner` · `agent_harden
 
 ---
 
-## 10. R-MATHREV — adversarial re-derivation (in flight)
+## 10. R-MATHREV — adversarial re-derivation (complete)
 
-`max` mode activates `[R-MATHREV]`, and `[opt:MATH-REDERIVE]` independently triggers on the 19
-new `\tag{}` lines: a new numbered derivation gets one independent re-derivation before it
-lands, by a reviewer that is not the writer, on Opus, deriving **before** reading the target so
-it checks rather than validates.
+`max` activates `[R-MATHREV]`, and `[opt:MATH-REDERIVE]` triggers independently on the new
+`\tag{}` lines. An Opus reviewer derived all four results from first principles and wrote them
+to disk **before** opening the appendix — the deliverable carries a `<!-- PHASE-A-END -->`
+sentinel marking that boundary — then diffed, then recomputed every number.
 
-That review is running as this report is written. Its brief requires it to derive all four
-results from first principles in Phase A (complete), diff them against the appendix in Phase B,
-recompute every worked number numerically, and hunt specifically for sign and direction errors,
-overclaims ("exact", "optimal", "proves"), and interpretation presented as sourced fact. Its
-deliverable is `_scratch/review-appendix-j.md`.
+**Verdict: sound in its four core results; two findings had to be fixed before sign-off.**
 
-**Status: Phase A complete (four independent derivations written), Phase B in progress.** This
-section will be replaced by the verdict and any resulting corrections. The appendix is already
-committed (`1b87bb3`), so a finding becomes a follow-up commit rather than a blocked one —
-which is the intended shape: the gate is "reviewed before sign-off", and sign-off is this
-report, not the commit.
+What the review confirmed rather than merely accepted: the concavity expression and its
+Jensen direction are correct *including the sign* (it looked for an inversion and found none);
+the estimator is genuinely unbiased, verified to `3.8e-15`, so the appendix's "no
+approximation, no large-$n$ limit" is an **earned** claim it explicitly recommended *not*
+downgrading; the product identity is exact over 4,000 random triples including the degenerate
+branch, and the printed twelve-digit check value is right to the last digit; the KL
+convexity block is entirely correct; the FIM causal-mask argument and the $L/3$ spacing result
+both hold.
 
-Two things the review is specifically positioned to catch that the numerical checks already run
-cannot: whether the unbiasedness argument for the pass@k estimator is *valid as stated* (its
-numbers can be right while its justification is hand-waved), and whether the GRPO
-"no-longer-exactly-unbiased" caveat is correctly reasoned rather than merely cautious-sounding.
-An oracle tests values; a re-derivation tests reasoning.
+### Findings and dispositions — 2 high, 11 med, 6 low; all applied
+
+| # | Sev | Finding | Applied |
+|---|---|---|---|
+| 1 | **high** | J.1's punchline claimed a one-in-a-hundred model scores `pass@100 ≈ 1`. It is **0.6340**. The point was right; the instance refuted it. | Rewritten at $p = 0.05$ (0.9941), with the $p = 0.01$ value kept as the counter-example and the governing product $pk$ named. |
+| 2 | **high** | The GRPO caveat said the lemma "licenses subtracting the mean" and only the division is a heuristic. **Backwards** — the group mean contains $r_i$, violating the lemma's one hypothesis. | Rewritten with the derivation: in-group centring yields exactly $\frac{G-1}{G}\nabla J$. Added as a new numbered equation, verified by Monte Carlo (0.4998 / 0.7499 / 0.8748 vs 0.5 / 0.75 / 0.875), and noted that leave-one-out would be exactly licensed. |
+| 3 | med | The FIM "contains an AR sub-task" claim named the **suffix** factors; those are gap-conditioned continuation. The **prefix** factors are the ones that satisfy it. | Corrected, with the suffix case called out explicitly as the genuinely different task. |
+| 4 | med | The precision argument cited $\binom{200}{100}$, which the estimator never forms; at the worked point the naive ratio is **bit-exact**. | Requalified as a general-case overflow hazard near $k \approx n/2$, with the worked-point measurement stated against it. |
+| 5 | med | "solve rate vs $\log k$ looks like a straight line" — a single-$p$ curve is a saturating sigmoid. | Corrected, with the decade increments printed and log-linearity attributed to its actual mechanism (a mixture over problems of differing $p$). |
+| 6 | med | $k \approx 202$ for 95% coverage: 202 gives 0.94978, and the bound is a $\ge$. | Corrected to **203**, with the shortfall shown. |
+| 7 | med | The worked GRPO `std = 0.5` is the population form; the sample form gives 0.577 and $\pm 0.866$. `[opt:MATH-BASIS]` requires the declaration. | Basis declared inline with both values. |
+| 8–9 | med | Two argument gaps: the unbiasedness proof jumped from the subset fact to the expectation without the tower step (and never stated $n \ge k$); the KL block never established that $f(u)$ *estimates* a KL. | Both closed — the tower step made explicit, and $\mathbb{E}[f(u)] = \mathbb{D}_{\mathrm{KL}}$ derived in two lines. |
+
+**The finding worth dwelling on is 9-adjacent: J.4 substituted an *averaged* pass rate into a
+concave function — the exact Jensen fallacy J.1 spends fifteen paragraphs warning against.**
+Committed in the same document that teaches against it, roughly two thousand words later. It is
+now flagged in place, along with the wrong-event mismatch beside it (the rate is
+pass-the-example-tests, not solve), and the number is framed as an order-of-magnitude anchor
+rather than a budget. This is precisely the class an oracle cannot catch: every number involved
+was arithmetically correct.
+
+**Scope honesty.** The review reports seven external-sourcing claims as **UNCHECKED** rather
+than correct — the Codex appendix, the FIM-rate sweep, InCoder, Reflexion, AlphaCode and the IOI
+figures. Those belong to `citation-audit`, not to a re-derivation, and are folded into the
+follow-ups todo rather than silently counted as verified.
+
+Post-fix state: **20 numbered equations, sequential**; survey re-normalized; all gates clean.
+
+*Why this gate earns its cost:* the numerical oracle I ran while authoring confirmed every value
+in J.1 and J.3 and would have confirmed them forever. Findings 1 and 2 are both cases where the
+arithmetic was right and the *sentence built on it* was wrong. Oracles test values; re-derivation
+tests reasoning.
