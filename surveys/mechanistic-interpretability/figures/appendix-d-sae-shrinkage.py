@@ -38,11 +38,19 @@ reconstruction error contributed by shrinkage alone is
 
     E_shrink = n_active * (lambda/2)^2
 
-(the directions are near-orthogonal, so the per-feature errors add in quadrature)
 which grows LINEARLY in the number of active features and QUADRATICALLY in
-lambda. The three curves are lambda in {0.2, 0.6, 1.2}. This is the mechanism
-behind the fidelity-sparsity frontier: pushing lambda up to buy sparsity pays for
-it in reconstruction at a rate that is quadratic, not linear.
+lambda. The three curves are lambda in {0.2, 0.6, 1.2}.
+
+TWO HYPOTHESES THIS PANEL NEEDS, both stronger than they look. (i) Adding the
+per-feature errors in quadrature assumes the ACTIVE decoder columns are mutually
+ORTHOGONAL -- unit norm is not enough. Under merely-incoherent columns the cross
+terms add a correction growing with the number of active PAIRS, i.e.
+quadratically in n_active against the plotted linear term, so these lines are a
+LOWER BOUND on the true shrinkage cost and the gap widens to the right.
+(ii) The "quadratic in lambda" reading holds at FIXED n_active. Raising lambda
+buys sparsity precisely BY reducing n_active, so the two factors of the product
+move in opposite directions: this panel isolates one factor of the
+fidelity-sparsity tradeoff, it does not trace the frontier.
 
 NOTHING HERE IS MEASURED FROM A MODEL. Both panels are properties of the
 objective, and lambda / theta / k are the objective's own hyperparameters, chosen
@@ -58,6 +66,11 @@ import pathlib
 
 import matplotlib
 matplotlib.use("Agg")
+# Byte-reproducible SVG: fix the salt matplotlib uses to generate element ids,
+# and drop the wall-clock <dc:date> at savefig (see metadata= below). Without both,
+# re-running an UNCHANGED generator rewrites every id and the date, producing a
+# multi-hundred-line diff in which a real change would be invisible.
+matplotlib.rcParams["svg.hashsalt"] = "appendix-d-sae-shrinkage"
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -103,7 +116,7 @@ axR.legend(fontsize=8.6, frameon=False)
 axR.grid(alpha=.25, lw=.5)
 
 fig.tight_layout()
-fig.savefig(HERE / f"{STEM}.svg")
+fig.savefig(HERE / f"{STEM}.svg", metadata={"Date": None})
 
 data = {
     "constants": {"lambda_panel_a": LAMBDA, "theta": THETA,

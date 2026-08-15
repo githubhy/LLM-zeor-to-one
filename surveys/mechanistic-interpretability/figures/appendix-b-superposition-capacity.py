@@ -58,6 +58,11 @@ import pathlib
 
 import matplotlib
 matplotlib.use("Agg")
+# Byte-reproducible SVG: fix the salt matplotlib uses to generate element ids,
+# and drop the wall-clock <dc:date> at savefig (see metadata= below). Without both,
+# re-running an UNCHANGED generator rewrites every id and the date, producing a
+# multi-hundred-line diff in which a real change would be invisible.
+matplotlib.rcParams["svg.hashsalt"] = "appendix-b-superposition-capacity"
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -136,7 +141,7 @@ axR.set_title(rf"(b) capacity $\propto 1/p$   ($d={D_MODEL}$, $\tau={TAU:g}$)", 
 axR.grid(alpha=.25, which="both", lw=.5)
 
 fig.tight_layout()
-fig.savefig(HERE / f"{STEM}.svg")
+fig.savefig(HERE / f"{STEM}.svg", metadata={"Date": None})
 
 # ------------------------------------------------------------------- sidecar
 data = {

@@ -1,7 +1,7 @@
 ---
 slug: mi-survey-remaining-appendices
 date_filed: 2026-08-15
-status: open
+status: closed
 ---
 
 # Mechanistic-interpretability survey — appendices A, C, E and the remaining 2026 body updates
@@ -86,3 +86,41 @@ owed before this survey is signed off.
 - Workflow runs `wf_62ffb6fb-f63` (frontier) and `wf_e065a48c-998` (derivations).
 - `bugs/2026-08-15-01` — why the critics' "zero records" verdicts were artifacts and their
   content corrections were not.
+
+## Resolution
+
+**Resolution.** Closed 2026-08-15. All three acceptance criteria met.
+
+1. **Appendices A, B, C, E deepened** from their audits' must-derive lists. A: 754 → 3,886 words
+   (6 → 17 equations), B: 940 → 2,792, C: 1,007 → 2,674, E: 610 → 2,351. Survey 29,446 → 41,437
+   words. The three named source defects were **repaired, not reproduced**, and each was verified
+   against the PDF rather than taken from the audit: the capacity exponent is $e^{C_1(d/d'^2)\delta^2}$
+   (exponential in $d$, not $d^2$); ROME's Eq. 9 is dimensionally inconsistent as printed (scalar set
+   equal to matrices, missing trace) so §E.2 derives in trace form; ROME's Eq. 4 hooks two distinct
+   token positions, which §E.6 records without reproducing since the appendix never states that
+   objective. The stitched Appendix-C equation was likewise never transcribed — §C.6/§C.7 were built
+   from primary values read directly.
+
+   A fourth defect surfaced that the audit had not named: Appendix E.3's MEMIT update was
+   **non-conformable** and live on `main` (`bugs/2026-08-15-02`).
+
+2. **Body updates landed** in §6.5, §12.2, §4.4, §8.1, §7.7 (new), §13.1, and §15.1 (two new open
+   problems). The citable SAE figure is **9%**, with the abstract-vs-body denominator discrepancy
+   stated explicitly. Model diffing is filed as **corroboration**: the paper's own Table 14 puts a
+   single SAE direction at +2.63 ΔVSR against plain difference-in-means at +8.96. Weight-space was an
+   **upgrade** of the existing `[catalog-only]` §4.4 entry to `load-bearing`, plus per-weight
+   auto-interp into §8.1 — not a new family.
+
+3. **R-MATHREV ran on five appendices**, not just D — every appendix that gained numbered equations,
+   all on Opus, deriving before reading. Returned 12 ERROR / 15 UNSTATED HYPOTHESIS / 13 OVERSTATEMENT.
+   **Every displayed equation was correct; the findings were in the prose around them**, which is the
+   class the rule exists for. Three would have shipped a wrong conclusion — §C.7's synergy verdict was
+   *inverted*, §B.8's metric-relativity thesis was false of the sections it named, and §B.7's linear
+   contrast was 3× too large. All applied; raw reviews preserved in `_scratch/review-appendix-{a..e}.md`.
+
+Two follow-ons filed rather than swept along: `todos/2026-08-15-web-native-source-upgrades.md` (the
+remaining `(web)` references that are primary records) and `bugs/2026-08-15-03` (figure SVGs were not
+byte-reproducible; fixed). Gates green: lint-math 0 errors, validate-refs OK, bare-refs 0, 102
+references 0 errors, 22 depth-tier labels 0 violations, 0 TIER-DRIFT, 362 fragment links 0 dangling,
+no cross-link gaps, record-ids consistent.
+

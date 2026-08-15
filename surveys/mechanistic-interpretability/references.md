@@ -7,8 +7,19 @@ forum) where the citation *is* the page. `local:` is the strong form; `web` is w
 carry a load-bearing claim without corroboration. Numeric values flagged in the section prose are
 reconciled against these sources in the citation-audit pass.
 
+A web-native publication is not automatically a weak reference. Where such an article is a
+**primary record** that this survey's derivations rest on, its full text is extracted from the
+published HTML and tracked under `download/web-native/`, and it carries the strong `local:` tag —
+the article's own LaTeX source survives the extraction, so equations are quoted from the record
+rather than from a re-statement. Reference [1] is the case that forced this: it is the origin of
+the QK/OV factorization, virtual weights, path expansion and the composition taxonomy that
+Appendix <!-- secxref:A -->[§A](appendix-a-transformer-circuits-math.md#sec-A) derives, and citing
+its downstream re-statements instead would have been citing the echo rather than the record.
+`(web)` remains correct for a page where no full text is fetchable, or where the citation genuinely
+*is* the page.
+
 <a id="ref-1"></a><!-- bib:1 -->
-[1] N. Elhage, N. Nanda, C. Olsson, et al., "A Mathematical Framework for Transformer Circuits," Transformer Circuits Thread, 2021. (web)
+[1] N. Elhage, N. Nanda, C. Olsson, et al., "A Mathematical Framework for Transformer Circuits," Transformer Circuits Thread, 2021-12-22. [https://transformer-circuits.pub/2021/framework/index.html] (local: download/web-native/elhage-mathematical-framework-2021.txt)
 
 <a id="ref-2"></a><!-- bib:2 -->
 [2] C. Olah, N. Cammarata, L. Schubert, G. Goh, M. Petrov, S. Carter, "Zoom In: An Introduction to Circuits," Distill, 2020. (web)
@@ -306,3 +317,9 @@ reconciled against these sources in the citation-audit pass.
 
 <a id="ref-100"></a><!-- bib:100 -->
 [100] H. Batra, L. Naghashyar, A. Khakzar, C. Schroeder de Witt, P. Torr (Oxford), "Multimodal Model Diffing for Feature Discovery and Control." 2026. arXiv:2608.09928. (local: download/mi26-multimodal-model-diffing.pdf)
+
+<a id="ref-101"></a><!-- bib:101 -->
+[101] A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, Ł. Kaiser, I. Polosukhin, "Attention Is All You Need," NeurIPS 2017. arXiv:1706.03762. (local: download/vaswani-attention-is-all-you-need-2017.pdf)
+
+<a id="ref-102"></a><!-- bib:102 -->
+[102] A. Radford, J. Wu, R. Child, D. Luan, D. Amodei, I. Sutskever, "Language Models are Unsupervised Multitask Learners," OpenAI technical report, 2019. (local: download/gpt2-2019.pdf)

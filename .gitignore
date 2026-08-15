@@ -11,10 +11,17 @@ __pycache__/
 **/.claude/diagnostics/
 
 # Acquired full-text sources: PDFs are tracked via Git LFS (see .gitattributes).
-# Still ignore any other (non-PDF) contents of download/.
+# Still ignore any other (non-PDF) contents of download/ -- EXCEPT download/web-native/,
+# which holds primary sources that are published only as HTML and for which no PDF exists
+# (e.g. Transformer Circuits Thread articles). Those are extracted to text and tracked
+# plainly, so a `(local: download/web-native/<file>.txt)` source tag resolves against the
+# git index exactly like a PDF does. Web-native sources are still PRIMARY records; the
+# `(web)` tag is for pages where the citation IS the page and no full text is fetchable.
 download/*
 !download/.gitkeep
 !download/*.pdf
+!download/web-native/
+!download/web-native/*.txt
 
 # Node (viewer server deps; install via `cd viewer && npm install`)
 node_modules/

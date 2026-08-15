@@ -70,6 +70,11 @@ import pathlib
 
 import matplotlib
 matplotlib.use("Agg")
+# Byte-reproducible SVG: fix the salt matplotlib uses to generate element ids,
+# and drop the wall-clock <dc:date> at savefig (see metadata= below). Without both,
+# re-running an UNCHANGED generator rewrites every id and the date, producing a
+# multi-hundred-line diff in which a real change would be invisible.
+matplotlib.rcParams["svg.hashsalt"] = "appendix-c-patching-approximation"
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -147,7 +152,7 @@ for r in inter_rows[1:]:
                  textcoords="offset points", xytext=(4, -13), fontsize=8.2, color="#d62728")
 
 fig.tight_layout()
-fig.savefig(HERE / f"{STEM}.svg")
+fig.savefig(HERE / f"{STEM}.svg", metadata={"Date": None})
 
 data = {
     "constants": {"z0": Z0, "g": G, "gA": GA, "gB": GB,
