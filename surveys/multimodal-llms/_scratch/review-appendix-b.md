@@ -256,4 +256,295 @@ The expectation is over the **joint** $p(x,c) = p(c)\,p(x\mid c)$ — i.e. $c \s
 
 ## Part 2 — Comparison against the target
 
-(appended after reading `appendix-b-contrastive-infonce.md`)
+Read after Part 1 was complete. Sources opened for verification:
+`download/vandenoord-cpc-2018.pdf` (CPC App. A.1, Eq. 6–11) and
+`download/zhai-siglip-2023.pdf` (Table 2). Both are `local:`-tagged in `references.md`.
+
+**Headline.** Every *displayed equation* in §B.3 is correct as printed, and every worked
+number checks out. The two defects are both in prose: the boxed `> **Note —**` **points at
+the wrong step** and then **gives away a bound it did not have to give away**; and the
+worked-example paragraph's interpretive argument is built on off-basis evidence.
+
+---
+
+### [ERROR] The boxed Note's conclusion — the $\log N$ form needs no assumption
+
+**Survey claims** (line 56): "*the honest form of Equation (5) is the $N-1$ one, and the $N$
+version needs a pointwise assumption nobody states*", concluding
+$I \ge \log(N-1) - \mathcal{L}_{\mathrm{NCE}}$ is "*the unconditional statement*".
+
+**My independent result.** The step is never used pointwise — it is used **inside an
+expectation**, and there it is unconditionally valid. Set $u = -\log r$, so
+
+$$
+\log h(r) \;=\; \phi(u) \;=\; \log\!\bigl(e^{u} + N-1\bigr) - \log N ,
+$$
+
+a log-sum-exp, hence **convex** and increasing with $\phi(0)=0$. Jensen for a convex function
+runs the opposite way to the concave case:
+
+$$
+\mathbb{E}\log h(r) \;=\; \mathbb{E}\phi(u) \;\ge\; \phi(\mathbb{E}u) \;=\; \phi\bigl(I(x_v;x_t)\bigr) \;\ge\; \phi(0) \;=\; 0 ,
+$$
+
+using $\mathbb{E}u = -\mathbb{E}\log r = I \ge 0$ — the survey's own Eq. (4) right-hand
+equality. So $\mathbb{E}\log[1+r(N-1)] \ge \mathbb{E}\log[rN]$ for **every** distribution of
+$r$ that can arise here, with **no condition on $r$ whatsoever**. Equality only in the
+degenerate $I=0$ case.
+
+**Delta.** The Note surrenders $\log\frac{N}{N-1}$ nats that were never at risk. The
+diagnosis "the $N$ version needs a pointwise assumption nobody states" is **backwards**:
+nobody states the assumption because nobody needs it. Numerically corroborated — 400k
+adversarial two-point distributions of $u$ with $\mathbb{E}u = I \ge 0$, spread to $\pm 60$
+nats, across $N \in \{2,8,64,1024,32768\}$: $\mathbb{E}\log h$ was **never** negative (minimum
+$10^{-8}$ to $10^{-14}$, i.e. float noise at the degenerate point).
+
+**Tightest unconditional statement** (strictly stronger than either form in the survey):
+
+$$
+\log N - \mathcal{L}^{\ast}_N \;\le\; I + \log\frac{N}{e^{I} + N - 1} .
+$$
+
+Its right side is $\le I$ (the MI bound) and $\to \log N$ as $I \to \infty$ (the ceiling). One
+line, both results, no side conditions.
+
+**Suggested repair.** Keep the pointwise observation — it is a genuinely nice piece of
+analysis and correctly identifies that CPC's Eq. (10) is asserted bare. But retitle it: the
+pointwise step needs $r \le 1$; the *expectation* step does not; therefore Eq. (5) as
+published is fine and the $N-1$ retreat is unnecessary.
+
+### [ERROR] The Note diagnoses the wrong step — the fatal one is the `≈`, and it points the wrong way
+
+**Survey framing** (line 42): the sum-to-mean replacement is "*an approximation that sharpens
+as $N$ grows, and the one place the source flags its own looseness*" — then the Note spends
+its entire length on the *middle* inequality instead.
+
+**My independent result.** Order of severity is inverted. With
+$S = \sum_{x_j \in X_{\text{neg}}} p(x_j\mid x_v)/p(x_j)$, Eq. (3) is an exact identity, and
+the replacement $S \rightsquigarrow N-1$ is, when made rigorous, **Jensen on the concave
+$\log$**:
+
+$$
+\mathcal{L}^{\star} = \mathbb{E}\log(1 + rS) \;\le\; \mathbb{E}\log\bigl(1 + r(N-1)\bigr) .
+$$
+
+The argument needs a **lower** bound on $\mathcal{L}^{\star}$ (Eq. (5) rearranges to
+$\mathcal{L} \ge \log N - I$). This step supplies an **upper** bound. So the chain
+`A ≈ B ≥ C` yields nothing about `A ≥ C`: **as written, Eq. (4) proves the bound for a
+quantity that dominates $\mathcal{L}^{\star}$, not for $\mathcal{L}^{\star}$.** Verified
+numerically by exact enumeration: $\mathcal{L}^{\ast} \ge \mathcal{L}^{\mathrm{opt}}$ in
+**8/8** random discrete problems.
+
+Also unstated: "sharpens as $N$ grows" is an LLN claim that needs
+$\operatorname{Var}_{x\sim p}[p(x\mid x_v)/p(x)] = \chi^2\bigl(p(\cdot\mid x_v)\,\Vert\,p\bigr) < \infty$.
+High-dimensional density ratios are routinely heavy-tailed; the survey inherits CPC's
+"*quickly becomes more accurate*" without the condition.
+
+**Delta.** A note whose stated purpose is "the middle inequality does not hold pointwise"
+walks past the step that actually breaks the deduction. Net effect: the survey repairs a
+non-problem and leaves the real one unflagged.
+
+**Source check (verbatim, `download/vandenoord-cpc-2018.pdf` App. A.1).** CPC's chain is
+Eq. (6) identity → Eq. (8) `≈` (the sum-to-mean) → Eq. (10) `≥` (the $r\le1$ one) → Eq. (11).
+CPC's own commentary is "*Equation 8 quickly becomes more accurate as N increases*". So the
+survey's two attributions to the source are both **accurate**: the source does flag looseness
+only at the `≈`, and does assert the `≥` bare with no condition. The misjudgement is the
+survey's ranking of the two, not its reading of the paper.
+
+**Note the result is still a theorem** — provable exactly, without either approximation.
+Using $K \perp x_v$ and $K \perp X$ (Part 1 §b′), a two-way chain rule gives the identity
+
+$$
+\mathcal{L}^{\mathrm{opt}}_N \;=\; \log N - I(x_v;x_t) + I(X; x_v) ,
+$$
+
+so $\log N - \mathcal{L}_N \le I(x_v;x_t)$ **exactly and unconditionally**, with the slack at
+the optimal critic equal to $I(X;x_v)$ — the MI between the *whole candidate set* and the
+image. Verified by exact enumeration on six random discrete problems to
+$\le 3.3\times10^{-16}$. This would be a strictly better derivation to present than CPC's, and
+it makes the Note unnecessary rather than merely wrong.
+
+### [CONFIRMED] All four of the Note's algebraic sub-claims
+
+| Claim | Verdict |
+|---|---|
+| the step is equivalent to $1+r(N-1) \ge rN$, i.e. to $r \le 1$ | **correct** (pointwise) |
+| $h(r) = \frac{1+r(N-1)}{rN} = \frac{1}{rN} + \frac{N-1}{N}$ | **correct**, max err $5.7\times10^{-14}$ over $r \in [10^{-6},10^{15}]$ |
+| $h$ strictly decreasing with infimum $\frac{N-1}{N}$ | **correct**; infimum approached as $r\to\infty$, never attained |
+| the step loses at most $\log\frac{N}{N-1}$ nats for every $r>0$ | **correct** as a pointwise worst case |
+| $\log N - \log\frac{N}{N-1} = \log(N-1)$ | **correct** |
+
+The algebra is clean. It is the *conclusion drawn from it* that is wrong — exactly the failure
+class `[opt:MATH-REDERIVE]` exists to catch.
+
+### [CONFIRMED] Every worked number
+
+| Survey value | Recomputed | Verdict |
+|---|---|---|
+| $\log N = 10.4$ nats at $N=32768$ | $10.39720770839918$ | ✓ |
+| $15.0$ bits | $\log_2 32768 = 15$ exactly | ✓ |
+| $\log\frac{N}{N-1} = 3.1\times10^{-5}$ nats | $3.051804\times10^{-5}$ | ✓ (2 s.f.; $3.05\times10^{-5}$ is truer) |
+| $\log N = 9.7$ nats at $N=16384$ | $9.70406$ | ✓ |
+| SigLIP INet-0: $71.6, 73.2, 73.2, 73.2, 73.1$ | Table 2, exact | ✓ |
+| SigLIP XM avg: $34.8, 34.9, 34.4, 33.6, 32.7$ | Table 2, exact | ✓ |
+| "$2.2$-point decline from the peak at $32$k" | $34.9 - 32.7 = 2.2$ | ✓ |
+| "flat to within $0.1$ points across a $7.5\times$ range" | $240/32 = 7.5$; $73.2 \to 73.1$ | ✓ |
+| ¶7 "on the identical runs whose ImageNet column was flat" | both rows are Table 2 | ✓ |
+
+### [CONFIRMED] (a) and (d)
+
+$f^\star \propto p(x_t\mid x_v)/p(x_t)$, independent of $N$ — matches my Bayes derivation and
+CPC §2.3 verbatim. Eq. (2) and Eq. (3) are both exact identities as printed.
+
+$\mathbb{E}[\log r] = -I$ is **exact**, not approximate — it is the definition of mutual
+information, and the InfoNCE positive is by construction a joint draw, so the loss supplies
+precisely the expectation the definition wants. The survey's "*just $\mathbb{E}[\log r] = -I$
+by definition*" is right. But see the next finding for the expectation's domain.
+
+### [UNSTATED HYPOTHESIS] $\mathbb{E}_X$ omits the outer expectation over $x_v$
+
+Eq. (3) and Eq. (4) both carry the operator $\mathbb{E}_X$, where §B.1 defines $X$ as the
+*candidate set* at a **fixed** image $x_v$. Under that reading the right-hand equality of
+Eq. (4) is false:
+
+$$
+\mathbb{E}_{x_t^{+} \sim p(\cdot\mid x_v)}[\log r] \;=\; -\,\mathrm{KL}\bigl(p(x_t\mid x_v)\,\Vert\,p(x_t)\bigr) ,
+$$
+
+which equals $-I(x_v;x_t)$ only **after** averaging over $x_v \sim p(x_v)$. The expectation
+must run over the joint $p(x_v, x_t)$. This is load-bearing rather than cosmetic: over the
+*product* $p(x_v)p(x_t)$ the same expression gives $+\mathbb{E}_{x_v}\mathrm{KL}(p \Vert p(\cdot\mid x_v))$
+— a reverse KL, non-negative, and the bound would invert. CPC has the same shorthand, so the
+survey inherits it, but §B.3 is explicitly the place where "*the derivation is worked here in
+full rather than asserted*", so the shorthand should not survive. One-symbol fix:
+$\mathbb{E}_{x_v, X}$.
+
+### [UNSTATED HYPOTHESIS] The optimal-critic → arbitrary-critic step is dropped
+
+Eq. (3) and Eq. (4) are about $\mathcal{L}^{\star}$, the loss **at the optimal critic**.
+Eq. (5) states the bound for $\mathcal{L}_{\mathrm{NCE}}$, the loss at *whatever critic was
+actually trained* — which is what a practitioner plugs a measured number into. The bridging
+step ($\mathcal{L}_{\mathrm{NCE}} \ge \mathcal{L}^{\star}$ for every $f$, so the bound only
+loosens) is never stated.
+
+The direction happens to be safe, so this is a gap and not an error — but note the source
+does supply it: CPC writes "*This trivially also holds for other $f$ that obtain a worse
+(higher) $\mathcal{L}_N$*". The survey dropped a step the paper it is expanding took the
+trouble to include.
+
+Worth adding alongside it: with $f = \exp(\mathrm{sim}/\tau)$ and unit-norm embeddings, the
+representable log-density-ratio is confined to $[-1/\tau, 1/\tau]$. At CLIP's learned
+$\tau \approx 0.01$ that is $\pm 100$ nats — generous, but it is a *hard* capacity limit on
+how closely $f^\star$ can be approached, and it is a concrete named candidate for the
+"binding constraint is elsewhere" of ¶6.
+
+### [OVERSTATEMENT] ¶6 — the ceiling argument, on four counts
+
+**Survey claims** (line 60): "*the $\log N$ ceiling is not what stops batch scaling in
+practice: at $32$k the bound still permits $10.4$ nats and the model has stopped improving
+anyway*", and "*the bound ... explicitly does not explain the plateau*".
+
+The conclusion is probably right. The argument given does not establish it.
+
+**(i) Basis mismatch — nats versus accuracy points.** The ceiling constrains the estimator
+$\hat I = \log N - \mathcal{L}_{\mathrm{NCE}}$, in nats. The evidence offered is ImageNet
+zero-shot top-1, in percentage points. The survey never measures or cites
+$\mathcal{L}_{\mathrm{NCE}}$, so it never establishes where the model actually sits relative
+to $10.4$ nats. This is `.claude/rules/calibration-residuals.md` check 4 (reconcile the metric
+basis before believing agreement *or* disagreement).
+
+**(ii) The evidence does not discriminate between the two hypotheses.** Two regimes produce a
+plateau: (A) $\hat I$ pinned at $\log N < I_{\text{true}}$ — the ceiling binds; (B)
+$\hat I \to I_{\text{true}} \ll \log N$ — the ceiling is slack. Downstream accuracy is flat in
+**both**. Only $\mathcal{L}_{\mathrm{NCE}}$ separates them, and note the direction is
+counter-intuitive: a model with *near-perfect in-batch* discrimination has
+$\mathcal{L} \to 0$ and therefore sits **at** the ceiling, so high accuracy is evidence *for*
+the ceiling story, not against it.
+
+**(iii) Wrong arm — the cited runs are sigmoid, not softmax.** SigLIP Table 2 is
+"*Multilingual SigLIP results with various batch sizes*" — the **sigmoid** loss. §B.4 of this
+same appendix states that SigLIP "*abandons the softmax of Equation (1) — and with it the
+explicit $\log N$ MI bound*". So ¶6 argues about the InfoNCE ceiling using runs that, by the
+survey's own account, are not governed by it. Self-contradiction between ¶6 and §B.4.
+
+**(iv) The paper's softmax arm cuts the other way, and is omitted.** Same page, verbatim:
+"*SigLIP performs best at batch size $32$ k, whereas the softmax loss required $98$ k for
+optimal performance and still didn't outperform the sigmoid based variant.*" The softmax arm
+— the one the $\log N$ bound *does* apply to — keeps paying to roughly $3\times$ the batch at
+which the cited sigmoid arm saturates. That is the single most relevant datapoint in the
+source for ¶6's thesis, it points against the thesis, and it is not reported. (The survey is
+otherwise scrupulous about this: ¶7 volunteers the multilingual turn-over precisely because it
+embarrasses the theory. Same discipline is owed here.)
+
+**(v) ¶6 contradicts ¶5.** ¶5's second consequence reads "*returns to batch size must
+diminish once $\log N$ exceeds the true $I$*". ¶6 then argues "*a caption simply does not
+carry ten nats about its image*" — which **is** the condition $\log N > I_{\text{true}}$, i.e.
+exactly regime (B), i.e. exactly the prediction ¶5 just made from the bound. So the theory
+*does* predict the plateau, by the survey's own preceding paragraph; declaring it "*explicitly
+does not explain the plateau*" and calling that "*the load-bearing correction*" is the
+overstatement. What the theory genuinely fails to predict is the **non-monotone multilingual
+decline** — and ¶7 already says so, correctly and well.
+
+**Answer to the question posed.** Yes, the reasoning confuses a bound on *certifiable*
+information with a bound on *achievable* performance — but the confusion is subtler than a
+straight category error. ¶5 states the certification framing correctly ("*caps what one batch
+can certify*"). ¶6 then adjudicates that certification claim using a *performance* measurement
+without converting between the two bases, and reaches a verdict the measurement cannot
+support in either direction.
+
+**Suggested repair.** (1) Report the achieved $\mathcal{L}_{\mathrm{NCE}}$ or in-batch top-1,
+or state plainly that it is not available and the ceiling's slack is therefore not measured
+(explicit n/a beats silent absence). (2) Use the softmax arm, or disclose that the cited runs
+are sigmoid and say why they still bear. (3) Report the $98$ k softmax datapoint. (4) Reframe
+the conclusion: the bound *does* explain the plateau via $I_{\text{true}}$ saturation; what it
+cannot explain is the decline.
+
+### [CONFIRMED] ¶5 "the bound is tighter as $N$ grows"
+
+Verified, and now with a mechanism the survey does not have. From the exact identity, the
+slack is $I(X;x_v)$, and exact enumeration over three random problems with $N = 2,\dots,6$
+shows it decreasing monotonically (e.g. at $I = 0.2633$ the slack runs
+$0.1301 \to 0.0855 \to 0.0638 \to 0.0510 \to 0.0426$), with
+$\log N - \mathcal{L}^{\mathrm{opt}}$ rising monotonically toward $I$. ¶5's claim holds.
+
+One nuance worth adding: the slack stays strictly positive **even when $\log N$ far exceeds
+$I$** (at $I = 0.263$, $N = 6$, $\log N = 1.79$, the bound still reads only $0.221$). So "the
+bound still permits $10.4$ nats" in ¶6 does not mean the bound is near-tight at $32$k — the
+ceiling being slack and the bound being tight are different properties.
+
+### [Minor] Precision nits
+
+- "*the step loses at most $\log\frac{N}{N-1}$ nats*" — the infimum of $h$ is not attained, so
+  it is *strictly less than*. Immaterial, but the Note is otherwise exacting.
+- "*That is true on average (it is what positive mutual information means)*" — true in the
+  **geometric**-mean sense: the log-mean of $r$ is $e^{-I} \le 1$. The **arithmetic** mean is
+  $\mathbb{E}[r] = 1$ exactly whenever $p(\cdot\mid x_v)$ has full support (and $\le 1$ in
+  general), i.e. exactly at the boundary, not below it. Naming the mean would sharpen it.
+- §B.1's "*the other $N-1$ are other captions from the batch*" silently assumes those are
+  marginal draws. In a $32$k CLIP batch, semantically-matching captions for *other* images
+  appear as negatives (false negatives), which violates the assumption in a direction that
+  biases the estimator — and is another concrete candidate for ¶6's "binding constraint is
+  elsewhere".
+
+---
+
+## Verdict
+
+| Item | Verdict |
+|---|---|
+| Eq. (1), (2), (3) | correct identities |
+| Eq. (4) first step (`≈`) | **wrong-direction Jensen** — breaks the deduction; flagged only as "an approximation" |
+| Eq. (4) middle step (`≥`) | pointwise needs $r\le1$ (survey correct); **unconditionally valid in expectation** (survey wrong) |
+| Eq. (5) | correct as published; the $N-1$ retreat is unnecessary |
+| Boxed Note, algebra | all four sub-claims **correct** |
+| Boxed Note, conclusion | **wrong** — gives away $\log\frac{N}{N-1}$ that was never at risk |
+| Worked numbers | all **correct** |
+| ¶5 | **correct**, mechanism improvable |
+| ¶6 interpretive claim | **overstated** on four counts (basis, arm, omitted datapoint, self-contradiction with ¶5) |
+| ¶7 | **correct and well-judged** |
+
+**Two required edits:** rewrite the boxed Note (the $\log N$ form is unconditional; the real
+soft spot is the `≈`), and rebuild ¶6's argument on a basis its evidence can carry.
+**One recommended edit:** replace the CPC chain with the exact
+$\mathcal{L}^{\mathrm{opt}}_N = \log N - I(x_v;x_t) + I(X;x_v)$ derivation, which needs no
+approximation, no side condition, and no Note.
