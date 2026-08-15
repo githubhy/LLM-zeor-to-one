@@ -4,9 +4,12 @@
 image, video, and audio — the encoder→connector→LLM stack, training recipes, any-to-any generation,
 evaluation, current practice, and open gaps._
 
-<a id="p-multimodal-large-language-models-a-first-principles-survey-2"></a><!-- para:multimodal-large-language-models-a-first-principles-survey-2 --> **Status:** under construction (Phase 4 synthesis). Mode: proposed · scale: wide · audience: learner.
-The section plan, research questions, and depth tiers live in `_scratch/outline.md`; the confirmed
-research brief in `_scratch/brief.md`.
+<a id="p-multimodal-large-language-models-a-first-principles-survey-2"></a><!-- para:multimodal-large-language-models-a-first-principles-survey-2 --> **Status:** complete through the 2026-08-15 expansion pass. Mode: `max` → proposed · scale: wide ·
+audience: learner. The section plan and research questions live in `_scratch/outline.md`; the original
+confirmed brief in `_scratch/brief.md`; the expansion brief and the authoritative depth-tier allocation
+in `_scratch/brief-2026-08-15-expansion.md` and `_scratch/00-outline-tier-allocation.md`.
+
+<a id="p-multimodal-large-language-models-a-first-principles-survey-3"></a><!-- para:multimodal-large-language-models-a-first-principles-survey-3 --> Evidence was collected to 2026-06-28 and re-swept on 2026-08-15. That re-sweep is reported in <!-- secxref:11.4 -->[§11.4](state-of-the-art-and-practice.md#sec-11.4) — it found no citable cross-source SOTA ranking and says why, which is why this survey carries no leaderboard table.
 
 ## Reading guide
 
