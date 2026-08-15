@@ -1,0 +1,68 @@
+{
+ "provenance": {
+  "equation": "N_video = F * N_v^frame = F * (H*W / P^2)  (appendix F, Eq. 9)",
+  "nothing_measured": true,
+  "deterministic": true,
+  "rng_used": false,
+  "note": "closed-form arithmetic on published encoder parameters; no model was run"
+ },
+ "basis_declarations": {
+  "context_window_units": "DECIMAL (128k = 128,000 tokens), matching the survey prose",
+  "binary_alternative": {
+   "128Ki": 131072,
+   "two_hour_overshoot_binary": 63.28
+  },
+  "video_llava_8_frames": "a fixed frame BUDGET, not a sampling rate; its curve is flat"
+ },
+ "constants": {
+  "patch_size_P": 14,
+  "tokens_per_frame_336px": 576,
+  "tokens_per_frame_224px": 256,
+  "spatial_merge_factor": 4,
+  "sampling_rate_fps": 2.0,
+  "total_token_cap": 16384,
+  "video_llava_fixed_frames": 8,
+  "qwen2vl_stated_per_frame_224px": 66
+ },
+ "worked_rows_336px_2fps": {
+  "30 s": {
+   "seconds": 30.0,
+   "frames": 60,
+   "N_video": 34560
+  },
+  "5 min": {
+   "seconds": 300.0,
+   "frames": 600,
+   "N_video": 345600
+  },
+  "2 h": {
+   "seconds": 7200.0,
+   "frames": 14400,
+   "N_video": 8294400
+  }
+ },
+ "two_hour_overshoot_vs_context": {
+  "8k": 1036.8,
+  "32k": 259.2,
+  "128k": 64.8,
+  "1M": 8.29
+ },
+ "per_frame_budget_under_cap": {
+  "30 s": 273.07,
+  "5 min": 27.31,
+  "2 h": 1.14
+ },
+ "cap_falls_below_per_frame_count_at_seconds": {
+  "336px_576": 14.22,
+  "224px_256": 32.0,
+  "336px_merged_144": 56.89,
+  "qwen2vl_66": 124.12
+ },
+ "lever_accounting_at_two_hours": {
+  "baseline_N_video": 8294400,
+  "lever2_2x2_merge_factor": 4,
+  "after_lever2": 2073600,
+  "still_over_128k_decimal_after_lever2": 16.2,
+  "conclusion": "no single lever closes the gap; lever 2 buys 4x against a 64.8x shortfall"
+ }
+}
