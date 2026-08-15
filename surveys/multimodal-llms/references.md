@@ -155,3 +155,15 @@ paragraph anchor sits on the line **above** each `[N]` so `check-citation-source
 
 <a id="ref-49"></a><!-- bib:49 -->
 [49] A. van den Oord, Y. Li, O. Vinyals, "Representation Learning with Contrastive Predictive Coding," 2018. arXiv:1807.03748. (local: download/vandenoord-cpc-2018.pdf)
+
+<a id="ref-50"></a><!-- bib:50 -->
+[50] Google DeepMind, "Gemini model card," accessed 2026-08-15. Vendor-published evaluation table; scores are self-reported and the card discloses only a partial protocol. [link](https://deepmind.google/models/) (web)
+
+<a id="ref-51"></a><!-- bib:51 -->
+[51] Vals AI, "MMMU benchmark leaderboard," accessed 2026-08-15. Third-party evaluator; the most protocol-transparent of the aggregators surveyed, publishing a question count, answer format and output-token cap. [link](https://www.vals.ai/benchmarks/mmmu) (web)
+
+<a id="ref-52"></a><!-- bib:52 -->
+[52] Artificial Analysis, "MMMU-Pro evaluation leaderboard," accessed 2026-08-15. Third-party aggregator; whether the listed figures are its own harness runs or ingested vendor numbers was not established. [link](https://artificialanalysis.ai/evaluations/mmmu-pro) (web)
+
+<a id="ref-53"></a><!-- bib:53 -->
+[53] LLM-Stats, "MathVista benchmark leaderboard," accessed 2026-08-15. Cited for its own metadata about provenance — of 39 listed models the site records 0 independently verified and 37 vendor self-reported. [link](https://llm-stats.com/benchmarks/mathvista) (web)
