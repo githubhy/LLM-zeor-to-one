@@ -1,7 +1,9 @@
 <!-- sec:9 -->
 ## <a id="sec-9"></a>9 Evaluation and benchmarks
 
-<a id="p-9-evaluation-and-benchmarks-1"></a><!-- para:9-evaluation-and-benchmarks-1 --> How do we know a multimodal model is good — and, more sharply, how do we know we are measuring its *vision* rather than its language? This section inventories the benchmarks the field reports, the special case of hallucination measurement, and a validity crisis serious enough that a headline number on a popular benchmark can be largely a memorization artifact. The whole section is load-bearing depth: the benchmarks are a landscape to map, and the pitfalls are the load-bearing caution every number in § on SOTA must be read against.
+<a id="p-9-evaluation-and-benchmarks-1"></a><!-- para:9-evaluation-and-benchmarks-1 --> **Depth tier:** load-bearing
+
+<a id="p-9-evaluation-and-benchmarks-2"></a><!-- para:9-evaluation-and-benchmarks-2 --> How do we know a multimodal model is good — and, more sharply, how do we know we are measuring its *vision* rather than its language? This section inventories the benchmarks the field reports, the special case of hallucination measurement, and a validity crisis serious enough that a headline number on a popular benchmark can be largely a memorization artifact. The whole section is load-bearing depth: the benchmarks are a landscape to map, and the pitfalls are the load-bearing caution every number in § on SOTA must be read against.
 
 <!-- sec:9.1 -->
 ### <a id="sec-9.1"></a>9.1 The benchmark landscape

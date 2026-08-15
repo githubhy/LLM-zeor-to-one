@@ -1,7 +1,9 @@
 <!-- sec:Q -->
 ## <a id="sec-Q"></a>Q Reader's questions
 
-<a id="p-q-readers-questions-1"></a><!-- para:q-readers-questions-1 --> The questions a careful reader asks, answered in one place with pointers back to the derivations. Each answer is a compressed version of a result established in the body; the cross-reference is where to go for the full treatment.
+<a id="p-q-readers-questions-1"></a><!-- para:q-readers-questions-1 --> **Depth tier:** supporting
+
+<a id="p-q-readers-questions-2"></a><!-- para:q-readers-questions-2 --> The questions a careful reader asks, answered in one place with pointers back to the derivations. Each answer is a compressed version of a result established in the body; the cross-reference is where to go for the full treatment.
 
 <!-- sec:Q.1 -->
 ### <a id="sec-Q.1"></a>Q.1 Why a frozen vision encoder?

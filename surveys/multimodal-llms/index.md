@@ -1,16 +1,16 @@
 # Multimodal Large Language Models: A First-Principles Survey
 
-_A deep-research survey of models that extend a transformer language model to perceive and generate
+<a id="p-multimodal-large-language-models-a-first-principles-survey-1"></a><!-- para:multimodal-large-language-models-a-first-principles-survey-1 --> _A deep-research survey of models that extend a transformer language model to perceive and generate
 image, video, and audio — the encoder→connector→LLM stack, training recipes, any-to-any generation,
 evaluation, current practice, and open gaps._
 
-**Status:** under construction (Phase 4 synthesis). Mode: proposed · scale: wide · audience: learner.
+<a id="p-multimodal-large-language-models-a-first-principles-survey-2"></a><!-- para:multimodal-large-language-models-a-first-principles-survey-2 --> **Status:** under construction (Phase 4 synthesis). Mode: proposed · scale: wide · audience: learner.
 The section plan, research questions, and depth tiers live in `_scratch/outline.md`; the confirmed
 research brief in `_scratch/brief.md`.
 
 ## Reading guide
 
-This survey is written for a reader with strong mathematical maturity but light deep-learning / LLM
+<a id="p-reading-guide-1"></a><!-- para:reading-guide-1 --> This survey is written for a reader with strong mathematical maturity but light deep-learning / LLM
 background (the **learner** register): prerequisites are derived from first principles, results are
 motivated with intuition and signal-processing analogies before the algebra, and worked numerical
 examples lead. Readers fluent in transformers can skim the fundamentals and start at the architecture
@@ -18,18 +18,18 @@ building blocks.
 
 ## Depth-tier legend (R-GOV)
 
-Every method and load-bearing result carries one of three depth tiers:
+<a id="p-depth-tier-legend-r-gov-1"></a><!-- para:depth-tier-legend-r-gov-1 --> Every method and load-bearing result carries one of three depth tiers:
 
-- **Headline** — full first-principles derivation + worked numerical example + a conceptual figure.
+- <a id="p-depth-tier-legend-r-gov-2"></a><!-- para:depth-tier-legend-r-gov-2 --> **Headline** — full first-principles derivation + worked numerical example + a conceptual figure.
 - **Load-bearing** — derivation + intuition + complexity, without the full worked example.
 - **Catalog-only** — stated result + a one-line applicability note, with an explicit `n/a (reason)` for
   each heavier artifact deliberately skipped.
 
-Survey quality is measured as coverage over the headline and load-bearing items, not by prose volume.
+<a id="p-depth-tier-legend-r-gov-3"></a><!-- para:depth-tier-legend-r-gov-3 --> Survey quality is measured as coverage over the headline and load-bearing items, not by prose volume.
 
 ## Notation contract
 
-One symbol, one meaning, fixed convention — reused exactly in every section (this is the externalized
+<a id="p-notation-contract-1"></a><!-- para:notation-contract-1 --> One symbol, one meaning, fixed convention — reused exactly in every section (this is the externalized
 "symbol memory" of the memory-guided synthesis). Extended as sections are authored.
 
 | Symbol | Meaning | Convention / units | Defined in |
@@ -48,11 +48,11 @@ One symbol, one meaning, fixed convention — reused exactly in every section (t
 | $z_q$ | quantized latent | nearest codebook vector to the encoder output $z_e$ | Generation |
 | $\mathrm{nats}$ | log base for all entropies/losses | natural log unless a result states bits | global |
 
-Throughout, **bold lowercase** denotes a column vector, **non-bold capital** a matrix, **non-bold lowercase**
+<a id="p-notation-contract-2"></a><!-- para:notation-contract-2 --> Throughout, **bold lowercase** denotes a column vector, **non-bold capital** a matrix, **non-bold lowercase**
 a scalar (with the usual carve-outs, e.g. sequence length and head count). Logits are pre-softmax; losses are
 per-token averages unless stated otherwise.
 
 ## Contents
 
-The ordered section manifest is `order.json`. Heavy derivations live in Appendices A–F; a reader's-questions
+<a id="p-contents-1"></a><!-- para:contents-1 --> The ordered section manifest is `order.json`. Heavy derivations live in Appendices A–F; a reader's-questions
 Q&A is Appendix Q; all citations resolve in `references.md`.

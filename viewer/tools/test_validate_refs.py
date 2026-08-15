@@ -348,3 +348,59 @@ def test_duplicate_anchor_inside_code_fence_ignored(tmp_path):
     )
     rc, out = run_dup_anchors(tmp_path, content, "error")
     assert rc == 0, f"anchors inside a code fence should be ignored: {out}"
+
+
+# ── Check #12 — the SPACED bare section-ref hole ─────────────────────
+# Regression: BARE_SEC_RE required the digit to IMMEDIATELY follow `§`, so a
+# reference written `§ 2.3` (with a space) was invisible to the gate. 59 such
+# dead, non-clickable refs sat in surveys/ while the gate reported clean at
+# --severity=error. Found 2026-08-15 during the multimodal-llms max-mode pass.
+
+
+def test_bare_spaced_section_ref_fires(tmp_path):
+    """A bare '§ 2.3' (space after the glyph) must error exactly like '§2.3'."""
+    content = (
+        "<!-- sec:2.3 -->\n"
+        "### <a id='sec-2.3'></a>2.3 Contrastive alignment\n"
+        "\n"
+        "The projection described in § 2.3 maps encoder features to token space.\n"
+    )
+    rc, out, err = run_bare_refs(tmp_path, content)
+    assert rc != 0, f"spaced bare ref did not fire:\n{out}\n{err}"
+    assert "2.3" in out
+
+
+def test_bare_spaced_letter_section_ref_fires(tmp_path):
+    """The letter-dot shape must fire when spaced too: '§ A.4'."""
+    content = (
+        "<!-- sec:A.4 -->\n"
+        "### <a id='sec-A.4'></a>A.4 Patch embedding\n"
+        "\n"
+        "See § A.4 for the derivation.\n"
+    )
+    rc, out, err = run_bare_refs(tmp_path, content)
+    assert rc != 0, f"spaced letter-dot bare ref did not fire:\n{out}\n{err}"
+    assert "A.4" in out
+
+
+def test_spaced_but_LINKED_section_ref_does_not_fire(tmp_path):
+    """Widening the bare pattern must not mis-flag a spaced-but-linked ref.
+
+    The linked-form recognizer has to tolerate the same space, or this
+    correctly-marked reference would be newly reported as bare.
+    """
+    content = (
+        "<!-- sec:2.3 -->\n"
+        "### <a id='sec-2.3'></a>2.3 Contrastive alignment\n"
+        "\n"
+        "See <!-- secref:2.3 -->[§ 2.3](#sec-2.3) for the derivation.\n"
+    )
+    rc, out, err = run_bare_refs(tmp_path, content)
+    assert rc == 0, f"spaced-but-linked ref was wrongly flagged:\n{out}\n{err}"
+
+
+def test_spaced_section_ref_in_brackets_still_exempt(tmp_path):
+    """The bracket-wrap opt-out must keep working with a space: '[§ 7]'."""
+    content = "Per the external spec [RFC 8259 § 7.1] the encoding is UTF-8.\n"
+    rc, out, err = run_bare_refs(tmp_path, content)
+    assert rc == 0, f"bracket-wrapped spaced ref was wrongly flagged:\n{out}\n{err}"

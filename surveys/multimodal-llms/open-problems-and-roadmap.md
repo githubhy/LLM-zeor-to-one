@@ -1,7 +1,9 @@
 <!-- sec:13 -->
 ## <a id="sec-13"></a>13 Open problems and roadmap
 
-<a id="p-13-open-problems-and-roadmap-1"></a><!-- para:13-open-problems-and-roadmap-1 --> A survey's last duty is to be honest about what remains unsolved. The gaps below are not loose ends but the field's active research front, each stated as a structured problem — what is known, what is not, why it matters, and how it is currently attacked — followed by a concrete handoff to a downstream reference-implementation study. This is load-bearing-depth synthesis; every gap traces to a tension a previous section left open.
+<a id="p-13-open-problems-and-roadmap-1"></a><!-- para:13-open-problems-and-roadmap-1 --> **Depth tier:** supporting
+
+<a id="p-13-open-problems-and-roadmap-2"></a><!-- para:13-open-problems-and-roadmap-2 --> A survey's last duty is to be honest about what remains unsolved. The gaps below are not loose ends but the field's active research front, each stated as a structured problem — what is known, what is not, why it matters, and how it is currently attacked — followed by a concrete handoff to a downstream reference-implementation study. This is load-bearing-depth synthesis; every gap traces to a tension a previous section left open.
 
 <!-- sec:13.1 -->
 ### <a id="sec-13.1"></a>13.1 The open problems
@@ -23,7 +25,7 @@
 
 <a id="p-132-reference-implementation-handoff-1"></a><!-- para:132-reference-implementation-handoff-1 --> Two of these gaps are *study-ready* — narrow enough, with a clear baseline-to-beat and a falsifiable predicted margin, to drive a downstream reference-implementation study (the candidates are tracked in `todos/` for follow-up).
 
-- <a id="p-132-reference-implementation-handoff-2"></a><!-- para:132-reference-implementation-handoff-2 --> **Vision-token pruning, reproduced and stress-tested.** *Baseline:* an instruction-tuned early-fusion VLM (LLaVA-1.5-class) at full visual-token count. *Intervention:* attention-ranked LLM-side pruning (FastV-style, § <!-- secxref:8.2 -->[§8.2](inference-and-serving.md#sec-8.2)). *Predicted margin:* roughly a $45\%$ prefill-FLOP reduction at under a one-point drop on a document/VQA suite, with a sharp accuracy knee once pruning passes a task-dependent fraction. *Why it is the right first study:* it is plug-and-play (no retraining), the prediction is quantitative and falsifiable, and the FlashAttention-incompatibility caveat (§ 8.2) makes the systems-versus-accuracy tradeoff a genuine experiment rather than a foregone conclusion.
+- <a id="p-132-reference-implementation-handoff-2"></a><!-- para:132-reference-implementation-handoff-2 --> **Vision-token pruning, reproduced and stress-tested.** *Baseline:* an instruction-tuned early-fusion VLM (LLaVA-1.5-class) at full visual-token count. *Intervention:* attention-ranked LLM-side pruning (FastV-style, § <!-- secxref:8.2 -->[§8.2](inference-and-serving.md#sec-8.2)). *Predicted margin:* roughly a $45\%$ prefill-FLOP reduction at under a one-point drop on a document/VQA suite, with a sharp accuracy knee once pruning passes a task-dependent fraction. *Why it is the right first study:* it is plug-and-play (no retraining), the prediction is quantitative and falsifiable, and the FlashAttention-incompatibility caveat (<!-- secxref:8.2 -->[§8.2](inference-and-serving.md#sec-8.2)) makes the systems-versus-accuracy tradeoff a genuine experiment rather than a foregone conclusion.
 
 - **Connector ablation at matched budget.** *Baseline:* a Q-Former bridge (BLIP-2-class, $32$ tokens). *Intervention:* an MLP projector at a matched or larger token budget. *Predicted margin:* the projector wins on detail-sensitive tasks (DocVQA, TextVQA) by a clear margin while costing more tokens — quantifying the § <!-- secxref:3.3 -->[§3.3](architecture-building-blocks.md#sec-3.3) fidelity-versus-budget tradeoff that this survey argued qualitatively.
 

@@ -615,3 +615,43 @@ def test_landmark_dedup_prevents_recreation_on_init(tmp_path):
     assert rc == 0, f"{out}\n{err}"
     result = f.read_text(encoding="utf-8")
     assert result.count('<a id="sec-8.1.1-step-1"></a>') == 1
+
+
+# -- Spaced bare-ref promotion (regression, 2026-08-15) -------------
+# validate-refs.py::BARE_SEC_RE was widened to tolerate `§ 2.3` (a space after
+# the glyph). BARE_SEC_PROSE_RE carries the same tolerance so that --init can
+# PROMOTE what the gate now flags; without it an author would be told to run
+# --init by an error that --init cannot clear.
+
+
+def test_init_promotes_spaced_bare_section_ref(tmp_path):
+    """`§ 2.3` (spaced) must be promoted to the marked + linked form."""
+    f = tmp_path / "doc.md"
+    f.write_text(
+        "# Top\n\n## 2.3 Contrastive alignment\n\n"
+        "The projection of § 2.3 maps features into token space.\n",
+        encoding="utf-8",
+    )
+    rc, out, err = run(["--init", str(f)])
+    assert rc == 0, f"{out}\n{err}"
+    result = f.read_text(encoding="utf-8")
+    assert "<!-- secref:2.3 -->" in result, f"not promoted:\n{result}"
+    assert "[§2.3](#sec-2.3)" in result, f"not linked canonically:\n{result}"
+    # the space must be consumed, not left stranded before the link
+    assert "§ 2.3" not in result.replace("<!-- secref:2.3 -->", "")
+
+
+def test_init_spaced_promotion_is_idempotent(tmp_path):
+    """Re-running --init on the promoted form must not double the marker."""
+    f = tmp_path / "doc.md"
+    f.write_text(
+        "# Top\n\n## 2.3 Contrastive alignment\n\n"
+        "The projection of § 2.3 maps features into token space.\n",
+        encoding="utf-8",
+    )
+    run(["--init", str(f)])
+    first = f.read_text(encoding="utf-8")
+    run(["--init", str(f)])
+    second = f.read_text(encoding="utf-8")
+    assert first == second, "second --init changed the file"
+    assert second.count("<!-- secref:2.3 -->") == 1, f"marker doubled:\n{second}"

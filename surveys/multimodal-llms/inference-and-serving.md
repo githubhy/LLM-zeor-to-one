@@ -1,7 +1,9 @@
 <!-- sec:8 -->
 ## <a id="sec-8"></a>8 Inference and serving
 
-<a id="p-8-inference-and-serving-1"></a><!-- para:8-inference-and-serving-1 --> Every design choice in this survey eventually arrives at one bill: the **visual token count**. Section 2 established that an image becomes $N_v = HW/P^2$ tokens and that the LLM pays for them quadratically; this section is what that costs at serving time and how the field claws it back. The vision-token cost problem is treated at headline depth because it is the dominant systems constraint of multimodal serving; compression and KV-cache handling are load-bearing.
+<a id="p-8-inference-and-serving-1"></a><!-- para:8-inference-and-serving-1 --> **Depth tier:** load-bearing
+
+<a id="p-8-inference-and-serving-2"></a><!-- para:8-inference-and-serving-2 --> Every design choice in this survey eventually arrives at one bill: the **visual token count**. Section 2 established that an image becomes $N_v = HW/P^2$ tokens and that the LLM pays for them quadratically; this section is what that costs at serving time and how the field claws it back. The vision-token cost problem is treated at headline depth because it is the dominant systems constraint of multimodal serving; compression and KV-cache handling are load-bearing.
 
 <!-- sec:8.1 -->
 ### <a id="sec-8.1"></a>8.1 The vision-token cost problem
@@ -20,7 +22,7 @@ $$
 
 <a id="p-82-token-compression-and-pruning-1"></a><!-- para:82-token-compression-and-pruning-1 --> Because the cost is set by token count, every serving optimization is a way to carry *fewer* visual tokens, and they sit at three points in the stack. The cleanest mental model: reduce tokens *before* the LLM (architectural), *inside* the encoder (merging), or *inside* the LLM (pruning).
 
-<a id="p-82-token-compression-and-pruning-2"></a><!-- para:82-token-compression-and-pruning-2 --> **Architectural reduction (recap).** The query-resamplers of § <!-- secxref:3.3 -->[§3.3](architecture-building-blocks.md#sec-3.3) — BLIP-2's Q-Former ($32$ tokens), Flamingo's Perceiver Resampler ($64$) — *are* token compressors, fixing the budget by construction. Their cost is the § 3.3 fidelity loss; their virtue is a hard ceiling independent of resolution.
+<a id="p-82-token-compression-and-pruning-2"></a><!-- para:82-token-compression-and-pruning-2 --> **Architectural reduction (recap).** The query-resamplers of § <!-- secxref:3.3 -->[§3.3](architecture-building-blocks.md#sec-3.3) — BLIP-2's Q-Former ($32$ tokens), Flamingo's Perceiver Resampler ($64$) — *are* token compressors, fixing the budget by construction. Their cost is the <!-- secxref:3.3 -->[§3.3](architecture-building-blocks.md#sec-3.3) fidelity loss; their virtue is a hard ceiling independent of resolution.
 
 <a id="p-82-token-compression-and-pruning-3"></a><!-- para:82-token-compression-and-pruning-3 --> **Encoder-side merging.** ToMe <!-- cite:46 -->[[46]](#ref-46) merges similar tokens *inside* the ViT, training-free, using a bipartite soft-matching on key vectors that is as cheap as pruning but more accurate — combining, say, the many patches of a uniform sky into one — for a $2$–$3\times$ encoder throughput gain at a $0.2$–$0.3\%$ accuracy cost. The signal-processing reading is plain: adjacent patches are highly correlated, so the token grid is *compressible*, and merging is lossy compression that exploits exactly that redundancy.
 

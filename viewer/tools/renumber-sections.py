@@ -139,7 +139,7 @@ LANDMARK_ITALIC_RE = re.compile(
 # auto-link all of them. validate-refs.py::BARE_SEC_RE is narrow for the same
 # reason. If you touch one, read heading_grammar.py's module docstring first.
 BARE_SEC_PROSE_RE = re.compile(
-    r"(?<![\[\w/-])§"
+    r"(?<![\[\w/-])§[ \t]*"
     r"(?P<num>[A-Z]?\d+(?:\.\d+)+|[A-Z]\.\d+(?:\.\d+)*)"
     r"(?P<tail>\s+(?P<kind>"
     + "|".join(LANDMARK_KINDS)

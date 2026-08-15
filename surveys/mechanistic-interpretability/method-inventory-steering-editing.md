@@ -89,7 +89,7 @@ $$
 <a id="p-76-sae-feature-steering-catalog-only-2"></a><!-- para:76-sae-feature-steering-catalog-only-2 --> **Stated result + applicability.** Clamping the Golden Gate Bridge feature made Claude 3 Sonnet redirect nearly any conversation to the bridge <!-- cite:8 --> [[8]](references.md#ref-8), <!-- cite:75 --> [[75]](references.md#ref-75). Whether feature clamping *beats* a plain difference-in-means vector is contested: systematic evaluations find naive SAE steering does **not** beat simple baselines <!-- cite:66 --> [[66]](references.md#ref-66), while SAE-*informed* methods (SAE-TS <!-- cite:50 --> [[50]](references.md#ref-50), which uses the SAE to *target* a steering vector rather than clamp a feature) claim a better steering-vs-coherence trade-off. See § <!-- secxref:12.2 -->[§12.2](state-of-the-art-and-practice.md#sec-12.2).
 
 - <a id="p-76-sae-feature-steering-catalog-only-3"></a><!-- para:76-sae-feature-steering-catalog-only-3 --> Full derivation: `n/a (catalog; the clamp is a special case of the addition in Equation` <!-- ref:7-1 -->[(1)](#eq-1) `applied in the SAE basis)`.
-- Worked example: `n/a (catalog; head-to-head numbers are contested and are treated in § 12.2)`.
+- Worked example: `n/a (catalog; head-to-head numbers are contested and are treated in` <!-- secxref:12.2 -->[§12.2](state-of-the-art-and-practice.md#sec-12.2) `)`.
 
 <a id="p-76-sae-feature-steering-catalog-only-4"></a><!-- para:76-sae-feature-steering-catalog-only-4 --> **Epistemic tag.** *A vivid demo and an open research question; not an established win over difference-in-means.*
 

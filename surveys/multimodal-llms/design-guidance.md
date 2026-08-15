@@ -1,7 +1,9 @@
 <!-- sec:12 -->
 ## <a id="sec-12"></a>12 Design guidance
 
-<a id="p-12-design-guidance-1"></a><!-- para:12-design-guidance-1 --> The comparison matrix (§ <!-- secxref:10.1 -->[§10.1](comparison-and-tradeoffs.md#sec-10.1)) and the dominant-practice map (§ <!-- secxref:11.3 -->[§11.3](state-of-the-art-and-practice.md#sec-11.3)) describe the design space; this section is the procedure for *traversing* it. Given a concrete requirement, the decisions can be taken in a fixed order, because each choice constrains the next. The procedure below is load-bearing-depth guidance — a decision order plus a worked walkthrough — not a new result.
+<a id="p-12-design-guidance-1"></a><!-- para:12-design-guidance-1 --> **Depth tier:** supporting
+
+<a id="p-12-design-guidance-2"></a><!-- para:12-design-guidance-2 --> The comparison matrix (§ <!-- secxref:10.1 -->[§10.1](comparison-and-tradeoffs.md#sec-10.1)) and the dominant-practice map (§ <!-- secxref:11.3 -->[§11.3](state-of-the-art-and-practice.md#sec-11.3)) describe the design space; this section is the procedure for *traversing* it. Given a concrete requirement, the decisions can be taken in a fixed order, because each choice constrains the next. The procedure below is load-bearing-depth guidance — a decision order plus a worked walkthrough — not a new result.
 
 <!-- sec:12.1 -->
 ### <a id="sec-12.1"></a>12.1 The decision order

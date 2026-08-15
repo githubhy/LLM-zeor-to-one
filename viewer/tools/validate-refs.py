@@ -68,8 +68,17 @@ BARE_EQ_RE = re.compile(r"\b(?:Eqs?\.|Equations?)\s+\((\d+)\)")
 #   letter-dot:  D.7, D.7.5, A.8.3, B.2.1      ([A-Z]\.\d+(?:\.\d+)*)
 # Both shapes require at least one dot — bare §4 (single number, no dot) is
 # intentionally NOT matched because it is ambiguous (could be an external citation).
+#
+# The `[ \t]*` after the glyph is load-bearing, not cosmetic: without it the
+# digit had to IMMEDIATELY follow `§`, so a reference written `§ 2.3` (with a
+# space) was invisible to this check. Measured 2026-08-15: 59 such dead,
+# non-clickable refs sat in surveys/ while the gate reported clean at
+# --severity=error. Horizontal whitespace only (not `\s`), because the check
+# runs per line and a newline must never join two unrelated references.
+# renumber-sections.py::BARE_SEC_PROSE_RE carries the same tolerance so that
+# `--init` can promote what this check now flags — change the two together.
 BARE_SEC_RE = re.compile(
-    r"§([A-Z]?\d+(?:\.\d+)+|[A-Z]\.\d+(?:\.\d+)*)"
+    r"§[ \t]*([A-Z]?\d+(?:\.\d+)+|[A-Z]\.\d+(?:\.\d+)*)"
 )
 
 # Citation-context heuristics for the #11 exemption.
@@ -86,7 +95,7 @@ EQ_LINKED_RE = re.compile(r"\[\(\d+\)\]\(#eq-\d+\)")
 # Verified / legacy recognizers for #12.
 SECREF_MARKER_RE = re.compile(r"<!--\s*sec(?:ref|xref):[\w.\-/]+\s*-->")
 SEC_LINKED_RE = re.compile(
-    r"\[[^\]]*§(?:[A-Z]?\d+(?:\.\d+)+|[A-Z]\.\d+(?:\.\d+)*)[^\]]*\]\(([^)]+)\)"
+    r"\[[^\]]*§[ \t]*(?:[A-Z]?\d+(?:\.\d+)+|[A-Z]\.\d+(?:\.\d+)*)[^\]]*\]\(([^)]+)\)"
 )
 
 
