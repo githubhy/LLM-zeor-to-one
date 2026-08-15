@@ -40,8 +40,23 @@ survey-authoring commit.
 - Confirm `validate-refs.py --bare-refs-only` accepts multiple path arguments; if not, either
   add a second invocation or fix the arg handling.
 - Audit the hook for any OTHER check with the same narrow pathspec — the same oversight may
-  affect more than one line. Check at least: lint-math, link-fragments, duplicate-anchor,
-  and the citation-source scan.
+  affect more than one line. Check at least: link-fragments, duplicate-anchor, and the
+  citation-source scan.
+
+- **Already confirmed while filing this (2026-08-15): `lint-math.py` is not run by
+  `.githooks/pre-push` at all.** `grep -n "lint-math" .githooks/pre-push` returns nothing. It
+  runs only as a `PostToolUse` hook, i.e. exclusively on files *this harness* edits. So a
+  math-formatting error introduced by any other route — a hand edit outside the tool, a
+  `git merge`, a script-generated file, a branch authored elsewhere — reaches `main`
+  unchecked, even though `lint-math` is the gate the math-authoring rule leans on hardest
+  and the one whose failures are *invisible in the source* (they surface only as
+  literal-`$x$` text in the rendered page). This is a bigger hole than the bare-ref
+  pathspec: that one was a missing directory, this is a missing check.
+  Decide deliberately whether it belongs in the push gate, and if it is being kept out on
+  purpose, record why — the current state reads as an omission, not a decision. Note the
+  scan must exclude `_scratch/` (agent evidence ledgers legitimately carry raw `$`-bearing
+  text and are in no manifest), so the natural scope is `order.json` membership rather
+  than a directory glob.
 
 ## Acceptance
 
