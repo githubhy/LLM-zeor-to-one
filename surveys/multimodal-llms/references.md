@@ -167,3 +167,9 @@ paragraph anchor sits on the line **above** each `[N]` so `check-citation-source
 
 <a id="ref-53"></a><!-- bib:53 -->
 [53] LLM-Stats, "MathVista benchmark leaderboard," accessed 2026-08-15. Cited for its own metadata about provenance — of 39 listed models the site records 0 independently verified and 37 vendor self-reported. [link](https://llm-stats.com/benchmarks/mathvista) (web)
+
+<a id="ref-54"></a><!-- bib:54 -->
+[54] W. Yuan, J. Ruan, W. Xiong, et al., "MMGist: A Comprehensive Multimodal Benchmark for 2027," 2026. arXiv:2606.22437. (local: download/yuan-mmgist-2026.pdf)
+
+<a id="ref-55"></a><!-- bib:55 -->
+[55] T.-H. Wu, H. Lee, J. Ge, et al., "Generate, but Verify: Reducing Hallucination in Vision-Language Models with Retrospective Resampling" (REVERSE), NeurIPS 2025. arXiv:2504.13169. (local: download/wu-reverse-2025.pdf)
