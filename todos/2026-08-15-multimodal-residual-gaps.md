@@ -1,7 +1,7 @@
 ---
 slug: multimodal-residual-gaps
 date_filed: 2026-08-15
-status: open
+status: closed
 ---
 
 # Residual gaps after the multimodal-llms max-mode expansion
@@ -67,3 +67,89 @@ left untouched. Confirm it against the paper's appendix, or re-attribute.
 - `decisions/2026-08-15-02` — the decision that kept these out of the survey.
 - `.claude/rules/citation-integrity.md`; `.claude/rules/figure-operating-conditions.md`;
   `bugs/2026-08-15-03` (figure byte-reproducibility).
+
+## Resolution
+
+**Closed 2026-08-15.** All four items worked; three resolved by verification against primary
+sources, one by production. Three PDFs were acquired to `download/` in the process
+(`yuan-mmgist-2026.pdf`, `akhtar-benchmark-saturation-2026.pdf`, `wu-reverse-2025.pdf`); every
+arXiv ID was confirmed against its abs page before the PDF was trusted.
+
+**Item 1 — the unverified numbers.** All three fetched and checked. Two survived; one survived
+as a number but not as an attribution.
+
+- *Text-only solvability.* **Verified**: AI2D $66.7\%$, MMMU $51.2\%$ (MMGist, arXiv:2606.22437).
+  The sweep had not captured the basis, which turned out to matter: five inspector models from
+  different providers, image-free question text only, eight responses sampled per item. That is a
+  more permissive test than MMStar's single-model no-image score ($42.9\%$), so the $8.3$-point
+  spread between them is mostly basis, not progress. Now cited in § 9.3 with the basis stated and
+  the non-comparability spelled out.
+- *The 18-benchmark distortion fraction.* **Real number, wrong paper.** arXiv:2602.16763 ("When AI
+  Benchmarks Plateau") studies 60 **language-model** benchmarks and contains no such figure. The
+  $68.8\%$ is MMGist's own, and is not "≥68.8%" but the exact complement of its retention rate
+  ($7{,}262$ of $23{,}250 = 31.2\%$). Filed as `bugs/2026-08-15-05`; the ledger carries a
+  correction block; § 9.3 now states it correctly attributed, derived, and tagged *[reported]*
+  because it is one pipeline's removal rate self-reported by the paper proposing the survivor.
+- *The hallucination-mitigation disagreement.* **Resolved in favour of 34%** — "28%" appears
+  nowhere in arXiv:2504.13169. Reading the paper's tables produced four basis facts the search
+  summaries could not: both headline figures are **relative** and both are **maxima over three
+  backbones** (the $12\%$ is $6.4\%$ on the most-reported one); the $34\%$ is measured against the
+  **untreated base model**; baselines mix the authors' re-runs with numbers carried from other
+  papers; and HaloQuest is judged by a substituted judge model. The population split is the real
+  finding — the gain is concentrated in false-premise and insufficient-context items while the
+  **visually-challenging subset regresses on all three backbones**, and at the aggressive
+  threshold caption coverage falls $51.0 \to 26.9$. All now in § 5.3.
+
+**Item 2 — uncorroborated model names. Closed: confirmed artifact.** Checked against the
+HuggingFace model API. `sensenova` is a real org with real released models
+(`SenseNova-U1.5-8B-MoT-Preview`, `SenseNova-Vision-7B-MoT`, …), but "UNSenseNova" and "CongRong"
+each return **zero** results, and no `SenseNova-V6` exists. The shared `UN` prefix across two
+otherwise-unrelated names is the tell — a real naming coincidence does not repeat. Neither row's
+subject is a released model; nothing was cited and nothing should be.
+
+**Item 3 — R-SURVEY figures. Produced.** Two, with the selection rule and the rejected
+alternatives recorded in `decisions/2026-08-15-03`:
+
+- `figures/appendix-f-video-token-wall.py` / `.svg` / `.json`, embedded as § F.8 — two panels:
+  the token budget against clip length with four context lines, and the per-frame budget a hard
+  cap leaves. Reproduces § F.5's three worked rows exactly ($34{,}560$ / $345{,}600$ /
+  $8{,}294{,}400$) and its capped per-frame figures ($273$ / $27.3$), and adds the $1.14$
+  tokens/frame the two-hour case implies. Byte-identical across runs (`svg.hashsalt` +
+  `metadata={"Date": None}`, per `bugs/2026-08-15-03`, adopted at birth rather than retrofitted).
+- § 3.6, an ASCII block diagram of the encoder → connector → LLM template plus a five-row table
+  instantiating every architecture family against it — one diagram covering what the nomination
+  asked five to cover, because the families differ by three knob settings on one template.
+
+Both captions carry § 1 numeric operating conditions **including explicit `n/a` rows** for model,
+precision, decoding params, benchmark, harness, metric, CI, sampling $n$, `pass@k` and seed —
+neither figure runs a model, and silent absence would be indistinguishable from an omission.
+
+Not figured, and closed rather than deferred: the connector token-bill comparison
+($576$ / $64$ / $32$ on identical input). § 3.6's table already puts those three numbers side by
+side, so a plot would restate a three-cell row.
+
+**Item 4 — the EMA attribution. Confirmed, and the section was deepened as a result.** EMA
+codebook updates **are** in the VQ-VAE paper — Appendix A.1, with the main text pointing at it —
+so the attribution stands. Reading it surfaced two things the survey had wrong or missing. The
+paper explicitly notes EMA was "**not used for the experiments in this work**", so the mechanism
+is the source's while the empirical case for preferring it is not; the survey had implied
+otherwise. And § D.2 had carried the update as a sentence with no mathematics. It now derives the
+$k$-means centroid the update targets, the two-accumulator online form with $\gamma = 0.99$, and
+the two properties that justify the ratio: it weights minibatches by evidence (with the fixed
+point recovering the centroid exactly), and an unused code is held **exactly** invariant because
+both accumulators decay by the same factor — the case where a one-accumulator form evaluates
+$0/0$, and precisely the state a collapsing codebook is in. Four new equations.
+
+## Verification
+
+`normalize-survey` clean on the delivered set (`validate-refs` OK, bare-refs $0$, citation
+sources $55$ entries $0$ errors); `check-depth-tiers` $22$ labels $0$ violations;
+`check-link-fragments` $342$ links $0$ dangling; `check-section-ownership` OK; `check-record-ids`
+OK; `crosslink check` no gaps. The three residual `lint-math` errors are in `_scratch/` evidence
+ledgers, predate this pass, and are in no manifest — left as preserved artifacts rather than
+edited.
+
+## Refs
+
+- `bugs/2026-08-15-05` — the fused-attribution bug item 1 uncovered.
+- `decisions/2026-08-15-03` — the figure-scope decision closing item 3.

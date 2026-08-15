@@ -106,3 +106,61 @@ Budget: <=25 WebSearch, <=2 WebFetch. Status: IN PROGRESS.
 - StreamingBench and OVO-Bench scores for 2026 frontier models — only 2024-era GPT-4o / Gemini 1.5 Pro numbers were found; no 2026-model re-measurement located.
 - Precise frame-sampling rate, decoding parameters, and harness version for every self-reported leaderboard number in part (b) (LongVideoBench, MLVU, Video-MME aggregator figures) — these aggregator pages do not disclose them, consistent with the same "aggregator opacity" finding already flagged in Q1.
 - The original Video-MME paper's own QAD blind-baseline / single-frame-BLIP2 accuracy numbers (Table 4 region) were not extracted — the paper's existence and methodology were confirmed, but the specific baseline percentages were not retrieved within budget.
+
+---
+
+## Post-hoc verification (2026-08-15, main thread — primary PDFs read)
+
+This block was added AFTER the sweep, when `todos/2026-08-15-multimodal-residual-gaps.md`
+item 1 was worked. Three flagged-unverified figures were checked against the primary PDFs,
+now acquired. **Read this block before citing anything above it.**
+
+**1 — AI2D 66.7% / MMMU 51.2% text-only: VERIFIED.** `download/yuan-mmgist-2026.pdf`
+(arXiv:2606.22437, title and authors confirmed against the arXiv abs page). Both numbers
+appear verbatim. The sweep did not capture the **basis**, which is load-bearing: five
+inspector models from different providers, each given only the image-free question text,
+**eight responses sampled per item**, aggregated to a per-item text-only accuracy. That is
+a strictly more permissive test than MMStar's single-model no-image score (42.9% on MMMU),
+so the two must not be differenced. Now cited in § 9.3 with the basis stated.
+
+**2 — "≥68.8% of items across 18 benchmarks": REAL NUMBER, WRONG PAPER.** Line 32 above
+attributes this to arXiv:2602.16763, "When AI Benchmarks Plateau." That paper was fetched
+(`download/akhtar-benchmark-saturation-2026.pdf`) and **does not contain the figure, the
+18-benchmark set, or the three-distortion taxonomy**: it studies **60 language-model
+benchmarks** using 14 properties, and defines saturation as loss of discriminative power
+derived from leaderboard uncertainty. It is not a multimodal item-level audit at all.
+
+The figure belongs to **MMGist** (arXiv:2606.22437) and is not "≥68.8%" but the exact
+complement of its retention rate: 7,262 retained of 23,250 pooled = 31.2%, so 68.8% was
+removed. The three distortions listed above are MMGist's own three filters, verbatim. The
+sweep fused two papers. Filed as `bugs/2026-08-15-05`. Nothing above may be cited to
+arXiv:2602.16763.
+
+**3 — REVERSE 12% / 34%, and the 34-vs-28 disagreement: VERIFIED; 28% does not exist.**
+`download/wu-reverse-2025.pdf` (arXiv:2504.13169). The paper states 12% and 34% in the
+abstract, the introduction and § 4.1; **no "28%" appears anywhere**, so the second search
+summary was wrong and the disagreement resolves. Four basis facts the sweep could not
+reach, all now read from the paper's own tables and needed by any citation:
+  - both figures are **relative**, and both are **maxima over three base models**;
+  - the 12% is a CHAIR_i reduction on LLaVA-MORE 8B (13.8 → 12.2 = 11.6%); on
+    LLaVA-v1.5 7B the same comparison is 11.0 → 10.3 = **6.4%**;
+  - the 34% is on Qwen2.5-VL-FT 3B (33.5 → 45.1 = 34.6%) measured against the
+    **untreated base model**, because the only competing method reported on that
+    backbone (DoLA, 27.4) scores *below* the base;
+  - baselines are a **mix** of the authors' own re-runs (marked † / ‡) and numbers
+    carried from other papers, and HaloQuest is judged by **Gemini-1.5-Pro** because the
+    original paper's Gemini-1.0-Pro is unavailable — a judge substitution.
+  Population split (the paper's own subset columns): the gain is concentrated in
+  false-premise and insufficient-context items and the **visually-challenging subset
+  regresses on all three backbones** (39.5 → 31.5, 43.4 → 31.3, 51.6 → 41.8). At the
+  aggressive threshold τ = 0.0003, CHAIR_i falls 15.4 → 6.1 while caption **coverage falls
+  51.0 → 26.9**. Now cited in § 5.3 with all of the above.
+
+**4 — the uncorroborated leaderboard model names: CONFIRMED ARTIFACT, do not cite.**
+Line 25 flags "UNSenseNova-V6" / "UNCongRong-v2" as possible scraping artifacts. Checked
+against the HuggingFace model API: `sensenova` is a real org publishing real models
+(`SenseNova-U1.5-8B-MoT-Preview`, `SenseNova-Vision-7B-MoT`, …), but **"UNSenseNova"
+returns zero results and "CongRong" returns zero results**. The shared `UN` prefix on two
+otherwise-unrelated names is the tell — a real naming coincidence would not repeat — and
+no `SenseNova-V6` exists either. Neither row's subject is a released model; the secondary
+site's rows are not citable, and were never used.

@@ -115,3 +115,75 @@ null result; here the null result bounds every comparative claim in two sections
 - `surveys/multimodal-llms/_scratch/review-appendix-{b,f}.md` — the preserved re-derivations.
 - `field-notes/2026-08-15-mi-appendix-deepening.md` — the same-day sibling pass, whose lesson
   ("agent findings are input, not verdict — in both directions") held again here in both directions.
+
+---
+
+## Addendum — closing the residual-gaps todo (same day, follow-on turn)
+
+`todos/2026-08-15-multimodal-residual-gaps.md` was filed at the expansion's sign-off and worked
+immediately after. Three of its four items were verification tasks, and the verification found
+something the sweep's own honesty could not have surfaced.
+
+### The ledger was honest about its provenance and still wrong about its source
+
+The sweep graded one row *silver — read via search snippet, not full text*, and flagged it for
+re-verification before citation. That grade was **accurate**. It was also insufficient, because
+the row's number came from one paper and its source line from another: the 68.8%-of-items figure
+belongs to MMGist, and was recorded against a differently-titled paper about 60 *language-model*
+benchmarks (`bugs/2026-08-15-05`).
+
+**Knowing you read a snippet does not tell you which paper the snippet was from.** That is the
+gap in provenance grading as a defence: it grades the *depth* of the read and says nothing about
+the *identity* of the thing read. Both are memory-shaped, and only one of them is what the
+grading scheme tracks.
+
+It is the same failure as the expansion pass's three wrong `cite:N` numbers, one level up — there
+the recalled fact was a reference *number*, here a reference *paper*. Both are well-formed, both
+resolve, and both pass every mechanical gate: `check-citation-sources` verifies that the tagged
+file exists, never that it says what the entry claims. The two-second catch is the same in both
+cases: **open the abs page and compare the title to the claim.** An ID resolving to a paper about
+a different modality and a different benchmark count is not a subtle tell.
+
+### Verification's real payload was the basis, not the number
+
+All three flagged numbers were fetched; two survived as stated. But in every case the useful
+finding was the *basis the sweep could not reach*, and in every case it changed what the number
+means:
+
+- The text-only solvability rates are an **ensemble** measurement (five inspectors, eight samples
+  per item) and are therefore not differenceable against MMStar's single-model score. The survey
+  would otherwise have implied a two-year trend from what is a basis change.
+- The mitigation paper's headline "12%" and "34%" are both **relative** and both **maxima over
+  three backbones**; on the most-reported backbone the 12% is 6.4%. And the 34% is measured
+  against the *untreated base model*, because the only competing method on that backbone scores
+  below the base — a comparison set of one.
+- Splitting that paper's own subset columns showed the gain is concentrated in two of three
+  subsets and the third **regresses on all three backbones**, with caption coverage collapsing
+  51.0 → 26.9 at the aggressive threshold. The model hallucinated less partly by saying less.
+
+None of that is hidden — it is all in the paper's own tables. It is invisible only to a summary,
+which is exactly what `.claude/rules/calibration-residuals.md` check 4 and check 6 predict, and
+the reason "fetch the PDF" is not a formality.
+
+### The figure that argued something the table could not
+
+The video-token-wall figure was expected to be a visual restatement of a four-row table. It is
+not: on log–log axes every rate-based cost is a **straight line of slope 1** and every context is
+**horizontal**, so the crossing is structural and no context size removes it — the argument the
+prose asserts and a table of three points cannot show. Worth carrying as a selection rule: a
+figure earns its place when it shows a *relationship between curves*, not when it plots a
+monotone closed form.
+
+It also forced a basis declaration the prose had left implicit. Computing the two-hour overshoot
+required committing to whether "128k context" means 128,000 or 131,072 — 64.8× versus 63.3×. The
+survey had quoted "~65×", i.e. the decimal reading, without ever saying so. **Building the figure
+is what asked the question**; prose can carry an undeclared basis indefinitely.
+
+### Smaller
+
+- `crosslink.py` refused a mis-quoted scope again rather than reporting "no gaps" — the second
+  time in two turns that the one gate built to fail closed did so. The contrast with the three
+  false-green holes found in the expansion pass keeps getting sharper.
+- Appendix D's EMA section was one sentence citing a paper whose *appendix* holds the mechanism.
+  Reading it produced four equations and one correction: the source explicitly did not run EMA,
+  so "why it is the default" is a claim about practice that the citation cannot carry.
