@@ -3,12 +3,12 @@ const assert = require('node:assert/strict');
 const { buildCitation, resolveRepoPath, katexAwareText } = require('../../lib/citation');
 
 const base = {
-  selectedText: 'The FLL error is small.',
-  paragraphAnchorId: 'p-tracking-loops-4',
-  headingAnchorId: 'tracking-loops',
-  headingText: 'Tracking Loops',
-  documentTitle: 'Tracking Loops',
-  relPath: 'surveys/ntn-initial-sync-tracking/tracking-loops.md',
+  selectedText: 'The induction head is sharp.',
+  paragraphAnchorId: 'p-circuits-across-models-4',
+  headingAnchorId: 'circuits-across-models',
+  headingText: 'Circuits Across Models',
+  documentTitle: 'Circuits Across Models',
+  relPath: 'surveys/mechanistic-interpretability/circuits-across-models.md',
   sourceLine: 142,
   viewerOrigin: 'http://localhost:3000',
 };
@@ -27,22 +27,22 @@ test('github mode emits user-content- fragment prefix', () => {
     },
   });
   assert.match(r.url, /^https:\/\/github\.com\/acme\/receiver\/blob\/abc1234\//);
-  assert.match(r.url, /#user-content-p-tracking-loops-4$/);
+  assert.match(r.url, /#user-content-p-circuits-across-models-4$/);
   assert.equal(r.warnings.length, 0);
 });
 
 test('local mode uses raw anchor id, no user-content prefix', () => {
   const r = buildCitation({ ...base, linkMode: 'local', gitInfo: null });
   assert.match(r.url, /^http:\/\/localhost:3000\/\?file=/);
-  assert.match(r.url, /#p-tracking-loops-4$/);
+  assert.match(r.url, /#p-circuits-across-models-4$/);
   assert.doesNotMatch(r.url, /user-content/);
 });
 
 test('relative mode emits plain path, markdown uses code span', () => {
   const r = buildCitation({ ...base, linkMode: 'relative', gitInfo: null });
   assert.equal(r.effectiveMode, 'relative');
-  assert.match(r.url, /\.md#p-tracking-loops-4$/);
-  assert.match(r.markdown, /`surveys\/.*?\.md#p-tracking-loops-4`/);
+  assert.match(r.url, /\.md#p-circuits-across-models-4$/);
+  assert.match(r.markdown, /`surveys\/.*?\.md#p-circuits-across-models-4`/);
 });
 
 test('headPushed false surfaces a warning', () => {
@@ -99,7 +99,7 @@ test('regression Bug#10: heading fallback in github mode uses bare slug, not use
     },
   });
   assert.ok(r.usedHeadingFallback);
-  assert.match(r.url, /#tracking-loops$/);
+  assert.match(r.url, /#circuits-across-models$/);
   assert.doesNotMatch(r.url, /user-content/);
 });
 
@@ -114,7 +114,7 @@ test('regression Bug#10: paragraph anchor in github mode still uses user-content
     },
   });
   assert.equal(r.usedHeadingFallback, false);
-  assert.match(r.url, /#user-content-p-tracking-loops-4$/);
+  assert.match(r.url, /#user-content-p-circuits-across-models-4$/);
 });
 
 test('missing paragraph anchor falls back to heading + (L<line>)', () => {
@@ -124,7 +124,7 @@ test('missing paragraph anchor falls back to heading + (L<line>)', () => {
     linkMode: 'local',
     gitInfo: null,
   });
-  assert.equal(r.anchorId, 'tracking-loops');
+  assert.equal(r.anchorId, 'circuits-across-models');
   assert.ok(r.usedHeadingFallback);
   assert.match(r.markdown, /\(L142\)/);
 });
@@ -164,17 +164,17 @@ test('regression: github URL includes the repo-root-relative path verbatim', () 
   // viewer's target dir). The client must now pass the full repo path.
   const r = buildCitation({
     ...base,
-    relPath: 'surveys/ntn-initial-sync-tracking/tracking-loops.md',
+    relPath: 'surveys/mechanistic-interpretability/circuits-across-models.md',
     linkMode: 'github',
     gitInfo: {
       available: true, owner: 'acme', repo: 'recv',
       sha: 'deadbeef', branch: 'main', headPushed: true,
-      repoRelDir: 'surveys/ntn-initial-sync-tracking',
+      repoRelDir: 'surveys/mechanistic-interpretability',
     },
   });
   assert.match(
     r.url,
-    /^https:\/\/github\.com\/acme\/recv\/blob\/deadbeef\/surveys\/ntn-initial-sync-tracking\/tracking-loops\.md#user-content-p-tracking-loops-4$/,
+    /^https:\/\/github\.com\/acme\/recv\/blob\/deadbeef\/surveys\/mechanistic-interpretability\/circuits-across-models\.md#user-content-p-circuits-across-models-4$/,
   );
 });
 
@@ -194,11 +194,11 @@ test('multi-line selection preserves interior newlines in markdown', () => {
 // resolveRepoPath — regression for Bug #2 (GitHub URL missing repo subdir)
 // ──────────────────────────────────────────────────────────────────────
 test('resolveRepoPath prepends repoRelDir when gitInfo supplies it', () => {
-  const out = resolveRepoPath('tracking-loops.md', {
+  const out = resolveRepoPath('circuits-across-models.md', {
     available: true,
-    repoRelDir: 'surveys/ntn-initial-sync-tracking',
+    repoRelDir: 'surveys/mechanistic-interpretability',
   });
-  assert.equal(out, 'surveys/ntn-initial-sync-tracking/tracking-loops.md');
+  assert.equal(out, 'surveys/mechanistic-interpretability/circuits-across-models.md');
 });
 
 test('resolveRepoPath returns the bare file when gitInfo is unavailable', () => {
@@ -228,7 +228,7 @@ const MR_GIT = {
 test('resolveRepoPath (multi-root) uses the OWNING root repoRelDir, not the first', () => {
   // A file in root B must not inherit root A's prefix (the 404 bug).
   assert.equal(resolveRepoPath('docs/foo.md', MR_GIT), 'docs/foo.md');
-  assert.equal(resolveRepoPath('surveys/5g/intro.md', MR_GIT), 'surveys/5g/intro.md');
+  assert.equal(resolveRepoPath('surveys/peft/intro.md', MR_GIT), 'surveys/peft/intro.md');
 });
 
 test('resolveRepoPath (multi-root) returns bare file for an unknown namespace', () => {
@@ -236,8 +236,8 @@ test('resolveRepoPath (multi-root) returns bare file for an unknown namespace', 
 });
 
 test('resolveRepoPath (schema 2 single-root) falls back to the empty-id root', () => {
-  const single = { schema: 2, roots: { '': { available: true, repoRelDir: 'surveys/5g-nr-ldpc' } } };
-  assert.equal(resolveRepoPath('intro.md', single), 'surveys/5g-nr-ldpc/intro.md');
+  const single = { schema: 2, roots: { '': { available: true, repoRelDir: 'surveys/llms-for-coding' } } };
+  assert.equal(resolveRepoPath('intro.md', single), 'surveys/llms-for-coding/intro.md');
 });
 
 test('resolveRepoPath (multi-root) unavailable owning root → bare file', () => {

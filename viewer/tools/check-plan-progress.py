@@ -50,7 +50,7 @@ REGISTRY = ".claude/program-manifests"
 # A commit's owning wave is read from its subject tag. The repo uses two forms
 # interchangeably — the canonical `wave<N>(...)` / `wave<N>: ...` and the shorthand
 # `W<N>.<subset>` (e.g. `W4.1`, `W5.1`) that names a subset directly. BOTH must be
-# recognized: on 2026-07-25 a whole wave (W5.1 RAN5) went unregulated because its
+# recognized: upstream a whole wave went unregulated because its
 # commits used only the `W5.1 ...` shorthand, which the old `^wave(\d+)`-only regex
 # never matched, so `waves_present` came back empty and the drift check silently
 # skipped. Patterns are overridable per manifest via `branch_policy.wave_tag_patterns`;
@@ -250,6 +250,21 @@ def _branch_policy_problems(manifest, root, branch_ctx):
     main_ref = pol.get("main", "main")
 
     problems = _untagged_wave_problems(manifest, pol, waves_present, changed_files)
+
+    if cur in (pol.get("reconciliation_branches") or []):
+        # A branch that MERGES another line of development -- a fork sync, a whole-branch
+        # reconciliation -- is ahead of `main` by every commit that line ever authored, so
+        # `git log main..HEAD` reports every wave at once. The mixing check then fires BY
+        # CONSTRUCTION and cannot be satisfied by "split the later wave(s) onto their own
+        # branch", because nothing on this branch was authored per-wave in the first place.
+        # Declared per branch in the manifest, the same way a wave declares a `branch`
+        # override (decisions/2026-07-25-wave4-branch-override-reconciliation) -- not a
+        # severity flip and not a --no-verify bypass.
+        #
+        # Scope is deliberately narrow: this exempts the TAG-derived checks below only. The
+        # FILE-derived ground-truth net has already run above, because that is the check that
+        # caught the untagged W5.1 wave, and silencing it here would re-open that exact hole.
+        return problems
 
     if len(waves_present) > 1:
         problems.append(f"[branch policy] '{cur}' mixes commits from waves {waves_present} ahead "

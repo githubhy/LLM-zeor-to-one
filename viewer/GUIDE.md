@@ -55,6 +55,115 @@ Open `http://localhost:3000` in your browser.
 
 The asset sandbox is normally the same directory as the served markdown. For cross-cutting review docs that embed images from another directory (e.g. a figure-review report in `reports/` referencing PNGs under `sim/.../figures/`), pass `--allow <path>` one or more times to extend the read-only asset sandbox. Markdown file access remains strictly limited to the primary target directory. Each `--allow` root is independently sandboxed — `..` escapes inside one root cannot cross into another.
 
+## Launching Without a Terminal (macOS)
+
+`tools/make-mac-app.sh` builds **Survey Viewer.app** — a double-clickable launcher
+that starts `serve.js` and opens the viewer in a standalone, chrome-less window.
+
+```bash
+./viewer/tools/make-mac-app.sh                 # -> ~/Applications/Survey Viewer.app
+./viewer/tools/make-mac-app.sh --port 4000     # bake in a non-default port
+./viewer/tools/make-mac-app.sh --out /Applications --name "Surveys"
+```
+
+Double-click it, or drag it to the Dock.
+
+**The app is not bound to any repository.** At launch it resolves which repo to
+serve, then runs *that* repo's own `viewer-launcher.sh`:
+
+1. `VIEWER_REPO`, if set — a one-off override, never added to the recents.
+2. The **last repo you opened**, with no dialog. This is the common path.
+3. Otherwise, a chooser: your recents, plus *Other (browse)…* for a new one.
+
+**Hold Option while launching to get the chooser** even when a repo is remembered —
+the standard macOS "let me pick" gesture. `--pick` does the same from a terminal.
+
+If the last-used repo has moved or been deleted, the app says so and opens the
+chooser. It deliberately does **not** fall through to the next entry in the
+recents: silently serving a different corpus gives you no way to notice you are
+reading the wrong repo.
+
+So one app serves any number of clones, and **moving a repo costs a re-pick, not a
+rebuild.** The bundle carries exactly one copied file — `Resources/pick-repo.sh`,
+the bootstrap that necessarily runs before any repo is known. Everything else
+executes from the selected repo, so viewer and launcher edits still take effect
+immediately. Re-run `make-mac-app.sh` only to refresh that bootstrap or change the
+baked-in port.
+
+### Managing the repo list
+
+```bash
+./viewer/tools/pick-repo.sh list             # recents, most recent first
+./viewer/tools/pick-repo.sh remember <path>  # add / move to the top
+./viewer/tools/pick-repo.sh forget <path>    # drop one
+./viewer/tools/pick-repo.sh forget           # drop all (next launch asks)
+./viewer/tools/pick-repo.sh resolve          # what would launch right now
+```
+
+A directory qualifies as a viewer repo when it has **both** `viewer/serve.js` and an
+executable `viewer/tools/viewer-launcher.sh`. Pick the folder that *contains*
+`viewer/`, not `viewer/` itself — if you get it wrong the chooser corrects for it
+rather than failing. A clone that predates the launcher is rejected until it has
+one; copy `viewer/tools/viewer-launcher.sh` and `viewer/tools/pick-repo.sh` into it.
+
+**One server, one repo.** `serve.js` on a given port serves a single repo, so
+launching from a different one hands the port over — announced, not silently — and
+`status` reports which repo is live.
+
+### Controlling the server
+
+The app is a *launcher*: it starts the server, opens the window, and exits, leaving
+the server running (reparented to `launchd`). Manage it with the same script:
+
+```bash
+./viewer/tools/viewer-launcher.sh status    # running (pid N, port 3000) | stopped
+./viewer/tools/viewer-launcher.sh stop
+./viewer/tools/viewer-launcher.sh restart   # after editing serve.js
+./viewer/tools/viewer-launcher.sh open      # reopen the window, server untouched
+./viewer/tools/viewer-launcher.sh start -p 4000 -- surveys/llms-for-coding
+```
+
+Anything after `--` is passed through to `serve.js`, so the launcher supports the
+same `--root` / `--allow` / single-file forms as the direct invocation.
+
+| Env var | Effect |
+|---|---|
+| `VIEWER_PORT` | Default port when `-p` is not given (default `3000`). |
+| `VIEWER_NODE` | Full path to the `node` binary, if auto-discovery misses it. |
+| `VIEWER_REPO` | Serve this repo, bypassing the recents. |
+| `VIEWER_STATE_DIR` | PID/port/log location (default `~/Library/Application Support/SurveyViewer`). |
+| `VIEWER_NO_BROWSER` | Set to any value to start the server without opening a window. |
+
+### Behaviour worth knowing
+
+- **`node` is found explicitly, not via `PATH`.** A Finder-launched app inherits
+  `PATH=/usr/bin:/bin:/usr/sbin:/sbin`, so Homebrew / nvm / fnm / volta / asdf
+  installs are invisible to it — a bare `node` works in Terminal and fails on
+  double-click. The launcher searches those locations directly.
+- **Starting twice is safe.** If the viewer already answers on the port, the
+  launcher just reopens the window instead of spawning a second server.
+- **A foreign server on the port is refused, not adopted.** Identity is confirmed
+  by probing `/api/files` for the viewer's own payload shape, so the launcher will
+  not silently attach to an unrelated dev server holding port 3000.
+- **Failures surface as a Finder alert**, since an accessory app has no console.
+  Full output goes to `~/Library/Application Support/SurveyViewer/viewer.log`.
+- **A missing or wrong repo is reported, not silent.** The shim validates before
+  exec'ing. Without that check a bad path would make a double-click do nothing
+  whatsoever — `exec` on a missing path writes to a stderr that an `LSUIElement`
+  app has no console for.
+- **Cancelling the chooser is not an error.** Declining a dialog exits quietly
+  rather than raising an alert about a choice you just made.
+
+Covered by `tests/unit/viewer-launcher.test.js` (16 tests, `npm run test:unit`) —
+including the moved-repo, wrong-repo and repo-handover cases, so none of the silent
+failures can regress.
+
+Why a launcher rather than an Electron or Tauri app: the viewer is already an
+installable PWA, and a native shell would fork the rendering target — Tauri's
+WKWebView is WebKit, while the 47 Playwright specs (selection, highlight-span
+boundaries, KaTeX) all target Chromium. The launcher closes the actual gap, which
+is terminal ceremony, without creating an untested second render path.
+
 ## Features
 
 ### Sidebar Navigation

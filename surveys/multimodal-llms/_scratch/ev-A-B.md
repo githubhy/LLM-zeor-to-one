@@ -1,5 +1,7 @@
 # Evidence extraction — Appendix A/B (multimodal-llms survey)
 
+<!-- notation-table: ../index.md "Notation contract" — VERBATIM evidence extract, not an authored document: each equation is reproduced in its own source paper's notation (ViT, CLIP, SigLIP, CPC), which is what makes it usable as evidence; unifying those symbols would falsify it. Outside order.json, so it has no reader and no declaration point of its own. -->
+
 Sources read: download/dosovitskiy-vit-2020.pdf (ViT), download/radford-clip-2021.pdf (CLIP),
 download/zhai-siglip-2023.pdf (SigLIP), download/vandenoord-cpc-2018.pdf (CPC/InfoNCE).
 

@@ -28,6 +28,20 @@ import re
 import sys
 
 
+HEREDOC = re.compile(r"<<-?\s*'?\"?(\w+)'?\"?[^\n]*\n.*?\n\1\b", re.S)
+
+
+def strip_heredocs(cmd: str) -> str:
+    """Remove `<<'X' ... X` bodies: a heredoc body is DATA, not commands.
+
+    A script that WRITES `foo &` or a `pgrep -f` line into a file is not running either.
+    Both detectors need this and both learned it the same way -- by firing on a heredoc in
+    this session's own work, the pgrep one on its own test harness and the `&` one on a
+    docstring containing matrix column separators.
+    """
+    return HEREDOC.sub(" ", cmd)
+
+
 def detect(cmd: str):
     """Return a short reason string if `cmd` backgrounds a job, else None.
 
@@ -38,7 +52,7 @@ def detect(cmd: str):
     `}` / newline) or before a loop/if terminator — which excludes bitwise-and in
     arithmetic (`$((a & b))`, the `&` is followed by an operand, not a terminator).
     """
-    s = cmd
+    s = strip_heredocs(cmd)
     # 1) remove quoted spans so a literal & inside them is never mistaken for job control
     s = re.sub(r"'[^']*'", " ", s)
     s = re.sub(r'"[^"]*"', " ", s)
@@ -63,6 +77,44 @@ def detect(cmd: str):
     return None
 
 
+PGREP_F = re.compile(r"(?<![\w./-])pgrep\s+(?:-\w*\s+)*-\w*f\w*\s+(\S+)")
+
+
+def detect_pgrep_selfmatch(cmd: str):
+    """Return a reason if `cmd` runs `pgrep -f <literal>` that will match its OWN shell.
+
+    `pgrep -f PATTERN` matches against full command lines, and the shell running it has
+    PATTERN on its own command line -- so it ALWAYS matches itself unless the pattern is
+    written so it cannot, conventionally by bracketing one character (`[g]ithooks/...`).
+
+    Two failure modes, both measured in this repo:
+      * `until ! pgrep -f "x"; do sleep 5; done` never exits. One such waiter sat for
+        3.7 hours on 2 seconds of CPU, holding a background slot and deferring a goal
+        check-in by 160 minutes.
+      * a one-shot `pgrep -f "x"` reads as "the job is running" when nothing is, which was
+        reported to the user as fact twice in one session.
+
+    High precision: only flags a `-f` pgrep whose pattern contains no `[` (the bracket
+    trick) and is not a variable expansion (whose value we cannot see).
+    """
+    # A heredoc body is DATA, not commands: a script that WRITES this pattern into a file
+    # is not running it. Found immediately -- the guard blocked its own test harness, whose
+    # cases are written through a heredoc. Strip `<<'X' ... X` and `<<X ... X` bodies first.
+    scan = strip_heredocs(cmd)
+    for m in PGREP_F.finditer(scan):
+        pat = m.group(1).strip().strip("'\"")   # the quotes are shell syntax, not pattern
+        if not pat or pat.startswith("$") or pat.startswith("-"):
+            continue                      # a variable's value is not knowable here
+        if "[" in pat:
+            continue                      # bracket trick: cannot match itself
+        looped = re.search(r"\b(?:until|while)\b[^\n;]{0,200}?" + re.escape(m.group(0)[:24]),
+                           scan) is not None
+        return ("`pgrep -f %s` matches its own shell, so this loop never exits" % pat
+                if looped else
+                "`pgrep -f %s` matches its own shell and always reports a match" % pat)
+    return None
+
+
 def main():
     try:
         raw = sys.stdin.read()
@@ -75,12 +127,14 @@ def main():
     ti = data.get("tool_input") or {}
     if not isinstance(ti, dict):
         sys.exit(0)
-    # already using the correct mechanism -> allow (even if it redundantly has &)
-    if ti.get("run_in_background") is True:
-        sys.exit(0)
     cmd = ti.get("command")
     if not isinstance(cmd, str) or not cmd.strip():
         sys.exit(0)
+    # `run_in_background: true` is the correct mechanism for the & class, so that detector
+    # is skipped below -- but a self-matching pgrep is if anything WORSE in the background,
+    # where the deadlock is invisible until a check-in notices it. So it is checked first,
+    # for both kinds of call.
+    backgrounded = ti.get("run_in_background") is True
 
     proj = os.environ.get("CLAUDE_PROJECT_DIR") or "."
     try:
@@ -90,6 +144,42 @@ def main():
         severity = "error"
     if severity == "off":
         sys.exit(0)
+
+    # --- self-matching pgrep (its own severity toggle; different failure mode) ---
+    try:
+        pg = detect_pgrep_selfmatch(cmd)
+    except Exception:
+        pg = None                          # fail open
+    if pg:
+        try:
+            with open(os.path.join(proj, ".claude", "pgrep-selfmatch-severity"),
+                      encoding="utf-8") as f:
+                pgsev = f.read().strip().lower() or "error"
+        except Exception:
+            pgsev = "error"
+        if pgsev != "off":
+            pmsg = (
+                "[pgrep self-match guard] %s.\n"
+                "`pgrep -f` matches FULL COMMAND LINES, and the shell running it carries "
+                "the pattern on its own -- so it matches itself. An `until ! pgrep -f ...` "
+                "waiter therefore never exits (measured: 3.7 h on 2 s of CPU, holding a "
+                "background slot), and a one-shot check reads as \"still running\" when "
+                "nothing is.\n"
+                "FIX: bracket one character -- `pgrep -f \"[g]ithooks/pre-push\"` -- or use "
+                "`python3 tools/job_status.py`, which reads CPU accumulation and watch-path "
+                "freshness instead of a name match (.claude/rules/workflow.md BG-REPORT).\n"
+                "Bound every wait loop regardless: an unbounded `until` has no failure mode "
+                "that reports itself.\n"
+                "Toggle: `.claude/pgrep-selfmatch-severity` in {off | warn | error}."
+            ) % pg
+            if pgsev == "warn":
+                sys.stderr.write("WARNING: " + pmsg + "\n")
+            else:
+                sys.stderr.write(pmsg + "\n")
+                sys.exit(2)
+
+    if backgrounded:
+        sys.exit(0)      # correct mechanism for the & class; nothing left to check
 
     try:
         reason = detect(cmd)

@@ -306,6 +306,13 @@ default ON · toggle .claude/skill-options.json].>
 
 **Physical meaning is a required element, not decoration** `[opt:EF-PHYSICAL · default ON · toggle .claude/skill-options.json]`. Land the *mechanism in physical terms* — what is actually summed or superposed, what interferes or cancels, what a reader would observe or measure — not only the symbolic derivation, a restatement of the governing equation, or a limit. When the concept belongs to a dual/analogous family (coherence bandwidth / time / distance; the Bello functions; delay ↔ Doppler ↔ angle spreads), draw the physical picture **parallel to its siblings** so the mechanism reads the same way across them, and name explicitly the one ingredient the concept adds over the others. A "Geometrically / Intuition" tie-in that only re-states the math does **not** satisfy this. It operationalizes the `.claude/rules/workflow.md` math-derivation "intuition for each major result" bar for folded explanations. Motivating case: the coherence-distance fold delivered the phase-accrual math but omitted the sum-of-plane-waves interference picture — and its parallel to frequency selectivity as a sum of delayed taps — until the reader asked for it (`prompts/2026-07-06-wcm-spatial-correlation-duality.md`, Conv 14).
 
+**If a display nearby already consumes the result, CHAIN into it — one step numbering across both blocks** `[opt:EF-CHAIN · default ON · toggle .claude/skill-options.json]`. An enrichment that derives a lemma the next display uses must not stop at a self-contained block joined to it by prose. Number the proof `1…k` and the consumer `k+1…n`, put a one-sentence bridge between them, the punchline immediately after the second block, and all commentary after both. Then give **every** step of the consuming block its licence on its own line — in particular any term that vanishes, and the substitution of the just-proved result.
+
+**The continuation is a detector, not a layout preference.** A step you cannot write a line for is the missing step. Measured upstream: a three-equality display had **never written one of its noise terms down at all** and **asserted** the substitution of the lemma directly above it. Both passed `lint-math`, both survived a careful re-read, and both were forced into the open the moment one numbering ran across the two blocks. Chaining also separates *strengths* of a reused result that standalone blocks conflate: a lemma's pointwise form may need a full independence assumption while the step consuming it needs only an equality in expectation — so the downstream result survives a model weakening that kills the lemma, which is worth stating because it bounds what breaks when the model changes. Full standard: `.claude/rules/math-authoring.md` "Deriving, Not Asserting".
+
+**Corollary for the placement rule: a justification must sit at or before its point of use.** Same instance — the appendix *did* derive the identity, ninety lines further on, and the reader still hit a wall. Downstream of the equation it licenses, a justification reads as absent. When the answer already exists later in the document, the fold is a *move* (or a forward-linked restatement at the point of confusion), not a second derivation.
+
+
 Citation integrity: cite only sources already verified in the survey's
 `references.md` (strong `local:`/`spec:` tags preferred); **never introduce a
 new external citation from memory, and never write a concrete value you have
@@ -374,6 +381,8 @@ if the user asks.
 - [ ] *(full only)* Section home chosen: numbered subsection, appended at end of its block.
 - [ ] *(full only)* Section written in answer-format; refs marked+linked; every number read from an acquired source; no memory citations.
 - [ ] *(full only)* Math exhibits are UNTAGGED `$$…$$` KaTeX (`\underbrace`/`\substack`/`aligned`), not ASCII art in a fence; each carries a one-line "untagged by design" comment; fences reserved for pseudocode / listings / ASCII plots (`[opt:EF-MATHEXHIBIT]`).
+- [ ] *(full only)* If a nearby display consumes the derived result, the two blocks share ONE step
+      numbering with a one-sentence bridge, and every consuming step carries its licence (`[opt:EF-CHAIN]`).
 - [ ] *(full only)* Physical meaning delivered — mechanism in concrete terms, drawn parallel to sibling concepts where applicable — not just a symbolic/limit tie-in (`[opt:EF-PHYSICAL]`).
 - [ ] *(full only)* Both links wired (Note→section, section→host).
 - [ ] **No cascade**: no new numbered `$$` equation minted (equations `--check` reports 0 tag updates).

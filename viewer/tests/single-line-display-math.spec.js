@@ -4,7 +4,7 @@
 // it. Pre-fix (bug 2026-04-30-01), only multi-line `$$\n...\n$$` was
 // shielded; single-line equations like
 //   $$K_\ell = \sum ... = O(...)$$
-// (used in surveys/5g-nr-ldpc/fundamentals.md §3.6.1) had no
+// (used in a survey fundamentals section) had no
 // data-math-block attribute and the user couldn't click-and-highlight them.
 const { test, expect } = require('@playwright/test');
 const { createFixtureDir, startServer, stopServer } = require('./helpers/server');

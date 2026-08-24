@@ -53,6 +53,15 @@ from pathlib import Path
 
 #: A fenced line invoking a repo module.
 CMD = re.compile(r"^\s*(?:\$\s*)?python3?\s+-m\s+([\w.]+)\s*(.*)$")
+#: `python path/to/script.py ...` -- the OTHER half of the population. Measured 2026-08-23:
+#: 256 of the 467 copyable commands under reports/ + docs/ are this form, and the gate read NONE
+#: of them while printing "136/136 documented commands", which reads as coverage it did not have.
+#: Flags cannot be checked here without resolving the script the way the shell would, but
+#: EXISTENCE can, and a script that is not there is the strongest form of unrunnable.
+CMD_PATH = re.compile(r"^\s*(?:\$\s*)?python3?\s+([\w./-]+\.py)\s*(.*)$")
+#: A `cd` inside the same fenced block sets what a relative path means. Ignoring it would have
+#: reported 33 false positives -- every one of the 33 resolved once the `cd` was honoured.
+CD = re.compile(r"^\s*(?:\$\s*)?cd\s+([\w./-]+)")
 
 #: Not ours to introspect.
 SKIP_MODULES = {"pytest", "pip", "venv", "http.server", "json.tool", "unittest", "IPython",
@@ -79,17 +88,23 @@ def _is_number(tok: str) -> bool:
 
 
 def _commands(text: str):
-    """Yield `(line_no, module, argstring)` for every `python -m` line inside a fenced block.
+    """Yield `(line_no, kind, target, argstring)` for every python command inside a fenced block.
+
+    `kind` is "module" for `python -m pkg.mod` or "script" for `python path/to/x.py`; for a script
+    the 4th element carries the block's current `cd`, since that is what a relative path means.
 
     Deliberately not restricted to blocks under a "Reproduce" heading: a command a reader can copy
     is a command a reader will copy, wherever it sits.
     """
     fenced = False
     pending = ""
+    cwd = None
     for i, raw in enumerate(text.splitlines(), 1):
         line = raw.rstrip()
         if line.lstrip().startswith("```"):
             fenced, pending = not fenced, ""
+            if fenced:
+                cwd = None            # each block starts at the repo root
             continue
         if not fenced:
             continue
@@ -102,9 +117,17 @@ def _commands(text: str):
         elif line.endswith("\\"):
             pending = line.rstrip("\\").rstrip()
             continue
+        c = CD.match(line)
+        if c:
+            cwd = c.group(1).strip().rstrip("/")
+            continue
         m = CMD.match(line)
         if m:
-            yield i, m.group(1), m.group(2)
+            yield i, "module", m.group(1), m.group(2)
+            continue
+        m = CMD_PATH.match(line)
+        if m:
+            yield i, "script", m.group(1), cwd
 
 
 def _accepted_flags(module: str):
@@ -173,6 +196,22 @@ def _accepted_flags(module: str):
 EXCLUDE_PARTS = ("/plans/", "/proposals/")
 
 
+def _script_exists(rel: str, cwd: str | None) -> bool:
+    """Does `python <rel>` name a file that is actually here?
+
+    DELIBERATELY FORGIVING, in the spirit of _accepted_flags: a resolver that is merely incomplete
+    must not BLOCK a push. Three chances -- the block's `cd`, the repo root, and a basename match
+    anywhere in the repo. On the measured corpus that leaves exactly the commands whose script is
+    present nowhere at all, which is a claim about the repo and not about this resolver.
+    """
+    if cwd and (REPO / cwd / rel).exists():
+        return True
+    if (REPO / rel).exists():
+        return True
+    name = Path(rel).name
+    return any(True for _ in REPO.glob(f"**/{name}"))
+
+
 def check(paths, severity="warn", show_ok=False):
     files = []
     for p in paths:
@@ -181,7 +220,7 @@ def check(paths, severity="warn", show_ok=False):
         files.extend(f for f in cand
                      if not any(x in "/" + f.as_posix() for x in EXCLUDE_PARTS))
 
-    n_cmd = n_bad = n_skip = 0
+    n_cmd = n_bad = n_skip = n_script = 0
     problems = []
     cache: dict[str, tuple] = {}
     for f in files:
@@ -189,7 +228,18 @@ def check(paths, severity="warn", show_ok=False):
             text = f.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError):
             continue
-        for lineno, module, argstr in _commands(text):
+        for lineno, kind, target, argstr in _commands(text):
+            if kind == "script":
+                n_script += 1
+                if _script_exists(target, argstr):
+                    continue
+                problems.append((f, lineno, target,
+                                 "script not found in the repo (resolved against the block's "
+                                 "`cd`, the repo root, and by basename anywhere) - the recipe "
+                                 "cannot be run by a stranger"))
+                n_bad += 1
+                continue
+            module = target
             if module in SKIP_MODULES or module.split(".")[0] in SKIP_MODULES:
                 n_skip += 1
                 continue
@@ -222,14 +272,21 @@ def check(paths, severity="warn", show_ok=False):
                 print(f"  [ok] {f}:{lineno}  {module} {argstr}")
 
     for f, lineno, module, why in problems:
-        print(f"  [--] {f}:{lineno}  python -m {module}: {why}")
+        # `python -m` vs `python x.py` -- print the form the document actually contains, or the
+        # finding sends its reader looking for a module that was never claimed to be one.
+        shown = module if module.endswith(".py") else f"-m {module}"
+        print(f"  [--] {f}:{lineno}  python {shown}: {why}")
 
-    if n_cmd == 0:
+    if n_cmd + n_script == 0:
         # A gate that looked at nothing must not report success (bugs/2026-07-09-13's lesson).
-        print(f"reproduce-blocks: NOTHING CHECKED - no `python -m` commands in {len(files)} file(s)")
+        # BOTH halves count. Keying this on n_cmd alone -- as it did while `python -m` was the
+        # only form read -- makes a file of pure `python x.py` commands REFUSE even after finding
+        # a real problem in it, which is the same denominator error one level down.
+        print(f"reproduce-blocks: NOTHING CHECKED - no python commands in {len(files)} file(s)")
         return 2
-    print(f"reproduce-blocks: {n_cmd - n_bad}/{n_cmd} documented commands use only flags their "
-          f"module accepts ({n_skip} skipped: parser not statically readable)")
+    print(f"reproduce-blocks: {n_cmd + n_script - n_bad}/{n_cmd + n_script} copyable command(s) "
+          f"OK - {n_cmd} `python -m` checked for flags ({n_skip} skipped: parser not statically "
+          f"readable), {n_script} `python <path>.py` checked for EXISTENCE only")
     if n_bad:
         print(f"reproduce-blocks: {n_bad} unexecutable command(s)"
               + ("" if severity == "error" else "  [warn]"))

@@ -1,9 +1,49 @@
 ---
 name: cross-link
-description: Add high-value cross-links across the survey corpus cheaply — a deterministic TF-IDF pre-filter proposes candidates, a small batched agent judges only keep/where, and a deterministic idempotent applier inserts them with the correct directional syntax. Use to clear the gaps the crosslink gate reports, or as the sign-off step after authoring/expanding a survey. Replaces the all-agent sweep (which cost ~11.5M tokens for 131 links) at ~20-40x lower cost. File: .claude/skills/cross-link/SKILL.md
+description: Add high-value cross-links across the survey corpus cheaply — a deterministic TF-IDF pre-filter proposes candidates, a small batched agent judges only keep/where, and a deterministic idempotent applier inserts them with the correct directional syntax. Use to clear `crosslink.py check` gaps (high-cosine unlinked PAIRS), or as the sign-off step after authoring/expanding a survey. It does NOT clear `crosslink.py reach` gaps (a wiki no reader can arrive at) — cosine does not optimise for the survey->wiki direction; use `crosslink.py reach --propose` for those. Replaces the all-agent sweep (which cost ~11.5M tokens for 131 links) at ~20-40x lower cost. File: .claude/skills/cross-link/SKILL.md
 ---
 
 # Cross-Link (on-demand insertion pass)
+
+## Which gate this skill clears — and which it does NOT
+
+| Gate | Question | Cleared by |
+|---|---|---|
+| `crosslink.py check` | is this high-cosine PAIR linked? | **this skill** |
+| `crosslink.py coverage` | is this doc scanned at all? | edit `.claude/crosslink-scope` |
+| `crosslink.py reach` | can a reader ARRIVE at this wiki? | **`crosslink.py reach --propose`**, then insert by hand |
+
+**Do not run this skill against a `reach` gap.** It cannot clear one, and the failure is
+silent rather than loud: `check` will report "no gaps" for a wiki that no reader can
+arrive at. Measured upstream while clearing a nine-wiki backlog — the pipeline over one
+corpus group at `--min-score 0.10 --max-candidates 200` produced a candidate for **1 of
+its 5** unreachable wikis, and that one candidate was **wiki → wiki**, which does not
+improve reachability at all, since `reach` traverses from `surveys/`. Two of the nine were
+outside every TF-IDF group by deliberate design, so no similarity tool could ever have
+proposed them.
+
+### Clearing a `reach` gap instead
+
+```bash
+python viewer/tools/crosslink.py reach --propose
+```
+
+Provenance-driven and **similarity-free by construction**. The edge reachability needs is
+the *reverse* of one that already exists: the `reference-implementation-study` G0 gate
+requires a derivation wiki to cite its host survey, so the host is **read** out of the
+wiki's own header rather than inferred. Three tiers, and the sheet always says which:
+
+- **`declared`** — a `**Host survey.**` / `**Role of this wiki.**` / `**Source.**` header
+  link, with the section anchor. That anchor is where the back-link belongs.
+- **`body-link`** — a survey the wiki links somewhere in its body. A *candidate*, not
+  provenance; confirm which one is the host before linking back.
+- **`none`** — no survey link anywhere. Read the wiki and either link it from the section
+  it supports, or declare it in `.claude/reachability-keepout`.
+
+This corpus is currently at **zero** unreachable wikis, so `reach --propose` returns
+nothing here; it is the tool to reach for the moment a newly-authored wiki lands
+unreachable. It does not clear every gap and does not pretend to — a `none` tier is a
+manual read.
 
 ## Overview
 
@@ -53,7 +93,7 @@ as bogus paths. Ask the tool for the group's paths:
 
 ```bash
 python viewer/tools/crosslink.py groups                       # list group names
-GROUP=fec-decoding                                            # pick the owning group
+GROUP=llm-methods                                             # pick the owning group
 SCOPE=$(python viewer/tools/crosslink.py groups --group "$GROUP")
 python viewer/tools/crosslink.py extract $SCOPE --out temp/xlink-index.json
 ```

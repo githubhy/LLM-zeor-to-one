@@ -59,6 +59,49 @@ Every repo tool/script that does file I/O with possibly-non-ASCII content must p
 
 A long-running job (a training run, an eval sweep, a batched generation) must be launched via the tool's own **`run_in_background: true`**, never via a trailing `&`, `nohup`, `setsid`, or `disown` inside a *foreground* tool call. On this harness a foreground tool call reaps its child processes when it returns, so a `&`/`nohup`-detached job is killed the moment the launching call completes — durable backgrounding is a property of the *launch mechanism*, not of `nohup`/`&` syntax. Additionally, design any long-running driver to flush and resume per unit of work (per-checkpoint, per-benchmark-shard, per-prompt-batch), so if a job is interrupted a relaunch re-uses completed units at zero recompute. Because the documented rule kept being violated upstream, it is **enforced by a PreToolUse gate** (`.claude/hooks/guard-foreground-background.py`, wired in `.claude/settings.json`): a foreground Bash call that backgrounds a job with a trailing `&`/`nohup`/`setsid`/`disown` is BLOCKED (exit 2) with a message to relaunch via `run_in_background: true`. The gate is high-precision (it never flags `&&`, fd-redirects, arithmetic `$((a & b))`, or a `&` inside quotes/comments) and fails OPEN. Operative runtime toggle: `.claude/foreground-bg-severity` (`off | warn | error`, default `error`; `warn` is advisory only and does NOT prevent the reap). `[opt:BG-RUNINBG · default ON · toggle .claude/skill-options.json]` `[opt:BG-GUARD · default ON · toggle .claude/foreground-bg-severity]`
 
+**While a background job is live, every turn ends with its status line.** Run
+`python3 viewer/tools/job_status.py` and append the one-line verdict to the turn's reply. Registered
+jobs live in `.claude/background-jobs.json`; register a job when you launch it and de-register it
+when its output is consumed. `[opt:BG-REPORT · default ON · toggle .claude/skill-options.json]`
+
+**Report the verdict, not the elapsed time.** The question is never "how long has it been running"
+— it is *can I tell working from dead*, and that has been answered wrongly upstream in **both**
+directions. **False ALIVE:** after a container reset a dead run's lingering bash *wrapper* still
+matched `pgrep -f <cmd>` (`.claude/rules/reset-durability.md`). **False DEAD:** a sweep's
+`progress.log` went 19 minutes without a line while three workers sat at 99.7 % CPU — a
+*completion-granular* heartbeat is silent for a whole unit by construction, so mtime-staleness
+alone reads a healthy 30-minute unit as a hang. `job_status.py` therefore reads CPU accumulation
+**and** watch-path freshness, OR-ed for liveness and AND-ed for a stall, and filters any process
+with wall time but no CPU as a wrapper.
+
+**Prefer this end-of-turn line to a fixed-interval wake-up.** It rides on turns that already
+happen, so it costs nothing and cannot drift out of sync with the work. A timer has the opposite
+properties: a poll faster than the unit time reports "no change" most of the time, and a signal
+that is usually empty trains its reader to ignore it. Reserve `ScheduleWakeup` for genuinely
+unattended stretches, at a delay **matched to the unit time** (a ~30-minute eval shard wants a
+~30-minute check, not a 5-minute one).
+
+**Never ask `pgrep -f` whether a job is alive, and never wrap it in an unbounded wait.**
+`pgrep -f` matches FULL COMMAND LINES, so the shell running it carries the pattern on its
+own line and **always matches itself**. `until ! pgrep -f "x"; do sleep 5; done` therefore
+never exits, and a one-shot `pgrep -f "x"` reports a live job when nothing is running.
+Measured upstream: one such waiter held a background slot for **3.7 hours on 2 seconds of
+CPU** and deferred a check-in by 160 minutes; earlier in the same session the one-shot form's
+answer was reported to the user as fact **twice**, from a process that did not exist.
+(`.claude/rules/reset-durability.md` records the mirror image: after a container reset a dead
+run's lingering wrapper still matches, giving a false ALIVE.) Use
+`python3 viewer/tools/job_status.py`, which reads CPU accumulation and watch-path freshness;
+where a name match is genuinely wanted, bracket one character — `pgrep -f "[g]ithooks/pre-push"`.
+Bound every wait loop regardless: an unbounded `until` has no failure mode that reports itself.
+**Enforced by the same PreToolUse gate** (`.claude/hooks/guard-foreground-background.py`, second
+detector), severity `.claude/pgrep-selfmatch-severity` (`off | warn | error`, default `error`);
+controls in `viewer/tools/tests/test_bash_guard.py`.
+`[opt:BG-PGREP · default ON · toggle .claude/pgrep-selfmatch-severity]`
+
+Note the status-line half is a rule, not a gate, so it can be forgotten. What makes it survivable
+is that a missed line costs a turn's visibility, whereas a missed *wake-up* costs the hours until
+someone asks.
+
 **Exactly one live writer per resumable checkpoint file.** The flush-and-resume design above makes it tempting to "extend" a running job by relaunching it with a larger target — but relaunching *without killing the original* leaves two processes doing read-modify-write on the same checkpoint. To extend or re-scope a running job: **kill it first, then relaunch**; to run shards in parallel, give each its **own** output file and merge at analysis time. The tell in a corrupted run is a **non-monotonic** progress counter in the log (`…10000 11000 → 8000 9000…`) as the two writers clobber each other. Whether the clobbering also corrupts *values* depends on whether the per-batch seed is a deterministic function of the accumulated offset — **do not rely on that**, it is a property of one seeding scheme, not of checkpointing. Cheap audit before trusting a resumed artifact: the progress sequence in its log must be strictly increasing.
 
 ## Proposal Rules

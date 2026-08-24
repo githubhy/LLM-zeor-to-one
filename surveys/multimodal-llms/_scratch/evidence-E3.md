@@ -48,7 +48,7 @@
 ## Q3 — Published-vs-deployed deployment gap: why open-weight models dominate practitioner use
 
 ### Deployment gap thesis — cost and data-sovereignty drivers
-- **value/result**: The cost of GPT-4-equivalent performance dropped from ~$20/M tokens (late 2022) to ~$0.40/M tokens (early 2026); open-weight deployments allow self-hosting at commodity compute cost and keep sensitive data fully on-premises. Enterprise practitioners route cost-sensitive or privacy-sensitive tasks to self-hosted open-weight multimodal models (e.g., LLaVA family, Qwen2-VL, Llama-Vision) even when closed API models score higher on MMMU/DocVQA.
+- **value/result**: The cost of GPT-4-equivalent performance dropped from ~\$20/M tokens (late 2022) to ~\$0.40/M tokens (early 2026); open-weight deployments allow self-hosting at commodity compute cost and keep sensitive data fully on-premises. Enterprise practitioners route cost-sensitive or privacy-sensitive tasks to self-hosted open-weight multimodal models (e.g., LLaVA family, Qwen2-VL, Llama-Vision) even when closed API models score higher on MMMU/DocVQA.
 - **condition**: Reflects 2024–2026 enterprise deployment patterns; quantitative cost gap is from a secondary industry survey
 - **source**: "Open Source vs Closed LLMs: Technical Comparison 2026", https://hakia.com/compare/open-vs-closed-llms/ (2026); "Open vs. Closed LLMs in 2025: Strategic Tradeoffs for Enterprise AI", Medium/Data Science Collective, https://medium.com/data-science-collective/open-vs-closed-llms-in-2025-strategic-tradeoffs-for-enterprise-ai-668af30bffa0 · **tier**: C · **confidence**: med
 

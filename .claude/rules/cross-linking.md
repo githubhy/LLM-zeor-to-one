@@ -205,6 +205,24 @@ obligation has **no owner** in the survey→wiki direction, so it fails identica
 for every such wiki. The prevention is `[opt:RIS-BACKLINK]` (add the back-link in
 the same turn); this gate is the detection.
 
+**A `reach` gap has its own remedy, and it is not `/cross-link`.** The two gates need
+different *clearing paths*, not just different detection — cosine does not optimise for the
+survey → wiki direction, so a `reach` gap can sit at zero candidates forever while `check`
+reports "no gaps". Measured upstream over a five-survey group: the similarity pipeline
+produced a candidate for **1 of its 5** unreachable wikis, and that candidate was
+**wiki → wiki**, which does not improve reachability at all. Use instead:
+
+```bash
+python viewer/tools/crosslink.py reach --propose
+```
+
+It is **provenance-driven, not similarity-driven**: the edge reachability needs is the
+*reverse* of one that already exists (a derivation wiki cites the survey it supports), so the
+host is read out of the wiki's own header. Three tiers — `declared` (a header host link,
+with the anchor the back-link belongs at), `body-link` (a candidate, confirm first), `none`
+(a manual read). This corpus is at zero unreachable, so it currently proposes nothing; it is
+the remedy to reach for when a newly-authored wiki lands unreachable. It never writes.
+
 Config: `.claude/reachability-severity` (`off | warn | error`, currently **`error`** —
 the backlog reached zero on 2026-08-12, both wikis linked from the survey section each
 supports rather than parked in the keep-out). Deliberately-standalone process/harness wikis are

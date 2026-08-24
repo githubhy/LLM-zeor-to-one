@@ -2,7 +2,7 @@
 // Regression: `==color: text==` highlights must render as a coloured <mark>
 // with the `color:` prefix stripped — not as literal `==color:` / `==` text.
 //
-// Bug 2026-05-20-01 (user-spotted at surveys/5g-nr-ldpc/fundamentals.md §3.7.3)
+// An upstream bug, user-spotted in a survey fundamentals section
 // was NOT a viewer-pipeline defect. The offending source had IMPROPERLY-NESTED
 // (crossing) delimiters — `**==purple: lead.** rest==` — i.e. a `**` bold pair
 // that OPENS before the `==` mark-open and CLOSES inside the mark. markdown-it-

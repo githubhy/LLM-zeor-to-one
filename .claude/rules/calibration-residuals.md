@@ -105,6 +105,22 @@ measured quantity *means*, run these three:
   Decoding-temperature and few-shot-order effects are large enough to invert a
   single-seed trend.
 
+- **Know WHY a control agrees, not just that it does.** A control that comes out right is only
+  evidence if you can name the independent error it would have caught. Two errors of opposite sign
+  cancel, and the result is a *perfect* agreement that means nothing.
+  `[opt:CR-WHYCONTROL · default ON · toggle .claude/skill-options.json]` Measured upstream, twice
+  in one campaign: (i) an aggregate over independent published reproductions matched a published
+  headline to **Δ 0.000** and was written up as an exact control — one contributor's value was on a
+  different few-shot basis and another had been excluded by the benchmark's own rules, and on that
+  row the two errors offset almost exactly; the same two did **not** cancel on the sibling row,
+  whose small residual was then misread as a *missing contributor* and sent someone hunting a
+  source that does not exist. (ii) A second control passed because a wrong derived value matched a
+  wrong published value — the published figure had been read off a **superseded preprint version**
+  rather than the current published artifact (the failure `.claude/skills/spec-provenance/SKILL.md`
+  gates). Before a control counts: state what it would have caught, and check it on more than one
+  row of the same family. **A rule that holds on part of a family, with the same inputs, is a
+  coincidence rather than a law** — publishing only the rows that agreed is selecting the evidence.
+
 **Corollary — significance is not materiality.** With a large enough eval set
 almost any statistic reaches significance, so an absolute threshold on a
 statistic is the wrong instrument. Compare the **decision-relevant effect against
@@ -123,6 +139,7 @@ configuration).
 | "X under-performs Y" | "the X-vs-Y gap is partly a metric-basis difference; the reference is on the ... basis" |
 | a flattering rounded delta | the committed artifact's number, to its committed precision |
 | "the number reproduces, so the finding holds" | the number reproduced; state which sub-population it survives in, and what the rig's preconditions were |
+| "the control passed, so the method is sound" | the control passed; name the independent error it would have caught, and how many rows of the family it holds on |
 | "statistically significant (p<...)" as a verdict | the effect size against a matched noise floor — significance without materiality is not a finding |
 
 The right-hand column is not pedantry: every left-hand phrasing above was actually

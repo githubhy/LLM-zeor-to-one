@@ -170,6 +170,47 @@ in a release are three different facts. A survey that writes a proposal in the
 present indicative ("the format uses X") when only a draft proposed X has made a
 claim the record does not support.
 
+**A DIFF is not a document — the text being removed sits beside the text being added.**
+`[opt:SP-REVMARKS · default ON · toggle .claude/skill-options.json]` When the only source
+for a value is a *change* artifact rather than the artifact itself — a paper's v1→v3 arXiv
+revision, an errata note, a model card's changelog entry, a pull request against a
+benchmark or eval harness — remember it carries **both** the old value and the new one, and
+the old one usually reads first. A number quoted out of a diff is as likely to be the thing
+being corrected as the correction.
+
+Two traps, both of which produce a wrong published value:
+
+* **Reading the struck value as the proposal.** "We previously reported 19.1" and
+  "corrected to 20.7" sit in the same paragraph; a hurried read takes the first. The same
+  shape appears in a `-`/`+` git hunk, in a superseded arXiv version, and in a
+  strikethrough in a changelog. Upstream measured this twice in one session, and the second
+  instance was worse than a bare error: a wrong derived value **matched** a wrong published
+  value, so the control passed and inflated a reproduction count
+  (`.claude/rules/calibration-residuals.md` check 6, "know WHY a control agrees").
+* **Trusting a flattened text extract.** A tool that strips markup renders a deleted and an
+  inserted value **identically** — and some extractors drop the inserted text entirely,
+  returning the *old* value alone with no indication anything was removed. So neither the
+  convenient reader nor the flat text can tell you which is which.
+
+The rule that follows: **read a published value from the artifact of record** (rung 0 — the
+published paper version, the current model card, the tagged harness release), never from a
+diff. When the diff *is* the question — you are asking *what changed* — read the structured
+marks rather than the rendered text:
+
+```bash
+# arXiv: compare the pinned version against the one you hold
+#   (the abs page lists every version and its date)
+curl -s "https://arxiv.org/abs/<id>v1" ; curl -s "https://arxiv.org/abs/<id>v3"
+
+# a benchmark/harness change: the MERGED state is enacted, the hunk is a proposal
+git -C <harness> log --oneline -- <path/to/scoring.py>
+git -C <harness> show <merge-sha>:<path/to/scoring.py>   # what the release actually runs
+```
+
+Record the pin (`v3`, the release tag, the commit SHA) in the ledger beside the value, per
+`[opt:SP-LEDGER]` — a value whose version is not pinned is a value that will silently drift.
+
+
 ## Phase 3 — synthesize
 
 - For a `rationale`, state the reason **and** the rung it came from, and confirm

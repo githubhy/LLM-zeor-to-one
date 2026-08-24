@@ -3,8 +3,8 @@
 Loaded on demand by `CLAUDE.md`. Read this at the start of any long cloud session,
 and before deferring/parking work, launching a long-running job, or reconciling a
 container reset. Consolidates the reset-recovery discipline that was previously
-scattered across `docs/cloud-transition-checklist.md`, `.claude/rules/workflow.md`,
-and session field-notes.
+scattered across the upstream template's cloud-transition checklist,
+`.claude/rules/workflow.md`, and session field-notes.
 
 ## The rule
 
@@ -92,7 +92,7 @@ matches the lost file, then re-run any idempotent normalizers (`renumber-*`, lin
 and verify against the agent's reported metrics (line/tag counts). This is a
 **break-glass**, not a substitute for pushing — measured once (2026-07-26, two G0 wikis
 recovered verbatim), tracked for tooling if it recurs
-(`todos/2026-07-26-recover-from-transcript-helper.md`).
+(file a `todos/` entry if it recurs here).
 
 ## Enforcement
 
@@ -104,10 +104,11 @@ committing stale debris.
 
 ## Cross-references
 
-- `docs/cloud-transition-checklist.md` — the original reset-recovery findings (item c)
-  and the "everything committed and pushed" sign-off; `decisions/2026-07-20-cloud-bg-jobs-survive-no-reaper.md`.
+- The upstream template's cloud-transition checklist — the original reset-recovery
+  findings and the "everything committed and pushed" sign-off, plus the decision that
+  cloud background jobs survive with no reaper.
 - `.claude/rules/workflow.md` — `[opt:BG-RUNINBG]`, flush-and-resume, single-writer-per-checkpoint.
-- `field-notes/2026-07-26-reset-recovery-and-whole-branch-merge.md` — the 9-reset session:
-  blocked-push near-loss, transcript recovery, checkpoint-staleness death detection.
+- The upstream 9-reset session field-note — blocked-push near-loss, transcript recovery,
+  checkpoint-staleness death detection.
 - `CLAUDE.md` capture conventions (`prompts/`, `todos/`, `decisions/`, `bugs/`,
   `field-notes/`) — the durable *knowledge* layer that survives resets and compaction.

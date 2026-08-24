@@ -69,7 +69,23 @@ report benchmarks against an **externally published number** (a model card's
 reported MMLU, a leaderboard entry, a paper's headline `pass@1`), that number is
 **reference performance + a configuration stack** (prompt template, few-shot $k$
 and exemplar pool, decoding params, harness version, answer-extraction rule),
-*not* a bare capability measurement. Section 2 states the decomposition
+*not* a bare capability measurement.
+
+**Name which artifact owns each term.** This is TWO CHAINED SUMS, not three terms of one, and
+collapsing them sends a reader hunting for terms inside a document that does not contain them:
+
+| Sum | Owner | Where it lives |
+|---|---|---|
+| published headline = reference performance + prompt template + few-shot $k$ + decoding params + answer-extraction rule | the model vendor / paper authors | the model card or paper — the *configuration* is often **not fully disclosed anywhere** |
+| leaderboard entry = published headline + the leaderboard's own harness version and scoring conventions | the leaderboard / harness maintainer | the harness release + the leaderboard's methodology page |
+
+The **harness delta is a measurement-convention quantity**, not a capability difference — and for
+most benchmarks it is **unquantified**: the same model on the same test split routinely differs by
+several points across harnesses, purely from prompt-template and answer-extraction differences, and
+almost nobody publishes that decomposition. A margin can therefore be stated against three distinct
+levels, and an honest report names which one.
+
+Section 2 states the decomposition
 `published = reference + configuration delta`, with the reference **sourced** to
 the artifact that reports it (per `.claude/rules/citation-integrity.md`), and the
 verdict names **which basis it is measured against**: a margin measured against a

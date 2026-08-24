@@ -171,8 +171,27 @@ def declared_in(text: str, resolvers: list[str]) -> bool:
     return any(re.search(r, text, re.I) for r in resolvers)
 
 
+# A `file_context` gate asks "does this DOCUMENT discuss the thing that makes the
+# symbol ambiguous?" -- so it must read PROSE only.  Link targets and marker
+# comments are machinery, not subject matter: a cross-reference to
+# `time-interleaved.md` says nothing about whether THIS file has an interleaved
+# array.  Measured 2026-08-03: adding one such cross-link to mismatch-shaping.md
+# switched on the `N` per-channel-vs-total rule for a section about a single
+# B-element DAC, retroactively flagging three untouched sentences.  That is the
+# "pure noise" the file_context guard exists to prevent, so the guard must not be
+# trippable by an href.  Precision over recall (see the REGISTRY header).
+LINK_TARGET_RE = re.compile(r"\]\([^)]*\)")
+HTML_COMMENT_RE = re.compile(r"<!--.*?-->", re.S)
+
+
+def prose_only(raw: str) -> str:
+    """Strip link targets and marker comments; keep visible prose and link text."""
+    return LINK_TARGET_RE.sub("]", HTML_COMMENT_RE.sub(" ", raw))
+
+
 def check_file(path: pathlib.Path, global_decls: set[str]) -> list[tuple]:
     raw = path.read_text(encoding="utf-8")
+    raw_prose = prose_only(raw)
     lines = raw.split("\n")
     fence = strip_fences(lines)
     findings: list[tuple] = []
@@ -201,7 +220,7 @@ def check_file(path: pathlib.Path, global_decls: set[str]) -> list[tuple]:
             if ctx and not re.search(ctx, "\n".join(lines[max(0, i - 1):i + 2]), re.I):
                 continue
             fctx = spec.get("file_context")
-            if fctx and not re.search(fctx, raw, re.I):
+            if fctx and not re.search(fctx, raw_prose, re.I):
                 continue
             key = (sec, sym)
             if key in seen:
