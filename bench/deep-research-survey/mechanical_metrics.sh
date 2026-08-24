@@ -7,7 +7,7 @@
 #
 # Usage:
 #   bash mechanical_metrics.sh surveys/prach-receiver-survey.md         # single file
-#   bash mechanical_metrics.sh surveys/5g-nr-ldpc                       # multi-file survey dir
+#   bash mechanical_metrics.sh surveys/llms-for-coding                  # multi-file survey dir
 #   bash mechanical_metrics.sh --json surveys/prach-receiver-survey.md  # machine-readable
 #
 # Exit 0 if all metrics pass, 1 otherwise. Designed to be run from repo root.

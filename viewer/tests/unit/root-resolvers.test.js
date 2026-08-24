@@ -15,8 +15,8 @@ const ROOTS = [
 // ---------------------------------------------------------------------------
 
 test('rootForFile: namespaced id resolves to its root + relative path', () => {
-  assert.deepEqual(rootForFile(ROOTS, 'surveys/5g-nr-ldpc/00-intro.md'), {
-    root: ROOTS[0], rel: '5g-nr-ldpc/00-intro.md',
+  assert.deepEqual(rootForFile(ROOTS, 'surveys/llms-for-coding/00-intro.md'), {
+    root: ROOTS[0], rel: 'llms-for-coding/00-intro.md',
   });
   assert.deepEqual(rootForFile(ROOTS, 'docs/foo.md'), { root: ROOTS[1], rel: 'foo.md' });
 });
@@ -48,8 +48,8 @@ test('rootForFile: longest matching id prefix wins when ids nest', () => {
 // ---------------------------------------------------------------------------
 
 test('rootForAbsPath: abs path under a root resolves to {root, rel}', () => {
-  const abs = path.join('/repo/surveys', '5g-nr-ldpc', 'a.md');
-  assert.deepEqual(rootForAbsPath(ROOTS, abs), { root: ROOTS[0], rel: '5g-nr-ldpc/a.md' });
+  const abs = path.join('/repo/surveys', 'llms-for-coding', 'a.md');
+  assert.deepEqual(rootForAbsPath(ROOTS, abs), { root: ROOTS[0], rel: 'llms-for-coding/a.md' });
 });
 
 test('rootForAbsPath: a path outside every root returns null', () => {

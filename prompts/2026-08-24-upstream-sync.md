@@ -61,4 +61,54 @@
     landed in both repos independently (local PR #4 / upstream PR #176). Only the *test*
     was missing, so that is all that was ported.
 
+## Conversation 2
+- **Request**: `/goal finish all todos spawned in this session`.
+- **Actions**: Worked `todos/2026-08-24-upstream-sync-followups.md` end to end. Cleared the
+  6-file notation-table backlog — five `llms-for-coding` appendices served by **one** shared
+  table appended to that survey's `index.md`, the sixth (`_scratch/ev-A-B.md`) taking the
+  one-line `<!-- notation-table: … -->` opt-out — then flipped
+  `.claude/notation-table-severity` to `error`. Re-domained all ten `viewer/tests` telecom
+  fixtures. Installed the viewer's runtime deps, got the JS suite green, and wired it into
+  `.githooks/pre-push` with a verified loud-skip path. Updated `CLAUDE.md` and
+  `math-authoring.md` to match, and closed the todo.
+- **Result**: gate green, now **807 tests** (477 Python + 330 JS). `surveys/` lints at **0
+  errors** (was 3). Leakage grep clean with **no `viewer/tests` carve-out**. Four items
+  resolved, one withdrawn, two retained as preconditions.
+- **Findings**:
+  - **One of my own todo items was a false finding.** Item 6 claimed `pytest` was missing
+    from `requirements.txt`. It has been there since before the sync — `git show HEAD~1`
+    confirms it. I had written the item from recollection instead of reading the file, which
+    is exactly what `citation-integrity.md` forbids for external sources, committed against
+    my own repo. Recorded as withdrawn rather than deleted: a withdrawn finding is evidence
+    about the process that produced it.
+  - **Item 4's premise was half wrong too, and the correction is load-bearing.**
+    `node --test` is a Node built-in, so 312 of the 330 JS tests never needed
+    `node_modules` — only the three that actually start `serve.js` did. Running the suite
+    without deps produced **25 failures that look exactly like defects and are not**. That
+    is the argument for the pre-push block skipping *loudly* instead of running a partial
+    suite, and I verified both branches by moving `node_modules` aside.
+  - **Diagnosing "pre-existing vs mine" needs a clean worktree, not a guess.** 22 of those
+    25 failures also fail at `HEAD~1`; a `git worktree add` of the prior commit separated
+    them in one command. The same technique settled the same question in Conversation 1.
+  - **Re-domaining a fixture can silently destroy the property it tests.** Renaming
+    `palette-rank`'s nested path from `5g-nr-ldpc/intro.md` to `peft-methods/intro.md` broke
+    the test, because the original *contained the query as a substring* and the replacement
+    did not. The test caught it. `citation.test.js` needed a coordinated rename — its
+    paragraph anchor and heading slug derive from the filename — and two regex literals with
+    escaped slashes that a plain path replacement misses.
+  - **`profile-highlight-locatability.spec.js` was measuring nothing**: it profiled 12 NTN
+    survey files and 10 `theories/` docs, none of which exist here. Repointed at the real
+    interpretability corpus and `wikis/`. `mermaid.spec.js` was skipping gracefully against
+    an absent doc; it now targets a local survey with 5 real mermaid blocks.
+  - **The opt-out marker must be on ONE line.** `check_notation_table` scans line-by-line, so
+    my first (wrapped) marker never matched and read as a silent non-opt-out. Documented in
+    `math-authoring.md` so the next author does not lose the same ten minutes.
+  - **Before writing the notation table I verified every collision against the source.**
+    Seven confirmed ($L$, $E$, $h$, $\beta$, $p$, $k$, $V$). A claimed
+    $T$-as-decoding-temperature collision was **dropped** — grep found only softmax-temperature
+    *analogies*, so asserting it would have been the very memory citation the table exists to
+    prevent.
+  - **The 3 standing `lint-math` errors were never math**: `$38k` and `~$0.40/M` currency
+    signs read as inline math. Escaped; only a backslash changed, values untouched.
+
 <!-- LOG-END -->

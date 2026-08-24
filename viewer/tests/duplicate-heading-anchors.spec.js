@@ -33,8 +33,8 @@ test('duplicate headings render unique GitHub-style ids; first stays bare', asyn
   const dir = createFixtureDir({
     'doc.md':
       '# Survey\n\n' +
-      '## 8.1.1 FLL\n\n### Steady-State Errors\n\n### Noise Bandwidth\n\n' +
-      '## 8.1.3 PLL\n\n### Noise Bandwidth\n\n## Summary\n\n## Summary\n',
+      '## 8.1.1 Attention\n\n### Scaling Behaviour\n\n### Head Dimension\n\n' +
+      '## 8.1.3 Residual Stream\n\n### Head Dimension\n\n## Summary\n\n## Summary\n',
   });
   const server = await startServer(dir, port);
   try {
@@ -75,8 +75,8 @@ test('clicking each duplicate outline entry scrolls to its own heading', async (
   const dir = createFixtureDir({
     'doc.md':
       '# Doc\n\n' +
-      '## Section A\n\n### Noise Bandwidth\n\n' + FILLER + '\n\n' +
-      '## Section B\n\n### Noise Bandwidth\n\n' + FILLER + '\n',
+      '## Section A\n\n### Head Dimension\n\n' + FILLER + '\n\n' +
+      '## Section B\n\n### Head Dimension\n\n' + FILLER + '\n',
   });
   const server = await startServer(dir, port);
   try {
@@ -136,8 +136,8 @@ test('sibling-file outline de-dups duplicate headings same as the renderer', asy
     'order.json': JSON.stringify(['home.md', 'survey.md']),
     'home.md': '# Home\n\n## Start',
     'survey.md':
-      '# Survey\n\n## 8.1.1 FLL\n\n### Noise Bandwidth\n\n' +
-      '## 8.1.3 PLL\n\n### Noise Bandwidth\n',
+      '# Survey\n\n## 8.1.1 Attention\n\n### Head Dimension\n\n' +
+      '## 8.1.3 Residual Stream\n\n### Head Dimension\n',
   });
   const server = await startServer(dir, port);
   try {

@@ -2,7 +2,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // ONE-OFF PROFILER — not a CI gate.
 //
-// Measures how many rendered <mark> elements in the real NTN-survey and
+// Measures how many rendered <mark> elements in the real interpretability-survey and
 // theories corpus can be re-located in source via the existing clearMarkEl
 // regex pipeline, and how many succeed via the simpler findInlineEntryForMark
 // textContent comparison.
@@ -29,31 +29,37 @@ const REPO_ROOT = path.resolve(__dirname, '../../');
 const PORT = 5700;
 
 const SURVEY_FILES = [
-  'surveys/ntn-initial-sync-tracking/appendix-a-b.md',
-  'surveys/ntn-initial-sync-tracking/appendix-c-part-1-derivation.md',
-  'surveys/ntn-initial-sync-tracking/appendix-c-part-2-loop-closure.md',
-  'surveys/ntn-initial-sync-tracking/appendix-c-part-3-practical.md',
-  'surveys/ntn-initial-sync-tracking/appendix-c-part-4-adaptive.md',
-  'surveys/ntn-initial-sync-tracking/channel-and-framework.md',
-  'surveys/ntn-initial-sync-tracking/frequency-and-timing-estimation.md',
-  'surveys/ntn-initial-sync-tracking/index.md',
-  'surveys/ntn-initial-sync-tracking/initial-sync.md',
-  'surveys/ntn-initial-sync-tracking/pre-compensation-and-analysis.md',
-  'surveys/ntn-initial-sync-tracking/references.md',
-  'surveys/ntn-initial-sync-tracking/tracking-loops.md',
+  'surveys/mechanistic-interpretability/appendix-a-transformer-circuits-math.md',
+  'surveys/mechanistic-interpretability/appendix-b-superposition.md',
+  'surveys/mechanistic-interpretability/appendix-c-causal-interventions.md',
+  'surveys/mechanistic-interpretability/appendix-d-sae-derivations.md',
+  'surveys/mechanistic-interpretability/appendix-e-steering-and-editing-math.md',
+  'surveys/mechanistic-interpretability/appendix-q-reader-questions.md',
+  'surveys/mechanistic-interpretability/applications.md',
+  'surveys/mechanistic-interpretability/circuits-across-models.md',
+  'surveys/mechanistic-interpretability/comparison-and-tradeoffs.md',
+  'surveys/mechanistic-interpretability/design-guidance.md',
+  'surveys/mechanistic-interpretability/evaluation-and-metrics.md',
+  'surveys/mechanistic-interpretability/executive-summary.md',
+  'surveys/mechanistic-interpretability/fundamentals.md',
+  'surveys/mechanistic-interpretability/index.md',
+  'surveys/mechanistic-interpretability/introduction-and-scope.md',
+  'surveys/mechanistic-interpretability/method-inventory-automation.md',
+  'surveys/mechanistic-interpretability/method-inventory-causal.md',
+  'surveys/mechanistic-interpretability/method-inventory-dictionary.md',
+  'surveys/mechanistic-interpretability/method-inventory-observational.md',
+  'surveys/mechanistic-interpretability/method-inventory-steering-editing.md',
+  'surveys/mechanistic-interpretability/methodology-and-taxonomy.md',
+  'surveys/mechanistic-interpretability/open-problems-and-roadmap.md',
+  'surveys/mechanistic-interpretability/references.md',
+  'surveys/mechanistic-interpretability/state-of-the-art-and-practice.md',
 ];
 
+// This repo has no `theories/` directory; its out-of-manifest long-form docs live
+// under `wikis/`. Same role in this profile: prose the highlight matcher must locate.
 const THEORY_FILES = [
-  'theories/cross-product-fll-discriminator-derivation.md',
-  'theories/inverse-z-transform of the FLL.md',
-  'theories/jury-test.md',
-  'theories/ma-filter-bandwidths.md',
-  'theories/per-tracker-noise-bandwidth.md',
-  'theories/pll-pullin-damped-pendulum.md',
-  'theories/poles-and-zeros-in-z-domain.md',
-  'theories/residue-theorem.md',
-  'theories/root-locus-for-digital-loop.md',
-  'theories/velocity-rotational-form.md',
+  'wikis/laptop-scale-training-feasibility.md',
+  'wikis/mechanistic-interpretability-coverage-gaps.md',
 ];
 
 const ALL_FILES = [...SURVEY_FILES, ...THEORY_FILES];
@@ -330,7 +336,7 @@ function buildReport(allResults, durationMs) {
   lines.push('');
   lines.push('Profiles the existing `clearMarkEl` source-locator (used by the toolbar\'s');
   lines.push('clear/recolor actions) and the `findInlineEntryForMark` naive textContent');
-  lines.push('matcher (used by the note button) across the NTN survey + theories corpus.');
+  lines.push('matcher (used by the note button) across the interpretability survey + wikis corpus.');
   lines.push('');
   lines.push('## Methodology');
   lines.push('');
@@ -372,7 +378,7 @@ function buildReport(allResults, durationMs) {
       lines.push(`| \`${r.file}\` | — | — | — | — | — | _(${r.error})_ |`);
       continue;
     }
-    const shortFile = r.file.replace('surveys/ntn-initial-sync-tracking/', 'survey/').replace('theories/', 'theories/');
+    const shortFile = r.file.replace('surveys/mechanistic-interpretability/', 'survey/').replace('wikis/', 'wikis/');
     lines.push(`| \`${shortFile}\` | ${r.groundTruth} | ${r.renderedCount} | ${r.pattern1} | ${r.pattern2} | ${r.failed} | ${r.naiveMatch} |`);
     totGT       += r.groundTruth >= 0 ? r.groundTruth : 0;
     totRendered += r.renderedCount;
@@ -499,7 +505,7 @@ function buildReport(allResults, durationMs) {
 
 // ── Test entry point ──────────────────────────────────────────────────────────
 
-test('profile highlight locatability across NTN survey + theories corpus', async ({ page }) => {
+test('profile highlight locatability across interpretability survey + wikis corpus', async ({ page }) => {
   // Use a longer timeout since we're loading many large files.
   test.setTimeout(20 * 60 * 1000); // 20 minutes
 

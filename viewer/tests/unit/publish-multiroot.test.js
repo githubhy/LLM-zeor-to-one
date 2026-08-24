@@ -60,15 +60,15 @@ test('multi-root publish: a doc-relative asset bakes at the browser-requested na
 
 test('single-root publish (id=\'\') keeps the flat, un-namespaced dist/content layout', () => {
   const base = tmp();
-  write(base, '5g/intro.md', '# Intro\n\n![y](img/y.png)\n');
-  write(base, '5g/img/y.png', 'Y');
+  write(base, 'peft/intro.md', '# Intro\n\n![y](img/y.png)\n');
+  write(base, 'peft/img/y.png', 'Y');
   const roots = [{ id: '', absPath: base, label: '' }];
   const out = tmp();
   buildBundle({ roots, outDir: out, version: 't', gitInfo: GIT, ignore: IGNORE });
   // No namespace prefix — byte-identical layout to the legacy single-root bake.
-  assert.ok(fs.existsSync(path.join(out, 'content/5g/intro.md')));
-  assert.ok(fs.existsSync(path.join(out, '5g/img/y.png')));
+  assert.ok(fs.existsSync(path.join(out, 'content/peft/intro.md')));
+  assert.ok(fs.existsSync(path.join(out, 'peft/img/y.png')));
   const fj = JSON.parse(fs.readFileSync(path.join(out, 'files.json'), 'utf8'));
-  assert.deepEqual(fj.files, ['5g/intro.md']);
+  assert.deepEqual(fj.files, ['peft/intro.md']);
   assert.deepEqual(fj.roots, [{ id: '', label: '' }]);
 });

@@ -18,8 +18,8 @@ test('fuzzyScore: empty query matches everything at score 0', () => {
 });
 
 test('fuzzyScore: case-insensitive', () => {
-  assert.ok(fuzzyScore('LDPC', 'ldpc-intro.md'));
-  assert.ok(fuzzyScore('ldpc', 'LDPC-Intro.md'));
+  assert.ok(fuzzyScore('LORA', 'lora-intro.md'));
+  assert.ok(fuzzyScore('lora', 'LoRA-Intro.md'));
 });
 
 test('fuzzyScore: consecutive run beats scattered match', () => {
@@ -37,14 +37,14 @@ test('fuzzyScore: word-boundary start beats mid-word start', () => {
 test('rankItems: filters non-matches, orders by score, respects limit', () => {
   const items = [
     { text: 'other.md' },
-    { text: '5g-nr-ldpc/intro.md' },
-    { text: 'ldpc-notes.md' },
+    { text: 'peft-lora/intro.md' },
+    { text: 'lora-notes.md' },
   ];
-  const ranked = rankItems('ldpc', items, { key: 'text', limit: 10 });
+  const ranked = rankItems('lora', items, { key: 'text', limit: 10 });
   assert.equal(ranked.length, 2);                        // 'other.md' filtered out
   assert.ok(ranked.every(r => Array.isArray(r.positions)));
-  // 'ldpc-notes.md' (boundary, consecutive run at start) ranks above the nested path.
-  assert.equal(ranked[0].text, 'ldpc-notes.md');
+  // 'lora-notes.md' (boundary, consecutive run at start) ranks above the nested path.
+  assert.equal(ranked[0].text, 'lora-notes.md');
   const capped = rankItems('', items, { key: 'text', limit: 2 });
   assert.equal(capped.length, 2);                        // empty query → all, capped
 });

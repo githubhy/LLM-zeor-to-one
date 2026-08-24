@@ -426,6 +426,31 @@ if $PY -c "import pytest" >/dev/null 2>&1; then
     fi
 fi
 
+# --- The viewer's JS unit tests (`node --test`, no browser, no network). Until this line
+# existed they were run by NOTHING here — not this hook, not CI — despite `npm test` being
+# defined in viewer/package.json. Measured on landing: 330 tests, 328 pass, 2 skipped.
+#
+# The e2e Playwright specs are deliberately NOT here: they need a browser and a live server.
+#
+# SKIPS LOUDLY. A fresh clone has no viewer/node_modules, and a silent skip there is a green
+# that means "did not look" — the same failure the campaign gates' REFUSE exists to prevent.
+# The suite's server-starting tests genuinely need the runtime deps (serve.js requires
+# chokidar/ws); the rest run without them, so a partial install produces failures that look
+# like defects and are not.
+if [ -d viewer/tests/unit ]; then
+    if ! command -v node >/dev/null 2>&1; then
+        echo "[pre-push] viewer-js SKIPPED, NOT PASSED - no \`node\` on this machine" >&2
+    elif [ ! -d viewer/node_modules ]; then
+        echo "[pre-push] viewer-js SKIPPED, NOT PASSED - viewer/node_modules absent; run: (cd viewer && npm install)" >&2
+    else
+        _vjs=$(mktemp)
+        ( cd viewer && node --test "tests/unit/**/*.test.js" >"$_vjs" 2>&1 ) || fail=1
+        echo "[pre-push] viewer-js: $(grep -E '^# (tests|pass|fail|skipped)' "$_vjs" | tr -d '#' | tr '\n' ' ')"
+        [ "${fail:-0}" -ne 0 ] && sed -n '/^not ok/p' "$_vjs" | head -20
+        rm -f "$_vjs"
+    fi
+fi
+
 # --- Forbidden-phrasing gate (.claude/rules/calibration-residuals.md). REPO-WIDE by design:
 # a dishonest attribution is dishonest whether or not it lives inside a campaign. Landed at
 # `error` because the measured backlog on this corpus was zero.

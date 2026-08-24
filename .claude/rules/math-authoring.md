@@ -255,7 +255,7 @@ Two things to do in the same turn as the rename, or they rot:
 
 | Check | What it decides | Severity |
 |---|---|---|
-| `lint-math.py` #12 | a document with ≥ 8 tagged equations has a notation table (here, in `index.md`, or opted out) | `.claude/notation-table-severity` — `off｜warn｜error`, currently **`warn`** |
+| `lint-math.py` #12 | a document with ≥ 8 tagged equations has a notation table (here, in `index.md`, or opted out) | `.claude/notation-table-severity` — `off｜warn｜error`, currently **`error`** |
 | `lint-math.py` #13 | one symbol carries two *different* `\triangleq` definitions in one file | warning, always |
 
 Check #13 is deliberately narrow and **found zero instances corpus-wide when it
@@ -264,8 +264,19 @@ common case (two sections both writing $\alpha$ for different things without eve
 formally defining either); only a human reading the table can. Do not mistake a
 green #13 for "symbols are consistent".
 
-Rollout mirrors bare-refs and crosslink: land at `warn`, retrofit the measured
-backlog (**6 files at landing**, all under `surveys/`), flip to `error` at zero.
+Rollout mirrored bare-refs and crosslink: landed at `warn`, retrofitted the measured
+backlog (**6 files at landing**, all under `surveys/`), and flipped to **`error` at zero**.
+Five of the six were `llms-for-coding` appendices, cleared by **one** shared table in that
+survey's `index.md` — the multi-file layout above, not five duplicated tables. The sixth was
+a verbatim evidence extract under `_scratch/`, outside its survey's `order.json`, whose
+equations each carry their own source paper's notation; unifying them would have falsified
+the extract, so it takes the `<!-- notation-table: … -->` opt-out naming where the survey's
+real contract lives. That is the opt-out used honestly: it records a declaration point that
+exists elsewhere, rather than silencing a document that ought to have one.
+
+**The marker must sit on ONE line.** `check_notation_table` scans line-by-line and
+`NOTATION_OPTOUT_RE` cannot span a newline, so a marker wrapped across lines never matches
+and reads as a silent non-opt-out.
 
 
 # Inline Math Delimiters

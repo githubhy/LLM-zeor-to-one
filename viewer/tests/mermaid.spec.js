@@ -152,24 +152,24 @@ test('multiple mermaid fences in one document all render', async ({ page }) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Real review-doc content: first tracker block diagram (Order-1 FLL) from
-// reports/reviews/2026-04-21-tracker-block-diagrams.md renders cleanly.
-// Uses the actual mermaid source from the committed document so if the
-// review's syntax drifts, this test catches it.
+// Real survey content: the first committed mermaid diagram in
+// surveys/llms-for-coding/language-models-from-first-principles.md renders cleanly.
+// Uses the actual mermaid source from the committed document, so if the survey's
+// diagram syntax drifts, this test catches it.
 // ─────────────────────────────────────────────────────────────────────────────
-test('real review doc — Order-1 FLL block diagram renders', async ({ page }) => {
+test('real survey doc — committed mermaid diagram renders', async ({ page }) => {
   const docPath = path.resolve(
     __dirname, '..', '..',
-    'reports/reviews/2026-04-21-tracker-block-diagrams.md'
+    'surveys/llms-for-coding/language-models-from-first-principles.md'
   );
-  // Skip gracefully if the review doc isn't present in this checkout.
+  // Skip gracefully if the survey isn't present in this checkout.
   if (!fs.existsSync(docPath)) {
-    test.skip(true, 'review doc not present in this checkout');
+    test.skip(true, 'survey doc not present in this checkout');
     return;
   }
   // Normalize CRLF→LF so regex matches on Windows checkouts.
   const doc = fs.readFileSync(docPath, 'utf8').replace(/\r\n/g, '\n');
-  // Extract the first ```mermaid … ``` block (the Order-1 FLL diagram in §1).
+  // Extract the first ```mermaid … ``` block (the tokenize→embed→transformer flow).
   const m = doc.match(/```mermaid\n([\s\S]*?)\n```/);
   expect(m).not.toBeNull();
   const mermaidSrc = m[1];
@@ -177,7 +177,7 @@ test('real review doc — Order-1 FLL block diagram renders', async ({ page }) =
   const port = nextPort();
   const dir = createFixtureDir({
     'order1.md': [
-      '# Order-1 FLL',
+      '# Tokenize to Transformer',
       '',
       '```mermaid',
       mermaidSrc,
