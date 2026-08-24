@@ -74,6 +74,30 @@ Checks (errors):
 Checks (warnings):
   9. Display-math blocks ($$...$$) should contain \\tag{N}.
 
+  12. A document carrying NOTATION_MIN_TAGGED_EQS or more numbered
+      equations must declare its symbols once, in a Notation / Symbols
+      section — either in the file itself or in the survey directory's
+      `index.md`. Rationale in `.claude/rules/math-authoring.md`
+      ("Symbol Declaration"): a symbol collision is invisible to every
+      other gate in this repo, because each colliding use is individually
+      well-formed. Three passes over one appendix found four collisions,
+      and a fourth pass — after a notation table had been added — found
+      two more that the table itself had licensed. Severity is read from
+      `.claude/notation-table-severity` (off | warn | error, default
+      warn), mirroring `.claude/bare-refs-severity`. Opt out per file
+      with `<!-- notation-table: <where-it-lives> -->`.
+
+  13. One symbol given two DIFFERENT `\\triangleq` definitions in the same
+      file. This is the *definition-site* half of check #12: it cannot
+      see a symbol reused without a formal definition, but a letter that
+      is formally defined twice, differently, is always a defect. Cheap,
+      deterministic, and the only part of "one symbol, one meaning" a
+      script can actually decide. It is line-scoped, so it does NOT see a
+      definition whose left-hand side sits on a previous line of an
+      `aligned` block (those are skipped, not guessed at -- otherwise the
+      alignment marker `&` is read as the symbol and unrelated definitions
+      collide on it).
+
 Orphaned equation / citation markers are covered by renumber-equations.py
 and link-references.py respectively.
 
@@ -89,6 +113,22 @@ import sys
 from pathlib import Path
 
 FENCE_RE = re.compile(r'^(`{3,}|~{3,})')
+
+# ── Checks #12 / #13: symbol declaration ────────────────────────────────
+# A document with this many numbered equations is substantial enough that
+# an undeclared symbol is a real hazard.  Calibrated against the corpus so
+# short worked-example pages do not fire; see the retrofit backlog in
+# todos/2026-08-10-notation-table-retrofit.md.
+NOTATION_MIN_TAGGED_EQS = 8
+# Matches "## Notation", "### B.0 Notation: every symbol ...", "## Symbols",
+# "#### Notation and conventions" — including an inline <a id> anchor, which
+# every heading in this corpus carries after renumber-sections.
+NOTATION_HEADING_RE = re.compile(r'^#{1,6}\s+.*\b(notation|symbols?)\b',
+                                 re.IGNORECASE)
+NOTATION_OPTOUT_RE = re.compile(r'<!--\s*notation-table:\s*(.+?)\s*-->')
+# `[^$\n]` cannot cross a `$`, which conveniently confines a match to the
+# inside of one inline-math span (or one display line) without parsing math.
+TRIANGLEQ_RE = re.compile(r'([^$\n]{1,40}?)\\triangleq\s*([^$\n]{1,80})')
 # Triggers when the first non-blank, non-list-marker char of a block is `<!--`.
 # Covers (a) plain paragraph at column 0-3, and (b) list-item content (bullet
 # `- ` / `* ` / `+ ` or ordered `N. `) whose first child is the marker. The
@@ -352,6 +392,122 @@ def lint_file(path, errors_only=False, check_11_enabled=True):
     # Crossing `**`/`==` delimiters (bug 2026-05-20-01)
     issues.extend(check_crossing_highlight_emphasis(lines))
 
+    # Symbol declaration (checks #12, #13).  #12 is severity-configurable and
+    # must still fire under --errors-only once flipped to `error`, so the
+    # errors_only filter lives inside it rather than here.
+    issues.extend(check_notation_table(lines, path, errors_only))
+    if not errors_only:
+        issues.extend(check_duplicate_definitions(lines))
+
+    return issues
+
+
+def _repo_root():
+    return Path(__file__).resolve().parents[2]
+
+
+def notation_severity():
+    """Severity for check #12 from `.claude/notation-table-severity`.
+
+    off | warn | error, default warn.  Mirrors `.claude/bare-refs-severity`
+    and `.claude/crosslink-severity`: the RULE says a symbol table is
+    mandatory from day one, but the gate stays advisory until the measured
+    retrofit backlog reaches zero, so a legacy document cannot block an
+    unrelated push.
+    """
+    try:
+        value = (_repo_root() / '.claude' / 'notation-table-severity').read_text(
+            encoding='utf-8').strip().lower()
+    except OSError:
+        return 'warn'
+    return value if value in ('off', 'warn', 'error') else 'warn'
+
+
+def check_notation_table(lines, path, errors_only=False):
+    """Check #12 — a math-heavy document must declare its symbols once.
+
+    Satisfied by a Notation / Symbols heading in this file, by the same in
+    the survey directory's `index.md` (the multi-file layout, where one
+    table serves every body file), or by an explicit per-file opt-out
+    marker naming where the declaration lives.
+    """
+    severity = notation_severity()
+    if severity == 'off':
+        return []
+    if severity != 'error' and errors_only:
+        return []
+
+    tagged = sum(1 for ln in lines if '\\tag{' in ln)
+    if tagged < NOTATION_MIN_TAGGED_EQS:
+        return []
+
+    for ln in lines:
+        stripped = ln.strip()
+        if NOTATION_HEADING_RE.match(stripped) or NOTATION_OPTOUT_RE.search(ln):
+            return []
+
+    index = path.parent / 'index.md'
+    if index.exists() and index.resolve() != path.resolve():
+        try:
+            for ln in index.read_text(encoding='utf-8').splitlines():
+                if NOTATION_HEADING_RE.match(ln.strip()):
+                    return []
+        except OSError:
+            pass
+
+    return [(1, severity,
+             f'no notation/symbol table for a document with {tagged} numbered '
+             'equations - declare every symbol once, in a Notation section here '
+             'or in the survey index.md (.claude/rules/math-authoring.md, '
+             '"Symbol Declaration"); opt out with '
+             '<!-- notation-table: where-it-lives -->')]
+
+
+def check_duplicate_definitions(lines):
+    """Check #13 — one symbol, two different `\\triangleq` definitions.
+
+    Deliberately narrow.  It cannot see an *informal* reuse (the common
+    case: two sections both writing `\\alpha` for different things without
+    ever defining either), which is why check #12 exists and why the rule
+    puts the real obligation on a human-maintained table.  What it can
+    decide is unambiguous: a letter formally defined twice, differently,
+    in one file is always wrong.
+    """
+    definitions = {}
+    in_fence = False
+
+    for i, line in enumerate(lines, 1):
+        if FENCE_RE.match(line.strip()):
+            in_fence = not in_fence
+            continue
+        if in_fence or '\\triangleq' not in line:
+            continue
+        for match in TRIANGLEQ_RE.finditer(line):
+            lhs = re.sub(r'\s+', '', match.group(1)).strip('$,;| ')
+            rhs = re.sub(r'\s+', '', match.group(2)).rstrip('$,.;\\')
+            # In an `aligned` block the LHS usually sits on the PREVIOUS line
+            # and this line begins with the alignment marker, so the captured
+            # "symbol" is a bare `&` (or `&=`).  Two unrelated definitions then
+            # collide on it -- a false positive this check produced on its own
+            # repo within an hour of landing.  A line-scoped check cannot see
+            # across the break, so skip rather than guess: #13 does not cover
+            # definitions split across lines of an aligned environment.
+            lhs = lhs.lstrip('&')
+            if lhs.startswith('\\\\'):      # a LaTeX line break, not a macro
+                lhs = lhs[2:].lstrip('&')
+            if not lhs or not rhs:
+                continue
+            definitions.setdefault(lhs, []).append((i, rhs))
+
+    issues = []
+    for lhs, occurrences in sorted(definitions.items()):
+        distinct = {rhs for _, rhs in occurrences}
+        if len(distinct) > 1:
+            where = ', '.join(str(line_no) for line_no, _ in occurrences)
+            issues.append((occurrences[-1][0], 'warning',
+                           f'symbol `{lhs}` carries {len(distinct)} different '
+                           f'\\triangleq definitions (lines {where}) - one '
+                           'symbol, one meaning: rename one, or reconcile them'))
     return issues
 
 

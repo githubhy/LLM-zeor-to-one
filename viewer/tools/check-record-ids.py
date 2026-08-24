@@ -140,6 +140,9 @@ def main():
             pass
     ap = argparse.ArgumentParser(description="Record-ID collision gate.")
     ap.add_argument("--root", type=Path, help="repo root to scan (default: this repo)")
+    ap.add_argument("--max-todo-drift", type=int, default=None,
+                    help="RATCHET: fail if todos/INDEX.md drift exceeds this, whatever the "
+                         "severity. Advisory-only was how it grew 34 -> 42 unnoticed.")
     args = ap.parse_args()
     if args.root:
         ROOT = args.root.resolve()
@@ -196,6 +199,21 @@ def main():
         todo_drift.append(f"todos: INDEX.md row {key} has no file")
     for key in sorted({x for x in todo_idx if todo_idx.count(x) > 1}):
         todo_drift.append(f"todos: INDEX.md has duplicate row for {key}")
+    # RATCHET. The drift check is advisory by design -- blocking on a backlog nobody has worked
+    # is how a gate gets switched off. But "advisory" turned out to mean "invisible": it was 34
+    # findings when todos/2026-08-07-todos-index-drift was filed and 42 on 2026-08-23, having
+    # GROWN by 8 while the identical advisory line printed on every single push. A line that is
+    # always there cannot show a change. Same mechanism, same day, as
+    # bugs/2026-08-23-the-lineage-gates-controls-were-both-unreachable, where a percentage floor
+    # at 0% could not see the population go 247 -> 339.
+    #
+    # So: still advisory in what it REPORTS, hard in what it FORBIDS -- the count may fall freely
+    # and may not rise. Fires regardless of severity, like the lineage and DE/frame ratchets.
+    if args.max_todo_drift is not None and len(todo_drift) > args.max_todo_drift:
+        print(f"[record-ids] todos/INDEX.md drift is {len(todo_drift)}, above the ratchet of "
+              f"{args.max_todo_drift} - it GREW. Add the missing row(s), or lower the ratchet "
+              f"deliberately with a decisions/ record.", file=sys.stderr)
+        errors.append(f"todos/INDEX.md drift {len(todo_drift)} > ratchet {args.max_todo_drift}")
     if todo_drift:
         advisories.append(f"todos/INDEX.md drift: {len(todo_drift)} (advisory — "
                           f"todos/2026-08-07-todos-index-drift). First 3: "
@@ -230,9 +248,31 @@ def main():
         #      one (e.g. "closed by [bugs/2026-04-24-fixed]"), so erroring would force prose
         #      to contort — the same false positive reworded away on 2026-07-11.
         # Unresolved ones are counted and surfaced, never gated (as with shorthand refs).
+        #
+        # ... EXCEPT in CLAUDE.md and .claude/rules/. Reason 2 above is about PROSE -- a field
+        # note or report may narrate something that merely looks like a ref. Those two locations
+        # are not prose: an agent is instructed to read them and follow what they point at, so a
+        # ref resolving to nothing there is a broken instruction, not a turn of phrase.
+        #
+        # Measured 2026-08-23: exactly ONE across CLAUDE.md + all 14 rules -- the Bug Capture
+        # section's worked example of the id-is-the-filename-stem convention pointed at
+        # `bugs/2026-07-16-isfft-mapping-direction-reversed`, which does not exist. The real file
+        # is `2026-07-16-02-isfft-...`, a LEGACY NN record -- so the canonical example of the new
+        # convention was a dangling ref to an instance of the old one. Corrected, and gated here
+        # at a backlog of zero. Scope is the whole point: repo-wide this same check fires 47
+        # times, most of them prose.
+        # Derived HERE, not at import: main() reassigns ROOT for --root, so a module-level
+        # binding would keep pointing at the real repo and this check could never be
+        # exercised in isolation (nor be right when --root is used).
+        normative = (f == ROOT / "CLAUDE.md") or (ROOT / ".claude/rules") in f.parents
         for m in SLUG_REF_RE.finditer(t):
             if f"{m.group(1)}/{m.group(2)}" not in existing:
                 slug_unresolved += 1
+                if normative:
+                    errors.append(
+                        f"{f.relative_to(ROOT)}: ref '{m.group(1)}/{m.group(2)}' resolves to no "
+                        f"file. This file is normative -- an agent is told to read it and follow "
+                        f"its references, so a dangling one is a broken instruction.")
         short_count += len(SHORT_REF_RE.findall(t))
 
     if short_count or slug_unresolved:

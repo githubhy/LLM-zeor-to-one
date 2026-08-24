@@ -72,6 +72,20 @@ fi
 echo "[pre-push] Running survey-wide validation (python: $PY)..."
 fail=0
 
+# --- Stale-bytecode repair. Runs FIRST, before any gate imports anything. CPython
+# invalidates a __pycache__/*.pyc on the source's mtime (1-second granularity) and size,
+# both coarse: a container-snapshot rollback or a checkout that restores an older source
+# with the same size leaves a NEWER cache that Python happily runs. Upstream measured a
+# gate printing "OK -- 284 constant(s) match" over a source containing the very defect it
+# exists to catch, because the loaded code object was stale. `inspect.getsource` cannot
+# see it -- it reads the .py, never the loaded code.
+#
+# It REPAIRS rather than blocks: a stale cache is never wanted, deleting it is always
+# correct, and the next import compiles from source. It still names every file it removed,
+# because a silent repair would hide the rollback that caused it. (`--fix` exits 0; a
+# REFUSE still blocks.)
+$PY viewer/tools/check-bytecode-freshness.py --fix || fail=1
+
 # --- Core marker/anchor gates. `surveys/` is a CORPUS ROOT: the tools resolve it
 # through viewer/tools/_corpus.py into one unit per survey (each against its own
 # order.json), so a corpus root reaches into the subdirectories rather than
@@ -268,6 +282,50 @@ fi
 # registered manifest is untouched. No-op while the registry is empty.
 $PY viewer/tools/check-plan-progress.py --all || fail=1
 
+# --- Campaign lifecycle gates (.claude/rules/campaign-execution.md + campaign-lifecycle.md).
+# NO-OPS UNTIL THE FIRST CAMPAIGN LANDS: the descriptor registry .claude/campaigns is empty
+# and there is no campaigns/ directory, exactly like .claude/program-manifests above.
+#
+# `run_advisory_gate` distinguishes the two nonzero exits these gates use. Exit 1 is a real
+# FAILURE and blocks; exit 2 is REFUSE -- the gate could not establish a denominator, so it
+# has no verdict to give, which is NOT a pass and NOT a failure. Collapsing the two is what
+# lets a blind gate read as agreement (campaign_common.Scope exists for this), and wiring
+# them with `|| true` instead would silently make their severity toggles unreachable.
+run_advisory_gate() {
+    local _label="$1"; shift
+    "$@"; local _rc=$?
+    if [ $_rc -eq 1 ]; then fail=1
+    elif [ $_rc -eq 2 ]; then
+        echo "[pre-push] ${_label} REFUSED (exit 2) - no verdict, not a pass." >&2
+    fi
+}
+
+# Descriptor schema: partition sums, basis enum, dep order, pre-registration commit order.
+# REFUSEs while .claude/campaigns is empty, hence advisory rather than `|| fail=1`.
+run_advisory_gate campaign-schema $PY viewer/tools/check-campaign.py --all
+
+# Task manifests under campaigns/<slug>/ -- directory existence IS the registration, so this
+# exits 0 with "nothing to check" until one exists. Exit 2 = shallow clone (the commit-order
+# check has no history to read), advisory here.
+$PY viewer/tools/check-campaign-tasks.py; _cmt=$?
+if [ $_cmt -eq 1 ]; then fail=1
+elif [ $_cmt -eq 2 ]; then
+    echo "[pre-push] campaign-tasks REFUSED (shallow clone) - advisory here." >&2
+fi
+
+# Ledger freshness/envelope/basis/CI. Exits 0 with "no campaigns/" until one exists.
+$PY viewer/tools/check-ledger.py || fail=1
+
+# Coverage + lineage carry their own severity files (.claude/coverage-severity,
+# .claude/lineage-severity, both `warn`). Lineage is scoped to artifacts/, which does not
+# exist here yet -- guarded so it does not REFUSE on every push for a directory nobody has
+# created. Per campaign-lifecycle.md a gate whose baseline is zero ships at warn with a
+# ratchet, never at error.
+run_advisory_gate coverage $PY viewer/tools/check-coverage.py --all
+if [ -d artifacts ]; then
+    run_advisory_gate lineage $PY viewer/tools/check-lineage.py --scan artifacts --min-coverage 0
+fi
+
 # Rollup-freshness gate. Catches what a signoff gate structurally CANNOT: signoff
 # proves value-vs-artifact, never artifact-vs-CURRENT-baseline, so a rollup can
 # cite a superseded artifact with perfect accuracy and stay green. Rollups are
@@ -305,6 +363,76 @@ for reg in tests/*/tdd-evidence.json; do
     [ -f "$reg" ] || continue
     $PY viewer/tools/check-tdd-evidence.py "$reg" || fail=1
 done
+
+# --- Registry/marker agreement: every `[opt:<ID>]` site marker in a live rule or skill
+# resolves to a .claude/skill-options.json entry, and every entry has a site marker.
+# CLAUDE.md makes that registry THE mechanism for skill/rule options -- "an agent following
+# an annotated skill/rule reads the registry and, if an option is off, skips the marked
+# block". That needs both halves to agree, and nothing checked it. Scope is deliberately
+# .claude/** + CLAUDE.md: repo-wide the invariant is false and should be (prose and plans
+# legitimately mention option IDs).
+$PY viewer/tools/check-skill-options.py || fail=1
+
+# --- Committed section-index freshness. --check enumerates the COMMITTED .index.md files,
+# not files above a size threshold: an index is opt-in, so a big file without one is a
+# choice, while a committed index that no longer matches its source is a defect. It REFUSEs
+# (exit 2) rather than passing on an empty set -- and this corpus has no committed index
+# yet, so it is advisory here and becomes blocking the moment one lands.
+run_advisory_gate build-index $PY viewer/tools/build-index.py surveys/ --check
+
+# --- The Python gate tests. `git_scrubbed` strips the git env vars this hook inherits: a
+# hook runs with GIT_DIR/GIT_INDEX_FILE set, and a test that shells out to `git` inside a
+# tmp_path fixture would otherwise operate on THIS repo instead of its own fixture.
+git_scrubbed() {
+    env -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE -u GIT_OBJECT_DIRECTORY \
+        -u GIT_ALTERNATE_OBJECT_DIRECTORIES -u GIT_COMMON_DIR -u GIT_NAMESPACE "$@"
+}
+
+# `-t viewer/tools/tests`, NOT `-t .`. With `-t .` the runner needs the directory to be
+# importable as a PACKAGE, which would need a viewer/tools/tests/__init__.py -- and that
+# marker would make two top-level packages named `tests`, so `import tests` resolves to
+# whichever reaches sys.path first and every submodule under the other vanishes. Pointing
+# `-t` at the directory itself needs no package, and matches this repo's convention.
+if [ -d viewer/tools/tests ]; then
+    git_scrubbed $PY -m unittest discover -s viewer/tools/tests -t viewer/tools/tests -q || fail=1
+fi
+
+# ... and the test files that sit in viewer/tools/ ITSELF, beside the scripts they test --
+# i.e. the tests for the very gates this hook runs. They were executed by nothing until this
+# line existed; unlike a slow integration tree there was never a latency argument for
+# leaving them out, a sibling directory was simply never asked about. `unittest discover`
+# cannot substitute: most are pytest-style module-level functions, which it silently
+# collects as zero tests.
+if $PY -c "import pytest" >/dev/null 2>&1; then
+    _tt=$(ls viewer/tools/test_*.py viewer/tools/test-*.py 2>/dev/null)
+    if [ -n "$_tt" ]; then
+        # shellcheck disable=SC2086  # intentional word-split: one arg per file
+        git_scrubbed $PY -m pytest $_tt -q || fail=1
+    fi
+else
+    echo "[pre-push] gate tests: SKIPPED (pytest not installed) - not a pass"
+fi
+
+# ... and the tests for the gates THIS PUSH CHANGES, wherever they live. The runners above
+# cover viewer/tools/; a gate's unit tests may sit elsewhere, and running every tree on
+# every push is too much latency. A push that changes no gate selects nothing and costs
+# nothing.
+if $PY -c "import pytest" >/dev/null 2>&1; then
+    _gt="$($PY viewer/tools/gate-tests-for-changed.py "${_rr:-@{upstream\}..HEAD}" 2>/dev/null)"
+    if [ -n "$_gt" ]; then
+        echo "[pre-push] gate-tests: $(echo "$_gt" | wc -l) file(s) for the gate script(s) this push changes"
+        # shellcheck disable=SC2086
+        git_scrubbed $PY -m pytest $_gt -q || fail=1
+    fi
+fi
+
+# --- Forbidden-phrasing gate (.claude/rules/calibration-residuals.md). REPO-WIDE by design:
+# a dishonest attribution is dishonest whether or not it lives inside a campaign. Landed at
+# `error` because the measured backlog on this corpus was zero.
+PHSEV=$(cat .claude/campaign-phrasing-severity 2>/dev/null || echo warn)
+if [ "$PHSEV" != "off" ]; then
+    $PY viewer/tools/check-forbidden-phrasing.py --severity="$PHSEV" || fail=1
+fi
 
 if [ $fail -ne 0 ]; then
     echo "[pre-push] BLOCKED - fix the errors above before pushing." >&2

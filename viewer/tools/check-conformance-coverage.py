@@ -24,7 +24,10 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-REGISTER = ROOT / "artifacts/nr-pdsch-demod/conformance-case-register.json"
+# Single-register gate. `check-coverage.py` is the generalized sibling that takes any
+# register path; this one keeps a fixed default. No register exists in this repo yet, so
+# the gate reports "not found" and returns 0 below until one lands here.
+REGISTER = ROOT / "artifacts/conformance-case-register.json"
 SEVERITY_FILE = ROOT / ".claude/conformance-coverage-severity"
 
 DISPOSITIONS = {"in-scope", "out-of-scope", "deferred"}
@@ -55,13 +58,32 @@ def check(reg: dict) -> list[str]:
                 problems.append(f"{cid}: {field}={c.get(field)!r} outside its closed enum")
         m = c.get("margin")
         if m is not None and m.get("basis") not in MARGIN_BASES:
-            problems.append(f"{cid}: margin with basis={m.get('basis')!r} — a margin vs the "
-                            f"requirement is mostly the RAN4 margin stack, not headroom")
+            # One advisory per published margin, by design (see the gate's test): the headline
+            # margin is against the PUBLISHED value and that caveat stands whatever else is
+            # published. But it must not read the same for a case that has since published a
+            # CLOSER basis and one that has not, or the line never moves as the campaign closes
+            # the gap and stops being read; the advisory now says which.
+            closer = [name for name, key in (("published_mean", "margin_vs_impairment_avg_db"),
+                                             ("reference_performance", "margin_vs_reference_db"))
+                      if m.get(key) is not None]
+            problems.append(
+                f"{cid}: margin with basis={m.get('basis')!r} — a margin vs a published value "
+                f"is mostly the configuration stack, not capability headroom"
+                + (f"; a closer basis IS published alongside it ({', '.join(closer)}) — quote that "
+                   f"one for headroom" if closer else
+                   "; NO closer basis is published for this case"))
+        if m is not None and m.get("margin_vs_impairment_avg_db") is not None \
+                and not m.get("impairment_caveat"):
+            # The published-mean basis can have TWO writers that disagree on this field. A
+            # published margin whose only visible caveat is the published-value one carries the
+            # wrong warning.
+            problems.append(f"{cid}: publishes margin_vs_impairment_avg_db with no "
+                            f"impairment_caveat — the caveat must ride with the number")
 
     cov = reg.get("coverage") or {}
     if not cov.get("unit"):
-        problems.append("coverage claim names no unit — 133 RAN5 cases / 104 RAN4 clauses / "
-                        "279 RAN4 test rows are three correct answers to different questions")
+        problems.append("coverage claim names no unit — benchmark tasks / prompt variants / "
+                        "subject splits are three correct answers to different questions")
     disp = reg.get("dispositions") or {}
     part = disp.get("by_scope_call") or {}
     if part and sum(part.values()) != len(cases):

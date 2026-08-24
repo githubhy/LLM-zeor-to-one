@@ -168,3 +168,75 @@ def test_authored_dangling_ref_still_fails(tmp_path):
     rc, out = _run(tmp_path)
     assert rc != 0, f"authored dangling ref was NOT caught:\n{out}"
     assert "2026-07-09-02" in out
+
+
+# --- a dangling ref in a NORMATIVE file -------------------------------------------------
+#
+# Slug-form refs are advisory everywhere else, deliberately: the pattern cannot separate a real
+# ref from prose that merely looks like one, and repo-wide this same check fires 48 times, most
+# of them narrative. CLAUDE.md and .claude/rules/ are the exception -- an agent is INSTRUCTED to
+# read them and follow what they point at, so a ref resolving to nothing there is a broken
+# instruction rather than a turn of phrase.
+#
+# Measured 2026-08-23: exactly one, and it was the worst possible one. CLAUDE.md's Bug Capture
+# section illustrated "the `id:` IS the filename stem" with
+# `bugs/2026-07-16-isfft-mapping-direction-reversed`, which does not exist -- the real file is
+# `2026-07-16-02-isfft-...`, a LEGACY NN record. The canonical example of the new convention was
+# a dangling pointer at an instance of the old one.
+
+def _slug_bug(d, ident):
+    """A NEW-form record: the id IS the whole filename stem. `_bug` above builds the LEGACY
+    `DATE-NN-slug` shape, where the id is only the `DATE-NN` prefix."""
+    (d / f"{ident}.md").write_text(
+        f"---\nid: {ident}\ntitle: t\nseverity: low\nstatus: fixed\ndate: {ident[:10]}\n---\n\nx\n",
+        encoding="utf-8")
+
+
+def _normative_tree(tmp_path, ref):
+    b = tmp_path / "bugs"; b.mkdir()
+    _slug_bug(b, "2026-01-01-real-thing")
+    _index(b, ["2026-01-01-real-thing"])
+    (tmp_path / "CLAUDE.md").write_text(f"See `{ref}` for the convention.\n", encoding="utf-8")
+    return tmp_path
+
+
+def test_a_dangling_slug_ref_in_CLAUDE_md_fails(tmp_path):
+    rc, out = _run(_normative_tree(tmp_path, "bugs/2026-01-01-not-a-real-record"))
+    assert rc == 1, out
+    assert "resolves to no file" in out and "normative" in out
+
+
+def test_a_resolving_slug_ref_in_CLAUDE_md_passes(tmp_path):
+    """Control: the check must key on resolvability, not on being in CLAUDE.md."""
+    rc, out = _run(_normative_tree(tmp_path, "bugs/2026-01-01-real-thing"))
+    assert rc == 0, out
+
+
+def test_a_dangling_slug_ref_in_a_RULE_fails(tmp_path):
+    b = tmp_path / "bugs"; b.mkdir()
+    _slug_bug(b, "2026-01-01-real-thing")
+    _index(b, ["2026-01-01-real-thing"])
+    r = tmp_path / ".claude" / "rules"; r.mkdir(parents=True)
+    (r / "some-rule.md").write_text("Per `bugs/2026-01-01-nope`, do the thing.\n", encoding="utf-8")
+    rc, out = _run(tmp_path)
+    assert rc == 1, out
+
+
+def test_the_same_dangling_ref_in_ORDINARY_prose_stays_advisory(tmp_path):
+    """The scope IS the design. Repo-wide this fires 48 times, most of it narrative -- a
+    field note saying "closed by [bugs/2026-04-24-fixed]" is prose, not an instruction."""
+    b = tmp_path / "bugs"; b.mkdir()
+    _slug_bug(b, "2026-01-01-real-thing")
+    _index(b, ["2026-01-01-real-thing"])
+    fn = tmp_path / "field-notes"; fn.mkdir()
+    (fn / "2026-01-02-note.md").write_text("closed by `bugs/2026-01-01-nope`\n", encoding="utf-8")
+    rc, out = _run(tmp_path)
+    assert rc == 0, out
+    assert "unresolved slug-form" in out
+
+
+def test_the_normative_paths_follow_the_root_argument(tmp_path):
+    """CLAUDE_MD/RULES_DIR bound at import would point at the REAL repo forever, so this check
+    could never be exercised in isolation -- and would be wrong whenever --root is used."""
+    rc, out = _run(_normative_tree(tmp_path, "bugs/2026-01-01-not-a-real-record"))
+    assert rc == 1 and "CLAUDE.md" in out

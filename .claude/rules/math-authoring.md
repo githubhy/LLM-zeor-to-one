@@ -3,6 +3,271 @@ description: Equation numbering, cross-reference markers, and bibliography link 
 globs: ["surveys/**/*.md"]
 ---
 
+# Deriving, Not Asserting: the no-missing-step standard
+
+Applies to every derivation in `surveys/`, `wikis/`, and derivation ledgers
+`[opt:MA-NOSKIP · default ON · toggle .claude/skill-options.json]`. It
+operationalizes `.claude/rules/workflow.md`'s "Do not skip steps", which on its
+own is the kind of advice that never fires.
+
+## The standard
+
+**A derivation is done when a competent reader cannot ask "why is this step
+allowed?" at any line.** Not "can follow it" — cannot *question* it.
+
+That bar is not rhetorical. Upstream, every enrichment in a Wiener-MMSE appendix
+pass was triggered by a reader asking exactly that question about a line that was
+already *correct*. Correctness was never the issue; **licence** was.
+
+## The missing step is almost never the algebra
+
+It is one of these seven, in rough order of how often it actually bit:
+
+**1. The licence to reuse a result.** The largest gap upstream was not a
+manipulation — it was *why may this result be re-pointed at a different target at
+all?* Fix: name the result being reused, and state which of its hypotheses the new
+instance satisfies. Usually this means going back to the original derivation and
+reporting **what it actually consumed**. The LLM shape: the softmax-Jacobian
+result derived for attention scores consumed only that the scores are a real
+vector and the output is normalized by $\sum_j e^{z_j}$ — *nothing* about them
+being $QK^\top/\sqrt{d_k}$. That is precisely why reusing it for the output
+vocabulary head is a substitution and not an analogy. Write that sentence.
+
+**2. A label standing where a step belongs.** "by linearity of expectation",
+"softmax is shift-invariant", "the mask kills it" — each is a *name* for a step,
+sitting where the step should have been.
+**Test: if a line's justification is a noun phrase, it is a label, not a
+derivation.**
+
+**3. An identification asserted because it looks obvious.**
+$\mathrm{Attention}(Q,K,V)_h = [\mathrm{MHA}(Q,K,V)]_{:,\,hd_k:(h+1)d_k}$ is
+obvious and still takes a line (the per-head projections are a block-diagonal
+restriction of the full $W^Q,W^K,W^V$, so the head output *is* that column block).
+Anything of the form *"X is just Y restricted / rearranged / relabelled"* gets its
+one line of algebra, so the notation is a derivation rather than a convention.
+
+**4. A term that vanishes, dropped silently.** $e^{z_{ij}} \to 0$ **because
+$j > i$ under the causal mask** — the pre-softmax score was set to $-\infty$, so
+the term does not merely become small, it is identically zero. The result is right
+either way; omitting *why* it dies is a skipped step, and often the conceptually
+interesting one (here: that causality is enforced *before* normalization, so the
+denominator never sees the masked mass).
+
+**5. One quantity wearing several names, presented as several results.**
+$\log \sum_j e^{z_j}$ is simultaneously the softmax denominator, the
+log-partition function, the `logsumexp` normalizer, and the quantity whose
+gradient is the softmax itself. Left unsaid, a reader sees four facts to verify
+instead of one to understand. Say "one quantity, four names".
+
+**6. What is inherited for free, never claimed.** The attention matrix is
+row-stochastic *by construction* — softmax normalizes each row — so a convex-
+combination argument for the output needs no separate proof. **Silence about an
+argument you did not have to make reads as an omission.** Write "no separate
+argument is needed, because…".
+
+**7. A conversion between two forms, with the conversion elided.** A loss quoted
+in bits and a cross-entropy derived in nats differ by $\ln 2$; a "logit" that is
+an unnormalized score and a "log-probability" differ by the log-partition term.
+Skipping the conversion hides that a change of base or a normalization happened at
+all — the same failure class the two-bases rule below exists for.
+
+## Two devices that do the work
+
+- **The substitution table.** When a result is reused, tabulate
+  `role | instance in the original | instance here`, one row per symbol. **A row
+  you cannot fill is the missing step**, which makes the table a detector and not
+  just an exposition aid.
+- **Numbered steps that continue across the equation.** Steps 0–2 before the
+  display, 3–4 in the prose after it, one numbering. The equation stops being a
+  wall to verify and becomes the middle of an argument.
+- **…and across the NEXT equation, when one display consumes another's result.**
+  Do not leave a lemma and the display that spends it as two self-contained
+  chains joined by prose: number the proof `1…k`, the consumer `k+1…n`, bridge
+  them in one sentence, and put the commentary after both. **The continuation is
+  a detector**, exactly like the substitution table — a step you cannot write a
+  line for is the missing step. Measured upstream: a three-equality display had
+  **never written one of its noise terms down at all** (class 4 above) and
+  **asserted** the substitution of the lemma directly above it (class 1). Both
+  passed `lint-math`, both survived a careful re-read, and both surfaced the
+  moment one numbering ran across the two blocks. It also separates *strengths*
+  of a reused result that split blocks conflate — a lemma's pointwise form may
+  need a full independence assumption while the step consuming it needs only an
+  equality in expectation, so the downstream result survives a model change that
+  kills the lemma. Say which strength each step needs; that is what bounds the
+  blast radius when the model weakens.
+  `[opt:EF-CHAIN · default ON · toggle .claude/skill-options.json]`
+
+## Boundaries
+
+- **Do not mint symbols to shorten a derivation.** Write a coefficient inline
+  rather than name it; see § Symbol Declaration, and update the notation table in
+  the same turn if a new symbol is genuinely unavoidable.
+- **Enrichment is not padding.** Every step above answers a question a reader
+  can actually ask. Restating a line in words answers nothing.
+- **A justification sits at or before its point of use, never downstream.** A
+  document can contain the answer and still read as if it does not: upstream one
+  section asserted a conditional-mean identity inline and derived it ninety lines
+  later, and the reader hit a wall anyway. When the argument already exists
+  further down, the fix is to *move* it or restate it at the point of confusion
+  with a forward link — not to write it a second time.
+- **Not mechanically checkable, and no gate pretends otherwise.** `lint-math`
+  sees delimiters; `renumber-*` sees anchors; nothing sees whether an argument has
+  a hole. The detector is a reader's "why?" — which is why the *substitution
+  table*, the *continued numbering*, and the *noun-phrase test* exist: they are
+  the places a human can self-check before that reader arrives.
+
+# Symbol Declaration (mandatory)
+
+**Every document carrying substantial mathematics MUST declare its symbols in one
+notation table, and that table is the document's single declaration point.**
+"Substantial" is operationalized as **8 or more numbered equations** — the
+threshold `lint-math.py` check #12 uses. This is a *must*, not a
+recommendation `[opt:MA-NOTATION · default ON · toggle .claude/skill-options.json]`.
+
+## Why this is a rule and not a style note
+
+A symbol collision is invisible to **every other gate in this repo**, because each
+colliding use is individually well-formed. `lint-math` sees valid delimiters, the
+renumber scripts see resolving anchors, `validate-refs` sees live links, KaTeX
+renders it. Nothing binds a symbol to a meaning, and nothing can — that is a
+semantic property of prose.
+
+LLM notation is unusually collision-prone, because the standard letters are
+overloaded across the very sub-fields a survey spans:
+
+| Letter | Meanings that collide in one survey |
+|---|---|
+| $N$ | parameter count (scaling laws) vs sample/sequence count vs vocabulary size |
+| $d$ | model width $d_{\text{model}}$ vs per-head $d_k$ vs dataset size |
+| $L$ | layer count vs loss vs sequence length |
+| $T$ | temperature vs number of timesteps vs token budget |
+| $k$ | few-shot $k$ vs top-$k$ vs `pass@k` vs per-head dimension index |
+| $\theta$ | model parameters vs a RoPE rotation angle |
+| $\beta$ | the KL coefficient in RLHF/DPO vs an Adam moment decay rate |
+
+Upstream measured the cost of ignoring this, all in one appendix: pass 1 unified
+the letters the reader asked about; pass 2, while fixing pass 1, found a variance
+collision on a single line; pass 3, over the whole **file**, found four more —
+including a tagged equation that *divided by* a symbol meaning a variance in one
+section and a complex variable in another; and pass 4, *after* a notation table
+existed, found two more — one **created by the edit that added the table's own
+section**.
+
+Pass 4 is the load-bearing evidence: a table alone is not sufficient, which is
+why the obligations below are about *when you consult it*, not just that it exists.
+
+## Where it lives
+
+- **Single-file document** — a `.0`-numbered section at the top (`B.0 Notation`),
+  or an unnumbered `## Notation` before the first derivation.
+- **Multi-file survey** — one table in `index.md` serves every body file. Check
+  #12 looks there automatically.
+- **Neither** — a per-file `<!-- notation-table: <where-it-lives> -->` marker
+  opts out and records where the declaration actually is. Use it honestly; it is
+  not a silencer.
+
+## What it must contain
+
+1. **Every symbol**, grouped into 2–4 thematic tables (not one flat list), each
+   row `symbol | meaning | where introduced`. Link the "introduced" column to the
+   defining equation where one exists.
+2. **The conventions that run throughout** — at minimum the bold/case rule.
+   State it precisely: *bold capital = matrix, bold lowercase = vector, unbolded
+   indexed = component*. A vaguer "bold means vector or matrix" **licenses** the
+   very collision it should prevent.
+3. **An explicit note naming the reuses that are deliberate**, and scoping each to
+   where it is local. This is the part that does the real work — a bare glossary
+   cannot catch a reuse whose two meanings are *each individually standard*
+   ($k$ as the few-shot count and as the `pass@k` sample count; $T$ as decoding
+   temperature and as a training-step index). Anything reused and *not* named
+   here is a defect, not a convention.
+
+## Three obligations at authoring time
+
+**1. The trigger is PROMOTION, not introduction.** When an edit lifts an existing
+incidental symbol into a tagged equation, a heading, or a table, check it has a
+row. No new letter is invented in this case, so a "declare new symbols" habit does
+not fire — and that is exactly how the pass-4 defect above entered.
+
+**2. For "same quantity, different normalization", reach for a DECORATION before
+a new letter.** $\tilde{L} \triangleq L/\ln 2$ (a loss in bits beside one in nats)
+beats inventing a new letter: it cannot collide with a letter you failed to grep
+for, it inherits the case convention instead of re-asserting it, and it keeps the
+correspondence visible instead of asking the reader to memorize a mapping. Before
+choosing an accent, check which are already spoken for ($\hat{\cdot}$ = estimate
+and $\tilde{\cdot}$ = a normalized or perturbed variant are common), and **verify
+the accent renders** — run `verify-katex-render.cjs` on a probe with the accent
+over a **bold** symbol inside `aligned`/`underbrace` *before* a mass replacement,
+not after.
+
+**3. A new letter must be cleared against the whole corpus it will live in.**
+Grepping only the files you are editing reads as diligence and is not. The
+measured upstream failure: two letters were verified unused in the two files under
+edit while the *same survey*'s sibling body files already used them for something
+else.
+
+## Renaming a symbol: use the tool, never a find-replace
+
+Renaming is the *remedy* the three obligations above lead to, and it has its own
+failure mode: **a botched LaTeX rename renders cleanly and is simply wrong**, so
+no gate catches it and a careful re-read does not either. Use
+`viewer/tools/rename-symbol.py`, which is a dry run by default:
+
+```bash
+# 1. dry run -- READ every proposed change
+python viewer/tools/rename-symbol.py surveys/foo/*.md --from N --to N_{\text{nonemb}}
+# 2. apply, skipping any line where the letter means something else
+python viewer/tools/rename-symbol.py surveys/foo/bar.md --from N --to N_p \
+    --skip-line surveys/foo/bar.md:179 --apply
+```
+
+The three hazards it exists to absorb, each measured upstream on a real rename:
+
+1. **Sub/superscript braces.** `\mathbb{R}^N` must become `\mathbb{R}^{N_p}`, not
+   `\mathbb{R}^N_p` — which renders, and means something else. Same for `_N`.
+2. **Token boundaries, and getting them wrong.** A bare `N` must not match `N_l`
+   (a different quantity) or `NLL` (prose). A hand-written lookbehind on the first
+   attempt *also* excluded `{`, silently leaving half-renamed artifacts —
+   `\mathbb{R}^{N\times N_p}`, `\frac{N\gamma}{1 + N_p\gamma}`. **They were found
+   only by re-scanning after the pass**, which is why `--apply` always re-scans
+   and prints residuals. Never trust the pattern that produced a rename to also
+   verify it.
+3. **The same letter meaning something else.** That rename's dry run surfaced the
+   letter inside an optimizer-state recursion — a different quantity entirely.
+   This is why the dry run is the default and reading it is the point.
+
+Scope is math spans only unless `--all-text` is passed, so prose is never
+touched. After applying, run the full sweep — and **`verify-katex-render.cjs` is
+not optional**, because it is the only gate that proves a brace slip did not
+survive.
+
+Two things to do in the same turn as the rename, or they rot:
+
+- **Update the notation table row** — the whole point of the table is that it is
+  the declaration point.
+- **Re-read any prose that documented the collision you just removed.** A note
+  saying "these two are deliberate, disambiguated by a subscript" becomes false
+  the moment one of them is renamed. This is the stale-framing failure
+  `.claude/skills/results-reconciliation/SKILL.md` exists for, arriving one turn
+  after the edit rather than many.
+
+## The gates
+
+| Check | What it decides | Severity |
+|---|---|---|
+| `lint-math.py` #12 | a document with ≥ 8 tagged equations has a notation table (here, in `index.md`, or opted out) | `.claude/notation-table-severity` — `off｜warn｜error`, currently **`warn`** |
+| `lint-math.py` #13 | one symbol carries two *different* `\triangleq` definitions in one file | warning, always |
+
+Check #13 is deliberately narrow and **found zero instances corpus-wide when it
+landed here** — it is a regression guard, not a discovery tool. It cannot see the
+common case (two sections both writing $\alpha$ for different things without ever
+formally defining either); only a human reading the table can. Do not mistake a
+green #13 for "symbols are consistent".
+
+Rollout mirrors bare-refs and crosslink: land at `warn`, retrofit the measured
+backlog (**6 files at landing**, all under `surveys/`), flip to `error` at zero.
+
+
 # Inline Math Delimiters
 
 The viewer uses `markdown-it-texmath@1.0.0` with the `dollars` delimiter rule. Its `$_pre`/`$_post` hooks impose two rules that KaTeX itself does not enforce:

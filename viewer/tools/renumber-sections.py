@@ -32,6 +32,7 @@ Usage:
   python viewer/tools/renumber-sections.py DIR  [...]
 """
 import argparse
+import collections
 import difflib
 import importlib.util
 import io
@@ -735,11 +736,25 @@ def promote_bare_section_refs(lines, this_file_name, survey_index, anchors):
 
 # -- Per-file processing -------------------------------------------------
 
+# What this run actually examined. A gate that cannot say what it read cannot
+# distinguish "looked and found nothing" from "did not look" -- and this one could
+# not: `--check surveys/ wikis/` emitted ZERO bytes and exit 0 over 211 files, which
+# is byte-identical to what it emitted over an empty directory. Its two siblings
+# print 130 KB and 52 KB respectively. Same class as
+# `bugs/2026-08-22-three-gates-whose-pass-and-skip-looked-identical`.
+SCANNED: collections.Counter = collections.Counter()
+
+
 def process_file(path, args, survey_index):
     """Process a single file. Returns 0 on clean, 1 on drift/error."""
     original = path.read_text(encoding="utf-8")
     lines = original.split("\n")
     headings = scan_headings(lines)
+
+    SCANNED["files"] += 1
+    SCANNED["headings"] += len(headings)
+    SCANNED["secref"] += original.count("<!-- secref:")
+    SCANNED["secxref"] += original.count("<!-- secxref:")
 
     # Detect duplicate section numbers
     dups = detect_duplicate_headings(headings)
@@ -904,6 +919,16 @@ def main():
     # Cache survey indices by directory so we don't rebuild for each file.
     index_cache = {}
 
+    missing = [t for t in args.paths if not Path(t).exists()]
+    if missing:
+        # Previously this reached `path.read_text` and died with a traceback, which at
+        # least was loud. REFUSE (2) is the repo's signal for "no denominator", and it
+        # is deliberately distinct from FAIL (1): a gate that found drift is working, a
+        # gate that could not establish what to read has no verdict to give.
+        for t in missing:
+            print(f"[renumber-sections] REFUSE: {t} does not exist", file=sys.stderr)
+        sys.exit(2)
+
     for target in args.paths:
         p = Path(target)
         if p.is_dir():
@@ -926,6 +951,21 @@ def main():
             file_rc = process_file(f, args, survey_index)
             if file_rc:
                 rc = file_rc
+
+    if not SCANNED["files"]:
+        print("[renumber-sections] REFUSE: no markdown in scope under "
+              + ", ".join(args.paths)
+              + " — refusing to report clean for a corpus it never read",
+              file=sys.stderr)
+        sys.exit(2)
+
+    if not args.dry_run_diff:
+        # --dry-run-diff writes a unified diff to stdout, which a caller may pipe to
+        # `patch`; everything else gets the denominator.
+        verdict = "drift" if rc else "OK"
+        print(f"[renumber-sections] {verdict} — {SCANNED['files']} file(s), "
+              f"{SCANNED['headings']} numbered heading(s), "
+              f"{SCANNED['secref']} secref + {SCANNED['secxref']} secxref marker(s)")
     sys.exit(rc)
 
 

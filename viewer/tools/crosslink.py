@@ -1622,6 +1622,97 @@ def _md_under(root: str) -> set:
             if not any(part.startswith("_") for part in p.parts)}
 
 
+#: Bold-label lines a wiki uses to declare its host study, in the order they are
+#: trusted. Measured over the 54-wiki corpus: `Host survey.` is the explicit form,
+#: the others carry the host inside prose.
+_HOST_LABELS = ("Host survey.", "Source.", "Study:", "Role of this wiki.", "Audience.",
+                "What this is.")
+
+#: How far into a wiki the declaration is looked for. A link to a survey deep in the
+#: body is a cross-reference, not a provenance claim.
+_HOST_HEADER_LINES = 20
+
+
+def _declared_hosts(path: str) -> list:
+    """Survey targets this wiki's own header claims as its host, in document order.
+
+    This is the whole reason `reach` needs a remedy distinct from `check`. Cosine
+    similarity does not optimise for the survey -> wiki direction, so a `reach` gap can
+    sit at zero candidates forever. But the edge that reachability needs is the REVERSE
+    of one that already exists: the `reference-implementation-study` G0 gate requires
+    the wiki to cite its survey, so an orphaned derivation wiki has, essentially always,
+    already named its own host in its opening lines. Read it instead of inferring it.
+
+    Returns `[(survey_path, anchor, label)]` -- the survey file, the section anchor the
+    wiki points at (where the back-link belongs), and the bold label it was found under.
+    """
+    text = Path(path).read_text(encoding="utf-8", errors="replace")
+    head = "\n".join(_HTML_COMMENT_RE.sub("", text).splitlines()[:_HOST_HEADER_LINES])
+    out, seen = [], set()
+    for line in head.splitlines():
+        label = next((l for l in _HOST_LABELS if l in line), "")
+        for target in _MD_LINK_RE.findall(line):
+            tgt, _, anchor = target.partition("#")
+            tgt = tgt.strip()
+            if "://" in tgt or not tgt.endswith(".md"):
+                continue
+            try:
+                rel = _norm(str((Path(path).parent / tgt).resolve()
+                                .relative_to(Path.cwd().resolve())))
+            except (ValueError, OSError):
+                continue
+            if not rel.startswith("surveys/") or rel in seen:
+                continue
+            seen.add(rel)
+            out.append((rel, anchor.strip(), label or "(unlabelled header link)"))
+    return out
+
+
+def _grouped_files(scope_file: str) -> set:
+    """Every file in some corpus group -- a file in none can never be proposed."""
+    try:
+        return {_norm(f) for paths in load_scope(scope_file).values() for f in paths}
+    except Exception:
+        return set()
+
+
+def propose_reach(orphans: list, scope_file: str) -> list:
+    """One proposal per unreachable wiki: the host it declares, or an honest refusal.
+
+    Deterministic and similarity-free BY DESIGN. This emits a review sheet for a human
+    to act on; it never writes a link (`.claude/rules/cross-linking.md`: detection is
+    deterministic and lives in the gates, insertion needs judgment and is on-demand).
+    """
+    grouped = _grouped_files(scope_file)
+    rows = []
+    for wiki in orphans:
+        hosts, tier = _declared_hosts(wiki), "declared"
+        if not hosts:
+            # Tier 2, explicitly weaker: a survey the wiki links ANYWHERE in its body.
+            # Not a provenance claim -- a candidate a human confirms. Measured over the
+            # 45 non-keep-out wikis: tier 1 covers 31, tier 2 a further 7, and 7 have no
+            # survey link at all. Reporting the tier is what keeps the sheet honest;
+            # collapsing them would present a body cross-reference as a declared host.
+            hosts = [(t, "", "(body link, NOT a declared host — confirm)")
+                     for t in sorted(_reader_facing_links(wiki))
+                     if t.startswith("surveys/")]
+            tier = "body-link" if hosts else "none"
+        rows.append({
+            "wiki": wiki,
+            "hosts": hosts,
+            "tier": tier,
+            "ungrouped": wiki not in grouped,
+            "action": {
+                "declared": "add a reader-facing link from the named survey section "
+                            "back to this wiki",
+                "body-link": "confirm which of these is the host, then link back from it",
+                "none": "NO SURVEY LINK ANYWHERE -- read the wiki and either link it "
+                        "from the section it supports or declare it in the keep-out file",
+            }[tier],
+        })
+    return rows
+
+
 def reach_cmd(args):
     """Report every wiki UNREACHABLE from the survey corpus by reader-facing links.
 
@@ -1657,7 +1748,32 @@ def reach_cmd(args):
     for f in orphans:
         print(f"[crosslink] UNREACHABLE: {f} — no reader-facing link from any survey "
               f"(mentions inside HTML comments do not count). Link it from the section "
-              f"it supports, or declare it in {args.keepout}.", file=sys.stderr)
+              f"it supports, or declare it in {args.keepout}. "
+              f"`reach --propose` reads the host each one declares.", file=sys.stderr)
+
+    if getattr(args, "propose", False):
+        rows = propose_reach(orphans, args.scope_file)
+        if not rows:
+            print("[crosslink] reach --propose: nothing unreachable — no proposals.",
+                  file=sys.stderr)
+        for row in rows:
+            print(f"\n--- {row['wiki']}")
+            if row["ungrouped"]:
+                print("    note: in NO corpus group — no similarity tool could ever "
+                      "propose it; its reachability is a purely manual obligation.")
+            print(f"    tier: {row['tier']}")
+            for survey, anchor, label in row["hosts"]:
+                where = f"{survey}#{anchor}" if anchor else survey
+                print(f"    declares host: {where}   [found under: {label}]")
+            print(f"    action: {row['action']}")
+        if rows:
+            by = {t: sum(1 for r in rows if r["tier"] == t)
+                  for t in ("declared", "body-link", "none")}
+            print(f"\n[crosslink] reach --propose: {len(rows)} proposal(s) — "
+                  f"{by['declared']} declared host, {by['body-link']} body-link "
+                  f"candidate, {by['none']} with no survey link at all. "
+                  "Deterministic and similarity-free; INSERT BY HAND (never writes).",
+                  file=sys.stderr)
     for f in stale:
         print(f"[crosslink] note: keep-out entry {f} names no wiki (stale?).",
               file=sys.stderr)
@@ -1707,6 +1823,12 @@ def build_parser():
                                       "by reader-facing links (orphaned derivations)")
     rc.add_argument("--keepout", default=DEFAULT_REACH_KEEPOUT)
     rc.add_argument("--severity", choices=["off", "warn", "error"], default="warn")
+    rc.add_argument("--scope-file", default=".claude/crosslink-scope")
+    rc.add_argument("--propose", action="store_true",
+                    help="for each unreachable wiki, print the host survey section it "
+                         "DECLARES in its own header (provenance-driven, not cosine — "
+                         "reach gaps are structurally invisible to similarity). Emits a "
+                         "review sheet; never writes.")
     rc.set_defaults(func=reach_cmd)
 
     jp = sub.add_parser("judge-prompt", help="print the canonical Stage-3 judge prompt "
